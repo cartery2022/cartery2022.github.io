@@ -1,0 +1,29 @@
+/* 让 post-meta 这一行所有 item 垂直居中 */
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* 每个 meta item 自己也用 inline-flex，保证 icon+text 对齐 */
+.post-meta .post-meta-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 分隔符也居中 */
+.post-meta .post-meta-divider {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 图标（i 或 svg）统一垂直对齐 */
+.post-meta .post-meta-item-icon,
+.post-meta .post-meta-item-icon i,
+.post-meta .post-meta-item-icon svg {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+

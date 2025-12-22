@@ -1,0 +1,29 @@
+{# source/_data/post-meta.njk #}
+
+<div class="post-meta">
+
+  {# 发布时间/更新时间（沿用 NexT 内部宏：最稳方式是直接 include 原模板，但这里做“轻覆盖”） #}
+  {# 你原本的 created/updated/categories 仍然会在主题其它位置渲染；这里专注“标题下显示” #}
+
+  {# 阅读时间 / 字数：依赖你已安装的 hexo-word-counter 或 symbols-count-time #}
+  {% if theme.symbols_count_time and theme.symbols_count_time.separated_meta is not none %}
+    <span class="post-meta-item">
+      <i class="far fa-clock"></i>
+      <span class="post-meta-item-text">阅读</span>
+      <span class="post-meta-item-count">
+        {{ page.symbols_count_time.time }}
+      </span>
+    </span>
+  {% endif %}
+
+  {# Busuanzi：本文阅读数（PV） #}
+  {% if theme.busuanzi_count and theme.busuanzi_count.enable %}
+    <span class="post-meta-item" id="busuanzi_container_page_pv" style="display:none">
+      <i class="{{ theme.busuanzi_count.post_views_icon or 'far fa-eye' }}"></i>
+      <span class="post-meta-item-text">阅读</span>
+      <span class="post-meta-item-count" id="busuanzi_value_page_pv"></span>
+    </span>
+  {% endif %}
+
+</div>
+

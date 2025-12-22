@@ -1,0 +1,10 @@
+<div class="sidebar-panel">
+  <div class="sidebar-panel-header">热门文章</div>
+  <div class="sidebar-panel-body">
+    {% if popular_posts %}
+      {{ popular_posts({}, page) | safe }}
+    {% else %}
+      <p>popular_posts helper 未加载</p>
+    {% endif %}
+  </div>
+</div>

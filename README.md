@@ -2,7 +2,7 @@
 
 基于 [Hexo](https://hexo.io/) 的静态博客，使用 [NexT](https://theme-next.js.org/) 主题，通过 GitHub Actions 自动部署到 GitHub Pages。
 
-- **站点地址**：<https://cartery.github.io>
+- **站点地址**：<https://cartery2022.github.io/>
 
 ## 技术栈
 

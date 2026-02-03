@@ -185,18 +185,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">1</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">categories</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -213,151 +213,6 @@
     </div>
 
     <div class="main-inner index posts-expand">
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Beside Lake Baikal">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Beside Lake Baikal">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/" class="post-title-link" itemprop="url">Hexo 博客用 GitHub Actions 部署到 GitHub Pages</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2025-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2025-02-03T00:00:00+00:00">2025-02-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-03 07:09:24" itemprop="dateModified" datetime="2026-02-03T07:09:24+00:00">2026-02-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%90%E7%BB%B4/" itemprop="url" rel="index"><span itemprop="name">运维</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%90%E7%BB%B4/%E5%8D%9A%E5%AE%A2/" itemprop="url" rel="index"><span itemprop="name">博客</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>213</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>1 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="hexo-博客用-github-actions-部署到-github-pages"><a class="markdownIt-Anchor" href="#hexo-博客用-github-actions-部署到-github-pages"></a> Hexo 博客用 GitHub Actions 部署到 GitHub Pages</h1>
-<p>本博客通过 GitHub Actions 自动构建 Hexo 并部署到 GitHub Pages，访问地址：</p>
-<p><strong><a href="https://cartery.github.io">https://cartery.github.io</a></strong></p>
-<h2 id="技术栈"><a class="markdownIt-Anchor" href="#技术栈"></a> 技术栈</h2>
-<ul>
-<li><strong>框架</strong>：Hexo 8 + NexT 主题</li>
-<li><strong>托管</strong>：GitHub Pages（发布分支 <code>gh-pages</code>）</li>
-<li><strong>CI/CD</strong>：GitHub Actions（push 到 <code>main</code> 时自动构建并部署）</li>
-</ul>
-<h2 id="要点摘要"><a class="markdownIt-Anchor" href="#要点摘要"></a> 要点摘要</h2>
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Node 版本</td>
-<td>用 <code>.nvmrc</code> + <code>package.json</code> 的 <code>engines</code> 固定为 24.12.0，本地与 CI 一致</td>
-</tr>
-<tr>
-<td>依赖</td>
-<td>插件写在 <code>package.json</code>，用 <code>package-lock.json</code> 锁定版本；CI 里用 <code>npm ci</code> 复现同一套依赖</td>
-</tr>
-<tr>
-<td>主题</td>
-<td>NexT 通过 npm 安装；CI 中把 <code>node_modules/hexo-theme-next</code> 复制到 <code>themes/next</code>，保证 Hexo 能正确加载主题</td>
-</tr>
-<tr>
-<td>站点 URL</td>
-<td><code>_config.yml</code> 中 <code>url: https://cartery.github.io</code>，用于生成正确链接</td>
-</tr>
-</tbody>
-</table>
-<h2 id="相关文件"><a class="markdownIt-Anchor" href="#相关文件"></a> 相关文件</h2>
-<ul>
-<li>工作流：<code>.github/workflows/deploy.yml</code></li>
-<li>站点配置：<code>_config.yml</code>、<code>_config.next.yml</code></li>
-<li>版本与依赖：<code>.nvmrc</code>、<code>package.json</code>、<code>package-lock.json</code></li>
-</ul>
-<p>推送代码到 <code>main</code> 后，Actions 会自动执行构建并更新站点。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
 
     
 
@@ -403,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-03 07:09:24" itemprop="dateModified" datetime="2026-02-03T07:09:24+00:00">2026-02-03</time>
+      <time title="Modified: 2026-02-03 07:11:55" itemprop="dateModified" datetime="2026-02-03T07:11:55+00:00">2026-02-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -684,7 +539,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">5 mins.</span>
+    <span title="Reading time total">4 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

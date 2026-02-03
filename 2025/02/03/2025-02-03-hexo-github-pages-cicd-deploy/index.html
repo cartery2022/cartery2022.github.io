@@ -22,22 +22,30 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"cartery.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="Beside Lake Baikal">
-<meta property="og:url" content="https://cartery.github.io/tags/python/index.html">
+    <meta name="description" content="Hexo 博客用 GitHub Actions 部署到 GitHub Pages 本博客通过 GitHub Actions 自动构建 Hexo 并部署到 GitHub Pages，访问地址： https:&#x2F;&#x2F;cartery.github.io  技术栈  框架：Hexo 8 + NexT 主题 托管：GitHub Pages（发布分支 gh-pages） CI&#x2F;CD：GitHub Actions">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo 博客用 GitHub Actions 部署到 GitHub Pages">
+<meta property="og:url" content="https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/index.html">
 <meta property="og:site_name" content="Beside Lake Baikal">
+<meta property="og:description" content="Hexo 博客用 GitHub Actions 部署到 GitHub Pages 本博客通过 GitHub Actions 自动构建 Hexo 并部署到 GitHub Pages，访问地址： https:&#x2F;&#x2F;cartery.github.io  技术栈  框架：Hexo 8 + NexT 主题 托管：GitHub Pages（发布分支 gh-pages） CI&#x2F;CD：GitHub Actions">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-02-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-02-03T07:09:24.609Z">
 <meta property="article:author" content="cartery">
+<meta property="article:tag" content="cicd">
+<meta property="article:tag" content="github-actions">
+<meta property="article:tag" content="github-pages">
+<meta property="article:tag" content="hexo">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://cartery.github.io/tags/python/">
+<link rel="canonical" href="https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":"","permalink":"","path":"tags/python/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/","path":"2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/","title":"Hexo 博客用 GitHub Actions 部署到 GitHub Pages"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Tag: python | Beside Lake Baikal</title>
+<title>Hexo 博客用 GitHub Actions 部署到 GitHub Pages | Beside Lake Baikal</title>
   
 
 
@@ -81,7 +89,7 @@
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
-  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery.github.io/tags/python/"}</script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/"}</script>
   <script src="/js/third-party/quicklink.js" defer></script>
 
   <noscript>
@@ -160,7 +168,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           Table of Contents
@@ -173,6 +181,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#hexo-%E5%8D%9A%E5%AE%A2%E7%94%A8-github-actions-%E9%83%A8%E7%BD%B2%E5%88%B0-github-pages"><span class="nav-number">1.</span> <span class="nav-text"> Hexo 博客用 GitHub Actions 部署到 GitHub Pages</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%A0%88"><span class="nav-number">1.1.</span> <span class="nav-text"> 技术栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A6%81%E7%82%B9%E6%91%98%E8%A6%81"><span class="nav-number">1.2.</span> <span class="nav-text"> 要点摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E6%96%87%E4%BB%B6"><span class="nav-number">1.3.</span> <span class="nav-text"> 相关文件</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -212,50 +221,176 @@
 
     </div>
 
-    <div class="main-inner tag posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
+
+
+<div class="post-block">
   
   
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <h1 class="collection-header">python
-          <small>Tag</small>
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://cartery.github.io/2025/02/03/2025-02-03-hexo-github-pages-cicd-deploy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Beside Lake Baikal">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Hexo 博客用 GitHub Actions 部署到 GitHub Pages | Beside Lake Baikal">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Hexo 博客用 GitHub Actions 部署到 GitHub Pages
         </h1>
-      </div>
 
-      
-    <div class="collection-year">
-      <span class="collection-header">2025</span>
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-02-03 00:00:00" itemprop="dateCreated datePublished" datetime="2025-02-03T00:00:00+00:00">2025-02-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-02-03 07:09:24" itemprop="dateModified" datetime="2026-02-03T07:09:24+00:00">2026-02-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%90%E7%BB%B4/" itemprop="url" rel="index"><span itemprop="name">运维</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%90%E7%BB%B4/%E5%8D%9A%E5%AE%A2/" itemprop="url" rel="index"><span itemprop="name">博客</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>213</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>1 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="hexo-博客用-github-actions-部署到-github-pages"><a class="markdownIt-Anchor" href="#hexo-博客用-github-actions-部署到-github-pages"></a> Hexo 博客用 GitHub Actions 部署到 GitHub Pages</h1>
+<p>本博客通过 GitHub Actions 自动构建 Hexo 并部署到 GitHub Pages，访问地址：</p>
+<p><strong><a href="https://cartery.github.io">https://cartery.github.io</a></strong></p>
+<h2 id="技术栈"><a class="markdownIt-Anchor" href="#技术栈"></a> 技术栈</h2>
+<ul>
+<li><strong>框架</strong>：Hexo 8 + NexT 主题</li>
+<li><strong>托管</strong>：GitHub Pages（发布分支 <code>gh-pages</code>）</li>
+<li><strong>CI/CD</strong>：GitHub Actions（push 到 <code>main</code> 时自动构建并部署）</li>
+</ul>
+<h2 id="要点摘要"><a class="markdownIt-Anchor" href="#要点摘要"></a> 要点摘要</h2>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node 版本</td>
+<td>用 <code>.nvmrc</code> + <code>package.json</code> 的 <code>engines</code> 固定为 24.12.0，本地与 CI 一致</td>
+</tr>
+<tr>
+<td>依赖</td>
+<td>插件写在 <code>package.json</code>，用 <code>package-lock.json</code> 锁定版本；CI 里用 <code>npm ci</code> 复现同一套依赖</td>
+</tr>
+<tr>
+<td>主题</td>
+<td>NexT 通过 npm 安装；CI 中把 <code>node_modules/hexo-theme-next</code> 复制到 <code>themes/next</code>，保证 Hexo 能正确加载主题</td>
+</tr>
+<tr>
+<td>站点 URL</td>
+<td><code>_config.yml</code> 中 <code>url: https://cartery.github.io</code>，用于生成正确链接</td>
+</tr>
+</tbody>
+</table>
+<h2 id="相关文件"><a class="markdownIt-Anchor" href="#相关文件"></a> 相关文件</h2>
+<ul>
+<li>工作流：<code>.github/workflows/deploy.yml</code></li>
+<li>站点配置：<code>_config.yml</code>、<code>_config.next.yml</code></li>
+<li>版本与依赖：<code>.nvmrc</code>、<code>package.json</code>、<code>package-lock.json</code></li>
+</ul>
+<p>推送代码到 <code>main</code> 后，Actions 会自动执行构建并更新站点。</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-01-30T00:00:00+00:00"
-              content="2025-01-30">
-          01-30
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/01/30/2025-01-30-python-recursive-character-text-splitter/" itemprop="url">
-            <span itemprop="name">Python RecursiveCharacterTextSplitter 源码解读</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/github-actions/" rel="tag"># github-actions</a>
+              <a href="/tags/github-pages/" rel="tag"># github-pages</a>
+              <a href="/tags/cicd/" rel="tag"># cicd</a>
+          </div>
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/01/30/2025-01-30-python-recursive-character-text-splitter/" rel="prev" title="Python RecursiveCharacterTextSplitter 源码解读">
+                  <i class="fa fa-angle-left"></i> Python RecursiveCharacterTextSplitter 源码解读
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
+
 
 </div>
   </main>

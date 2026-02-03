@@ -1,0 +1,8 @@
+custom_file_path:
+  style: source/_data/styles.styl
+
+busuanzi_count:
+  enable: true
+  total_visitors: false
+  total_views: false
+  post_views: true

@@ -1,9 +1,17 @@
 ---
-title: Python RecursiveCharacterTextSplitter 源码解析
+title: Python RecursiveCharacterTextSplitter 源码解读
 date: 2025-01-30
+tags:
+  - agent
+  - python
+  - 源码解读
+categories:
+  - agent
+  - 源码解读
+  - textSplitter
 ---
 
-# Python RecursiveCharacterTextSplitter 源码解析
+# Python RecursiveCharacterTextSplitter 源码解读
 
 ## 概述
 
@@ -37,7 +45,7 @@ date: 2025-01-30
 
 **继承自 TextSplitter 的参数**：`chunk_size`、`chunk_overlap`、`length_function`（基类定义块大小、重叠与长度计算方式；本类在此基础上增加 `separators`、`keep_separator`、`is_separator_regex` 等与分隔符相关的配置）。
 
-## 源码解析
+## 源码解读
 
 LangChain Python 的 `RecursiveCharacterTextSplitter` 继承自 `TextSplitter`，核心逻辑在**递归按分隔符切分**和**带重叠的合并**两处。
 

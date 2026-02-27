@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-27 06:37:08" itemprop="dateModified" datetime="2026-02-27T06:37:08+00:00">2026-02-27</time>
+      <time title="Modified: 2026-02-27 06:41:25" itemprop="dateModified" datetime="2026-02-27T06:41:25+00:00">2026-02-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -284,14 +284,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>1.2k</span>
+      <span>728</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>4 mins.</span>
+      <span>3 mins.</span>
     </span>
 </div>
 
@@ -467,127 +467,6 @@
 <p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
 <figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
 <p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="spring-ai-中的对应实现"><a class="markdownIt-Anchor" href="#spring-ai-中的对应实现"></a> Spring AI 中的对应实现</h2>
-<p>本仓库在 <code>org.springframework.ai.transformer.splitter</code> 下实现了与 LangChain4j 对齐的 API，并<strong>默认递归行为与 Python RecursiveCharacterTextSplitter 一致</strong>。</p>
-<h3 id="工厂类documentsplitters"><a class="markdownIt-Anchor" href="#工厂类documentsplitters"></a> 工厂类：DocumentSplitters</h3>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>返回类型</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>recursive()</code></td>
-<td><code>RecursiveCharacterTextSplitter</code></td>
-<td>默认递归（同 Python），chunk 1000，overlap 200</td>
-</tr>
-<tr>
-<td><code>recursive(chunkSize, chunkOverlap)</code></td>
-<td><code>RecursiveCharacterTextSplitter</code></td>
-<td>自定义大小与重叠</td>
-</tr>
-<tr>
-<td><code>byParagraph()</code></td>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td>按段落 <code>"\n\n"</code></td>
-</tr>
-<tr>
-<td><code>byParagraph(maxSegmentSize, chunkOverlap)</code></td>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td>自定义参数</td>
-</tr>
-<tr>
-<td><code>byLine()</code></td>
-<td><code>DocumentByLineSplitter</code></td>
-<td>按行 <code>"\n"</code></td>
-</tr>
-<tr>
-<td><code>byLine(maxSegmentSize, chunkOverlap)</code></td>
-<td><code>DocumentByLineSplitter</code></td>
-<td>自定义参数</td>
-</tr>
-<tr>
-<td><code>byWord()</code></td>
-<td><code>DocumentByWordSplitter</code></td>
-<td>按词 <code>" "</code></td>
-</tr>
-<tr>
-<td><code>byWord(maxSegmentSize, chunkOverlap)</code></td>
-<td><code>DocumentByWordSplitter</code></td>
-<td>自定义参数</td>
-</tr>
-<tr>
-<td><code>byCharacter()</code></td>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>byCharacter(maxSegmentSize, chunkOverlap)</code></td>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>自定义参数</td>
-</tr>
-</tbody>
-</table>
-<h3 id="使用示例"><a class="markdownIt-Anchor" href="#使用示例"></a> 使用示例</h3>
-<h4 id="1-默认递归推荐等同-python-recursivecharactertextsplitter"><a class="markdownIt-Anchor" href="#1-默认递归推荐等同-python-recursivecharactertextsplitter"></a> 1. 默认递归（推荐，等同 Python RecursiveCharacterTextSplitter）</h4>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.ai.document.Document;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.transformer.splitter.DocumentSplitters;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.transformer.splitter.TextSplitter;</span><br><span class="line"></span><br><span class="line"><span class="type">TextSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive();</span><br><span class="line">List&lt;Document&gt; chunks = splitter.split(List.of(document));</span><br><span class="line"><span class="comment">// 或</span></span><br><span class="line">List&lt;Document&gt; chunks = splitter.apply(List.of(doc1, doc2));</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="2-自定义-chunk-大小与重叠"><a class="markdownIt-Anchor" href="#2-自定义-chunk-大小与重叠"></a> 2. 自定义 chunk 大小与重叠</h4>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">TextSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(<span class="number">500</span>, <span class="number">100</span>);</span><br><span class="line">List&lt;Document&gt; chunks = splitter.split(documents);</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="3-仅按段落-行-词-字符"><a class="markdownIt-Anchor" href="#3-仅按段落-行-词-字符"></a> 3. 仅按段落 / 行 / 词 / 字符</h4>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按段落</span></span><br><span class="line"><span class="type">TextSplitter</span> <span class="variable">byParagraph</span> <span class="operator">=</span> DocumentSplitters.byParagraph();</span><br><span class="line">List&lt;Document&gt; chunks = byParagraph.split(documents);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 按行</span></span><br><span class="line"><span class="type">TextSplitter</span> <span class="variable">byLine</span> <span class="operator">=</span> DocumentSplitters.byLine(<span class="number">1000</span>, <span class="number">200</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 按词</span></span><br><span class="line"><span class="type">TextSplitter</span> <span class="variable">byWord</span> <span class="operator">=</span> DocumentSplitters.byWord();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 按字符</span></span><br><span class="line"><span class="type">TextSplitter</span> <span class="variable">byChar</span> <span class="operator">=</span> DocumentSplitters.byCharacter(<span class="number">1000</span>, <span class="number">200</span>);</span><br></pre></td></tr></tbody></table></figure>
-<h4 id="4-builder-方式recursivecharactertextsplitter"><a class="markdownIt-Anchor" href="#4-builder-方式recursivecharactertextsplitter"></a> 4. Builder 方式（RecursiveCharacterTextSplitter）</h4>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">RecursiveCharacterTextSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> RecursiveCharacterTextSplitter.builder()</span><br><span class="line">    .chunkSize(<span class="number">1000</span>)</span><br><span class="line">    .chunkOverlap(<span class="number">200</span>)</span><br><span class="line">    .keepSeparator(<span class="literal">true</span>)</span><br><span class="line">    .separators(List.of(<span class="string">"\n\n"</span>, <span class="string">"\n"</span>, <span class="string">" "</span>, <span class="string">""</span>))</span><br><span class="line">    .build();</span><br><span class="line">List&lt;Document&gt; chunks = splitter.split(documents);</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="输出与元数据"><a class="markdownIt-Anchor" href="#输出与元数据"></a> 输出与元数据</h3>
-<p>所有分割器继承 <code>TextSplitter</code>，实现 <code>DocumentTransformer</code>，因此：</p>
-<ul>
-<li>输入：<code>List&lt;Document&gt;</code></li>
-<li>输出：<code>List&lt;Document&gt;</code>，每个块带有：
-<ul>
-<li><code>parent_document_id</code>：来源文档 ID</li>
-<li><code>chunk_index</code>：块在该文档中的下标</li>
-<li><code>total_chunks</code>：该文档被分成的总块数</li>
-<li>以及从原 Document 继承的其他 metadata</li>
-</ul>
-</li>
-</ul>
-<h2 id="与-langchain4j-的差异"><a class="markdownIt-Anchor" href="#与-langchain4j-的差异"></a> 与 LangChain4j 的差异</h2>
-<table>
-<thead>
-<tr>
-<th>项目</th>
-<th>LangChain4j</th>
-<th>Spring AI（本仓库）</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>输出类型</td>
-<td><code>TextSegment</code></td>
-<td><code>Document</code></td>
-</tr>
-<tr>
-<td>接口</td>
-<td><code>DocumentSplitter</code></td>
-<td><code>TextSplitter</code>（实现 <code>DocumentTransformer</code>）</td>
-</tr>
-<tr>
-<td>默认推荐</td>
-<td><code>DocumentSplitters.recursive()</code></td>
-<td><code>DocumentSplitters.recursive()</code>，且默认参数与 Python 一致</td>
-</tr>
-<tr>
-<td>按 token 分割</td>
-<td>recursive 支持 token 模式</td>
-<td>使用独立类 <code>TokenTextSplitter</code>（jtokkit）</td>
-</tr>
-</tbody>
-</table>
-<h2 id="依赖"><a class="markdownIt-Anchor" href="#依赖"></a> 依赖</h2>
-<p>Spring AI 相关分割器位于模块 <code>spring-ai-commons</code>，使用前确保已引入：</p>
-<figure class="highlight xml"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.ai<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-ai-commons<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>${spring-ai.version}<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></tbody></table></figure>
 <h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
@@ -656,7 +535,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-27 06:37:08" itemprop="dateModified" datetime="2026-02-27T06:37:08+00:00">2026-02-27</time>
+      <time title="Modified: 2026-02-27 06:41:25" itemprop="dateModified" datetime="2026-02-27T06:41:25+00:00">2026-02-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -937,7 +816,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">8 mins.</span>
+    <span title="Reading time total">7 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

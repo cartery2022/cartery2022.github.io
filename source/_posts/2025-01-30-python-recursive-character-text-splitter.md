@@ -4,6 +4,7 @@ date: 2025-01-30
 tags:
   - agent
   - python
+  - longchain
   - 源码解读
 categories:
   - agent

@@ -1,5 +1,6 @@
 custom_file_path:
   style: source/_data/styles.styl
+  layout: source/_data/layout
 
 busuanzi_count:
   enable: true

@@ -241,7 +241,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/en/2025/01/30/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter 实现说明</a>
+          <a href="/en/2025/01/30/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter — Implementation Notes</a>
         </h2>
 
         <div class="post-meta-container">
@@ -259,7 +259,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-28 08:51:12" itemprop="dateModified" datetime="2026-02-28T08:51:12Z">2026-02-28</time>
+      <time title="Modified: 2026-02-28 08:54:50" itemprop="dateModified" datetime="2026-02-28T08:54:50Z">2026-02-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -271,11 +271,11 @@
         </span>
           , 
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
+          <a href="/en/categories/agent/source-reading/" itemprop="url" rel="index"><span itemprop="name">source-reading</span></a>
         </span>
           , 
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+          <a href="/en/categories/agent/source-reading/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
         </span>
     </span>
 
@@ -285,14 +285,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>2.5k</span>
+      <span>3.7k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>2 mins.</span>
+      <span>3 mins.</span>
     </span>
 </div>
 
@@ -303,176 +303,176 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
+          <h1 id="langchain4j-splitter-package-document-splitting-source-walkthrough"><a class="markdownIt-Anchor" href="#langchain4j-splitter-package-document-splitting-source-walkthrough"></a> LangChain4j Splitter Package — Document Splitting Source Walkthrough</h1>
+<h2 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h2>
+<p>LangChain4j provides document splitting in the package <code>dev.langchain4j.data.document.splitter</code>: the <code>DocumentSplitter</code> interface turns a <code>Document</code> into multiple <code>TextSegment</code>s, with support for character, line, paragraph, sentence, word, and regex-based splitting.</p>
 <ul>
-<li>包文档：<a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+<li>Package docs: <a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
 </ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
+<h2 id="core-interface"><a class="markdownIt-Anchor" href="#core-interface"></a> Core interface</h2>
 <h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Conceptual interface (LangChain4j)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
+<li>Input: <code>Document</code></li>
+<li>Output: <code>List&lt;TextSegment&gt;</code>, each segment bounded by <code>maxSegmentSize</code></li>
 </ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
+<h2 id="built-in-splitters-langchain4j"><a class="markdownIt-Anchor" href="#built-in-splitters-langchain4j"></a> Built-in splitters (LangChain4j)</h2>
 <table>
 <thead>
 <tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
+<th>Class</th>
+<th>Separator / behavior</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>DocumentByParagraphSplitter</code></td>
 <td><code>"\n\n"</code></td>
-<td>按段落</td>
+<td>By paragraph</td>
 </tr>
 <tr>
 <td><code>DocumentByLineSplitter</code></td>
 <td><code>"\n"</code></td>
-<td>按行</td>
+<td>By line</td>
 </tr>
 <tr>
 <td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
+<td>Sentence boundary</td>
+<td>By sentence</td>
 </tr>
 <tr>
 <td><code>DocumentByWordSplitter</code></td>
 <td><code>" "</code></td>
-<td>按词</td>
+<td>By word</td>
 </tr>
 <tr>
 <td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
+<td>Character</td>
+<td>By character</td>
 </tr>
 <tr>
 <td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
+<td>Regex</td>
+<td>By regex</td>
 </tr>
 <tr>
 <td><code>HierarchicalDocumentSplitter</code></td>
 <td>-</td>
-<td>层级分割基类</td>
+<td>Base for hierarchical splitting</td>
 </tr>
 </tbody>
 </table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
+<h2 id="source-hierarchicaldocumentsplitter-and-segmentbuilder"><a class="markdownIt-Anchor" href="#source-hierarchicaldocumentsplitter-and-segmentbuilder"></a> Source: HierarchicalDocumentSplitter and SegmentBuilder</h2>
+<h3 id="1-overall-flow-hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-overall-flow-hierarchicaldocumentsplittersplit"></a> 1. Overall flow (HierarchicalDocumentSplitter.split)</h3>
+<p>The core of hierarchical splitting is <code>HierarchicalDocumentSplitter.split(Document)</code>:</p>
 <ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
+<li>Use the subclass’s <code>split(text)</code> to get <code>parts</code> at the current granularity (e.g. paragraph, line, word).</li>
+<li>Use <strong>SegmentBuilder</strong> to combine parts into segments of at most <code>maxSegmentSize</code>; when a part doesn’t fit, flush the current segment, then take a tail overlap of size <code>maxOverlapSize</code> as the start of the next segment.</li>
+<li>If a <strong>single part</strong> exceeds <code>maxSegmentSize</code>, hand it to <strong>subSplitter</strong> (e.g. long paragraph → split by sentence); sub-split results are reattached to the original Document’s metadata by index.</li>
 </ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
+<p>Size can be character count or token count via <code>TokenCountEstimator</code> and <code>estimateSize(text)</code> in SegmentBuilder.</p>
+<h3 id="2-segmentbuilder-role-and-structure"><a class="markdownIt-Anchor" href="#2-segmentbuilder-role-and-structure"></a> 2. SegmentBuilder role and structure</h3>
+<p><code>SegmentBuilder</code> (<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>) is a package-level utility (<code>@Internal</code>). It has <strong>no private inner classes</strong> and only: concatenates text parts with a given separator without exceeding <code>maxSegmentSize</code>, and supports “overlap from end” by prepending in reverse order.</p>
+<p><strong>Private fields (6)</strong></p>
 <table>
 <thead>
 <tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>maxSegmentSize</code></td>
 <td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
+<td>Max length per segment (chars or tokens)</td>
 </tr>
 <tr>
 <td><code>sizeFunction</code></td>
 <td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
+<td>Text length function</td>
 </tr>
 <tr>
 <td><code>joinSeparator</code></td>
 <td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
+<td>Separator when joining (e.g. <code>"\n\n"</code>)</td>
 </tr>
 <tr>
 <td><code>joinSeparatorSize</code></td>
 <td><code>int</code></td>
-<td>分隔符自身长度</td>
+<td>Length of the separator</td>
 </tr>
 <tr>
 <td><code>segment</code></td>
 <td><code>String</code></td>
-<td>当前正在拼的段内容</td>
+<td>Current segment content</td>
 </tr>
 <tr>
 <td><code>segmentSize</code></td>
 <td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
+<td>Current segment length (from sizeFunction)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
+<p><strong>Public API</strong></p>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>作用</th>
+<th>Method</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>getSize()</code></td>
-<td>当前段长度</td>
+<td>Current segment length</td>
 </tr>
 <tr>
 <td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
+<td>Whether adding one more part still keeps size ≤ maxSegmentSize</td>
 </tr>
 <tr>
 <td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
+<td>Compute text length via sizeFunction</td>
 </tr>
 <tr>
 <td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
+<td>Append with joinSeparator (main flow)</td>
 </tr>
 <tr>
 <td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
+<td>Prepend (for overlap from segment end)</td>
 </tr>
 <tr>
 <td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
+<td>Whether current segment is non-empty</td>
 </tr>
 <tr>
 <td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
+<td>Returns <code>segment.trim()</code></td>
 </tr>
 <tr>
 <td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
+<td>Clear current segment for next one</td>
 </tr>
 </tbody>
 </table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
+<h3 id="3-overlap-and-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-and-subsplitter"></a> 3. Overlap and subSplitter</h3>
 <ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
+<li><strong>Overlap</strong>: After flushing a segment, <code>overlapFrom(segmentText)</code> takes up to <code>maxOverlapSize</code> from the <strong>end by sentence</strong> (in reverse order) as the start of the next segment, so adjacent segments overlap without breaking semantics.</li>
+<li><strong>subSplitter</strong>: When a single part is too long, a sub-splitter (e.g. <code>DocumentBySentenceSplitter</code>) is used; the default chain is provided by <code>defaultSubSplitter()</code> (e.g. paragraph → sentence → word → character).</li>
 </ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
+<h2 id="recommended-usage-documentsplittersrecursive"><a class="markdownIt-Anchor" href="#recommended-usage-documentsplittersrecursive"></a> Recommended usage: DocumentSplitters.recursive()</h2>
+<p>LangChain4j recommends <strong>recursive</strong> splitting for general text: try paragraph → line → sentence → word → character until <code>maxSegmentSize</code> is satisfied.</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j example</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
+<p>Supports both character count and token count for size.</p>
+<h2 id="references"><a class="markdownIt-Anchor" href="#references"></a> References</h2>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
 <li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j package summary</a></li>
 </ul>
 
       
@@ -518,7 +518,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/en/2025/01/30/2025-01-30-python-recursive-character-text-splitter/" class="post-title-link" itemprop="url">Python RecursiveCharacterTextSplitter 源码解读</a>
+          <a href="/en/2025/01/30/2025-01-30-python-recursive-character-text-splitter/" class="post-title-link" itemprop="url">Python RecursiveCharacterTextSplitter — Source Walkthrough</a>
         </h2>
 
         <div class="post-meta-container">
@@ -536,7 +536,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-02-28 08:51:12" itemprop="dateModified" datetime="2026-02-28T08:51:12Z">2026-02-28</time>
+      <time title="Modified: 2026-02-28 08:54:50" itemprop="dateModified" datetime="2026-02-28T08:54:50Z">2026-02-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -548,11 +548,11 @@
         </span>
           , 
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
+          <a href="/en/categories/agent/source-reading/" itemprop="url" rel="index"><span itemprop="name">source-reading</span></a>
         </span>
           , 
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+          <a href="/en/categories/agent/source-reading/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
         </span>
     </span>
 
@@ -562,14 +562,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">Word count in article: </span>
-      <span>3.8k</span>
+      <span>5.2k</span>
     </span>
     <span class="post-meta-item" title="Reading time">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>3 mins.</span>
+      <span>5 mins.</span>
     </span>
 </div>
 
@@ -580,55 +580,55 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="python-recursivecharactertextsplitter-源码解读"><a class="markdownIt-Anchor" href="#python-recursivecharactertextsplitter-源码解读"></a> Python RecursiveCharacterTextSplitter 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p><code>RecursiveCharacterTextSplitter</code> 是 LangChain Python 中<strong>推荐的通用文本分割器</strong>。它按<strong>分隔符优先级</strong>递归切分文本，尽量保持段落、句子、词语的完整性，直到每个块满足 <code>chunk_size</code> 限制。</p>
+          <h1 id="python-recursivecharactertextsplitter-source-walkthrough"><a class="markdownIt-Anchor" href="#python-recursivecharactertextsplitter-source-walkthrough"></a> Python RecursiveCharacterTextSplitter — Source Walkthrough</h1>
+<h2 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h2>
+<p><code>RecursiveCharacterTextSplitter</code> is the <strong>recommended general-purpose text splitter</strong> in LangChain Python. It recursively splits text by <strong>separator priority</strong>, trying to keep paragraphs, lines, and words intact until each chunk fits within the <code>chunk_size</code> limit.</p>
 <ul>
-<li>官方 API：<a target="_blank" rel="noopener" href="https://python.langchain.com/api_reference/text_splitters/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html">RecursiveCharacterTextSplitter</a></li>
+<li>API reference: <a target="_blank" rel="noopener" href="https://python.langchain.com/api_reference/text_splitters/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html">RecursiveCharacterTextSplitter</a></li>
 </ul>
-<h2 id="默认分隔符顺序"><a class="markdownIt-Anchor" href="#默认分隔符顺序"></a> 默认分隔符顺序</h2>
-<p>按优先级依次尝试，直到切出的块不超过 <code>chunk_size</code>：</p>
+<h2 id="default-separator-order"><a class="markdownIt-Anchor" href="#default-separator-order"></a> Default separator order</h2>
+<p>Separators are tried in order until the resulting chunks do not exceed <code>chunk_size</code>:</p>
 <table>
 <thead>
 <tr>
-<th>优先级</th>
-<th>分隔符</th>
-<th>含义</th>
+<th>Priority</th>
+<th>Separator</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>1</td>
 <td><code>"\n\n"</code></td>
-<td>段落</td>
+<td>Paragraph</td>
 </tr>
 <tr>
 <td>2</td>
 <td><code>"\n"</code></td>
-<td>行</td>
+<td>Line</td>
 </tr>
 <tr>
 <td>3</td>
 <td><code>" "</code></td>
-<td>空格（词）</td>
+<td>Space (word)</td>
 </tr>
 <tr>
 <td>4</td>
 <td><code>""</code></td>
-<td>字符（兜底）</td>
+<td>Character (fallback)</td>
 </tr>
 </tbody>
 </table>
-<p>即：先按段落切，超长再按行，再按空格，最后才按字符切。</p>
-<h2 id="核心参数"><a class="markdownIt-Anchor" href="#核心参数"></a> 核心参数</h2>
+<p>So it first splits by paragraph, then by line if still too long, then by space, and finally by character.</p>
+<h2 id="main-parameters"><a class="markdownIt-Anchor" href="#main-parameters"></a> Main parameters</h2>
 <table>
 <thead>
 <tr>
-<th>参数</th>
-<th>类型</th>
-<th>默认值</th>
-<th>说明</th>
-<th>来源</th>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+<th>Source</th>
 </tr>
 </thead>
 <tbody>
@@ -636,142 +636,142 @@
 <td><code>chunk_size</code></td>
 <td>int</td>
 <td>1000</td>
-<td>每个块的目标长度（字符数或 token 数）</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>Target length per chunk (chars or tokens)</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>chunk_overlap</code></td>
 <td>int</td>
 <td>200</td>
-<td>相邻块之间的重叠长度</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>Overlap between adjacent chunks</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>length_function</code></td>
 <td>Callable</td>
 <td><code>len</code></td>
-<td>计算长度的方式（字符数或 token 数）</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>How to measure length (chars or tokens)</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>separators</code></td>
 <td>List[str]</td>
 <td><code>["\n\n", "\n", " ", ""]</code></td>
-<td>分隔符列表，按顺序使用</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Separator list, used in order</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 <tr>
 <td><code>keep_separator</code></td>
 <td>bool</td>
 <td>True</td>
-<td>是否在切分后的文本中保留分隔符</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Whether to keep the separator in split text</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 <tr>
 <td><code>is_separator_regex</code></td>
 <td>bool</td>
 <td>False</td>
-<td>分隔符是否按正则解析</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Whether separators are treated as regex</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 </tbody>
 </table>
-<p><strong>继承自 TextSplitter 的参数</strong>：<code>chunk_size</code>、<code>chunk_overlap</code>、<code>length_function</code>（基类定义块大小、重叠与长度计算方式；本类在此基础上增加 <code>separators</code>、<code>keep_separator</code>、<code>is_separator_regex</code> 等与分隔符相关的配置）。</p>
-<h2 id="源码解读"><a class="markdownIt-Anchor" href="#源码解读"></a> 源码解读</h2>
-<p>LangChain Python 的 <code>RecursiveCharacterTextSplitter</code> 继承自 <code>TextSplitter</code>，核心逻辑在<strong>递归按分隔符切分</strong>和<strong>带重叠的合并</strong>两处。</p>
-<h3 id="1-递归切分_split_text"><a class="markdownIt-Anchor" href="#1-递归切分_split_text"></a> 1. 递归切分：<code>_split_text</code></h3>
-<p>按「当前分隔符」把文本拆成若干段；若某段仍超过 <code>chunk_size</code>，则用「下一个更细的分隔符」对该段递归切分。</p>
-<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_split_text</span>(<span class="params">self, text: <span class="built_in">str</span>, separators: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> text:</span><br><span class="line">        <span class="keyword">return</span> []</span><br><span class="line">    <span class="comment"># 无更多分隔符时，按字符兜底</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> separators:</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._merge_splits(<span class="built_in">list</span>(text), <span class="string">""</span>)</span><br><span class="line"></span><br><span class="line">    sep = separators[<span class="number">0</span>]                    <span class="comment"># 当前分隔符（如 "\n\n"）</span></span><br><span class="line">    rest_separators = separators[<span class="number">1</span>:]       <span class="comment"># 更细的分隔符（如 "\n", " ", ""）</span></span><br><span class="line">    splits = <span class="variable language_">self</span>._split_on_separator(text, sep)  <span class="comment"># 按 sep 切分</span></span><br><span class="line"></span><br><span class="line">    good_splits = []</span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._length_function(s) &lt;= <span class="variable language_">self</span>._chunk_size:</span><br><span class="line">            good_splits.append(s)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> good_splits:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br><span class="line">                good_splits = []</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> rest_separators:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits([s], sep)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._split_text(s, rest_separators)  <span class="comment"># 递归</span></span><br><span class="line">    <span class="keyword">if</span> good_splits:</span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br></pre></td></tr></tbody></table></figure>
-<p>要点：</p>
+<p><strong>From TextSplitter</strong>: <code>chunk_size</code>, <code>chunk_overlap</code>, <code>length_function</code>. This class adds separator-related options: <code>separators</code>, <code>keep_separator</code>, <code>is_separator_regex</code>.</p>
+<h2 id="source-walkthrough"><a class="markdownIt-Anchor" href="#source-walkthrough"></a> Source walkthrough</h2>
+<p>LangChain Python’s <code>RecursiveCharacterTextSplitter</code> extends <code>TextSplitter</code>. The core logic is <strong>recursive splitting by separators</strong> and <strong>merging with overlap</strong>.</p>
+<h3 id="1-recursive-split-_split_text"><a class="markdownIt-Anchor" href="#1-recursive-split-_split_text"></a> 1. Recursive split: <code>_split_text</code></h3>
+<p>Split text by the “current” separator; if a segment still exceeds <code>chunk_size</code>, recursively split it with the “next finer” separator.</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_split_text</span>(<span class="params">self, text: <span class="built_in">str</span>, separators: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> text:</span><br><span class="line">        <span class="keyword">return</span> []</span><br><span class="line">    <span class="comment"># No more separators: fallback to character split</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> separators:</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._merge_splits(<span class="built_in">list</span>(text), <span class="string">""</span>)</span><br><span class="line"></span><br><span class="line">    sep = separators[<span class="number">0</span>]                    <span class="comment"># Current separator (e.g. "\n\n")</span></span><br><span class="line">    rest_separators = separators[<span class="number">1</span>:]       <span class="comment"># Finer separators (e.g. "\n", " ", "")</span></span><br><span class="line">    splits = <span class="variable language_">self</span>._split_on_separator(text, sep)  <span class="comment"># Split by sep</span></span><br><span class="line"></span><br><span class="line">    good_splits = []</span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._length_function(s) &lt;= <span class="variable language_">self</span>._chunk_size:</span><br><span class="line">            good_splits.append(s)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> good_splits:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br><span class="line">                good_splits = []</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> rest_separators:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits([s], sep)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._split_text(s, rest_separators)  <span class="comment"># Recurse</span></span><br><span class="line">    <span class="keyword">if</span> good_splits:</span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br></pre></td></tr></tbody></table></figure>
+<p>Notes:</p>
 <ul>
-<li>用 <code>_split_on_separator(text, sep)</code> 得到当前层的 <code>splits</code>。</li>
-<li>长度 ≤ <code>chunk_size</code> 的进入 <code>good_splits</code>，凑一批后 <code>_merge_splits</code> 合并并产出。</li>
-<li>长度 &gt; <code>chunk_size</code> 的：若还有 <code>rest_separators</code> 则递归 <code>_split_text(s, rest_separators)</code>；否则按当前层合并或按字符兜底。</li>
+<li><code>_split_on_separator(text, sep)</code> produces the current-level <code>splits</code>.</li>
+<li>Segments with length ≤ <code>chunk_size</code> go into <code>good_splits</code>, then get merged with <code>_merge_splits</code> and yielded.</li>
+<li>Segments longer than <code>chunk_size</code>: if <code>rest_separators</code> is non-empty, recurse with <code>_split_text(s, rest_separators)</code>; otherwise merge at current level or fall back to character split.</li>
 </ul>
-<h3 id="2-合并与重叠_merge_splits"><a class="markdownIt-Anchor" href="#2-合并与重叠_merge_splits"></a> 2. 合并与重叠：<code>_merge_splits</code></h3>
-<p>将一批小片段合并成若干块，每块长度约 <code>chunk_size</code>，相邻块之间重叠 <code>chunk_overlap</code>。</p>
-<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_merge_splits</span>(<span class="params">self, splits: <span class="type">List</span>[<span class="built_in">str</span>], separator: <span class="built_in">str</span></span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    docs = []</span><br><span class="line">    current = []</span><br><span class="line">    total_len = <span class="number">0</span></span><br><span class="line">    sep_len = <span class="variable language_">self</span>._length_function(separator)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        n = <span class="variable language_">self</span>._length_function(s) + (sep_len <span class="keyword">if</span> current <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">if</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size <span class="keyword">and</span> current:</span><br><span class="line">            doc = <span class="variable language_">self</span>._join_docs(current, separator)</span><br><span class="line">            docs.append(doc)</span><br><span class="line">            <span class="comment"># 重叠：从队头丢弃片段，使剩余长度约等于 chunk_overlap</span></span><br><span class="line">            <span class="keyword">while</span> current <span class="keyword">and</span> (total_len &gt; <span class="variable language_">self</span>._chunk_overlap <span class="keyword">or</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size):</span><br><span class="line">                total_len -= <span class="variable language_">self</span>._length_function(current[<span class="number">0</span>]) + (sep_len <span class="keyword">if</span> <span class="built_in">len</span>(current) &gt; <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">                current = current[<span class="number">1</span>:]</span><br><span class="line">            total_len = <span class="built_in">sum</span>(<span class="variable language_">self</span>._length_function(x) <span class="keyword">for</span> x <span class="keyword">in</span> current) + sep_len * (<span class="built_in">len</span>(current) - <span class="number">1</span>)</span><br><span class="line">        current.append(s)</span><br><span class="line">        total_len += n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> current:</span><br><span class="line">        docs.append(<span class="variable language_">self</span>._join_docs(current, separator))</span><br><span class="line">    <span class="keyword">return</span> docs</span><br></pre></td></tr></tbody></table></figure>
-<p>要点：</p>
+<h3 id="2-merge-and-overlap-_merge_splits"><a class="markdownIt-Anchor" href="#2-merge-and-overlap-_merge_splits"></a> 2. Merge and overlap: <code>_merge_splits</code></h3>
+<p>Merge a batch of small segments into chunks of about <code>chunk_size</code>, with <code>chunk_overlap</code> between adjacent chunks.</p>
+<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_merge_splits</span>(<span class="params">self, splits: <span class="type">List</span>[<span class="built_in">str</span>], separator: <span class="built_in">str</span></span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    docs = []</span><br><span class="line">    current = []</span><br><span class="line">    total_len = <span class="number">0</span></span><br><span class="line">    sep_len = <span class="variable language_">self</span>._length_function(separator)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        n = <span class="variable language_">self</span>._length_function(s) + (sep_len <span class="keyword">if</span> current <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">if</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size <span class="keyword">and</span> current:</span><br><span class="line">            doc = <span class="variable language_">self</span>._join_docs(current, separator)</span><br><span class="line">            docs.append(doc)</span><br><span class="line">            <span class="comment"># Overlap: drop from the front until remaining length ≈ chunk_overlap</span></span><br><span class="line">            <span class="keyword">while</span> current <span class="keyword">and</span> (total_len &gt; <span class="variable language_">self</span>._chunk_overlap <span class="keyword">or</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size):</span><br><span class="line">                total_len -= <span class="variable language_">self</span>._length_function(current[<span class="number">0</span>]) + (sep_len <span class="keyword">if</span> <span class="built_in">len</span>(current) &gt; <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">                current = current[<span class="number">1</span>:]</span><br><span class="line">            total_len = <span class="built_in">sum</span>(<span class="variable language_">self</span>._length_function(x) <span class="keyword">for</span> x <span class="keyword">in</span> current) + sep_len * (<span class="built_in">len</span>(current) - <span class="number">1</span>)</span><br><span class="line">        current.append(s)</span><br><span class="line">        total_len += n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> current:</span><br><span class="line">        docs.append(<span class="variable language_">self</span>._join_docs(current, separator))</span><br><span class="line">    <span class="keyword">return</span> docs</span><br></pre></td></tr></tbody></table></figure>
+<p>Notes:</p>
 <ul>
-<li>顺序遍历 <code>splits</code>，累加长度；超过 <code>chunk_size</code> 时先产出当前块，再根据 <code>chunk_overlap</code> 从队头丢弃片段，实现块间重叠。</li>
-<li><code>_join_docs</code> 用 <code>separator</code> 把列表拼成最终字符串。</li>
+<li>Iterate over <code>splits</code>, accumulate length; when over <code>chunk_size</code>, emit the current chunk, then trim from the front according to <code>chunk_overlap</code> to get overlap.</li>
+<li><code>_join_docs</code> joins the list with <code>separator</code> into the final string.</li>
 </ul>
-<h3 id="3-调用链"><a class="markdownIt-Anchor" href="#3-调用链"></a> 3. 调用链</h3>
+<h3 id="3-call-chain"><a class="markdownIt-Anchor" href="#3-call-chain"></a> 3. Call chain</h3>
 <table>
 <thead>
 <tr>
-<th>入口方法</th>
-<th>内部调用</th>
+<th>Entry method</th>
+<th>Internal call</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>split_text(text)</code></td>
-<td><code>_split_text(text, self.separators)</code>，得到递归 + 合并后的块列表</td>
+<td><code>_split_text(text, self.separators)</code> → list of chunks after recursive split + merge</td>
 </tr>
 <tr>
 <td><code>split_documents(documents)</code></td>
-<td>对每个 document 的 <code>page_content</code> 调 <code>split_text</code>，再按索引挂回 metadata</td>
+<td>For each document’s <code>page_content</code>, call <code>split_text</code>, then reattach metadata by index</td>
 </tr>
 <tr>
 <td><code>create_documents(texts, metadatas)</code></td>
-<td>对每个 <code>text</code> 调 <code>split_text</code>，用 <code>metadatas</code> 构造 Document</td>
+<td>For each <code>text</code>, call <code>split_text</code>, build Document with <code>metadatas</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="常用方法"><a class="markdownIt-Anchor" href="#常用方法"></a> 常用方法</h2>
+<h2 id="common-methods"><a class="markdownIt-Anchor" href="#common-methods"></a> Common methods</h2>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>说明</th>
-<th>来源</th>
+<th>Method</th>
+<th>Description</th>
+<th>Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>split_text(text: str) -&gt; List[str]</code></td>
-<td>对单个字符串切分，返回字符串列表</td>
-<td><strong>继承 TextSplitter</strong>（本类重写内部逻辑，仍调 <code>_split_text</code>）</td>
+<td>Split a single string; return list of strings</td>
+<td><strong>TextSplitter</strong> (this class overrides internals, still uses <code>_split_text</code>)</td>
 </tr>
 <tr>
 <td><code>create_documents(texts: List[str], metadatas=None)</code></td>
-<td>从字符串列表创建 Document 列表</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>Create list of Documents from list of strings</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>split_documents(documents: List[Document]) -&gt; List[Document]</code></td>
-<td>对 Document 列表切分，保留元数据</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>Split list of Documents, keep metadata</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>transform_documents(documents: List[Document]) -&gt; List[Document]</code></td>
-<td>与 <code>split_documents</code> 等价，用于管道</td>
-<td><strong>继承 TextSplitter</strong></td>
+<td>Same as <code>split_documents</code>, for pipelines</td>
+<td><strong>TextSplitter</strong></td>
 </tr>
 <tr>
 <td><code>from_tiktoken_encoder(...)</code></td>
-<td>类方法，按 tiktoken 的 token 数切分</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Class method: split by tiktoken token count</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 <tr>
 <td><code>from_huggingface_tokenizer(...)</code></td>
-<td>类方法，按 HuggingFace tokenizer 切分</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Class method: split by HuggingFace tokenizer</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 <tr>
 <td><code>from_language(language, ...)</code></td>
-<td>类方法，按编程语言预设分隔符</td>
-<td>本类 / CharacterTextSplitter</td>
+<td>Class method: language-specific separator presets</td>
+<td>This class / CharacterTextSplitter</td>
 </tr>
 </tbody>
 </table>
-<p><strong>继承自 TextSplitter 的方法</strong>：<code>split_text</code>、<code>create_documents</code>、<code>split_documents</code>、<code>transform_documents</code>（基类定义接口与默认实现，本类通过重写 <code>_split_text</code> 等改变切分行为）。</p>
-<h2 id="算法要点"><a class="markdownIt-Anchor" href="#算法要点"></a> 算法要点</h2>
+<p><strong>From TextSplitter</strong>: <code>split_text</code>, <code>create_documents</code>, <code>split_documents</code>, <code>transform_documents</code>. This class changes behavior by overriding <code>_split_text</code> and related logic.</p>
+<h2 id="algorithm-summary"><a class="markdownIt-Anchor" href="#algorithm-summary"></a> Algorithm summary</h2>
 <ol>
-<li><strong>递归</strong>：用当前分隔符切分；若有片段长度仍大于 <code>chunk_size</code>，则用下一个分隔符对该片段递归切分。</li>
-<li><strong>重叠</strong>：相邻块之间保留 <code>chunk_overlap</code> 个字符（或 token），避免语义在边界处断裂。</li>
-<li><strong>长度计算</strong>：默认用 <code>len()</code>（字符数）；通过 <code>length_function</code> 可改为 token 数（如 tiktoken）。</li>
+<li><strong>Recursion</strong>: Split with the current separator; if any segment is still longer than <code>chunk_size</code>, recursively split it with the next separator.</li>
+<li><strong>Overlap</strong>: Keep <code>chunk_overlap</code> characters (or tokens) between adjacent chunks to avoid cutting semantics at boundaries.</li>
+<li><strong>Length</strong>: Default is <code>len()</code> (character count); <code>length_function</code> can be set to token count (e.g. tiktoken).</li>
 </ol>
 
       
@@ -811,13 +811,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="Word count total">6k</span>
+    <span title="Word count total">9k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="Reading time total">6 mins.</span>
+    <span title="Reading time total">8 mins.</span>
   </span>
 </div>
 <div class="busuanzi-count">

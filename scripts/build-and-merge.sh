@@ -43,6 +43,6 @@ fi
 
 echo "[build] Done. Output: $PUBLIC"
 echo "  - /         (中文)"
-echo "  - /en/      (English)"
+echo "  - /en/      (EN)"
 echo ""
 echo "Run locally:  npm run serve   # then open http://localhost:4000 and http://localhost:4000/en/"

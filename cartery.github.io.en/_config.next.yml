@@ -77,7 +77,7 @@ creative_commons:
   post: false
   # You can set a language value if you prefer a translated version of CC license, e.g. deed.zh
   # CC licenses are available in 39 languages, you can find the specific and correct abbreviation you need on https://creativecommons.org
-  language: zh
+  language: en
 
 # Open graph settings
 # See: https://hexo.io/docs/helpers#open-graph
@@ -697,7 +697,7 @@ giscus:
   enable: true
   repo: yourname/yourrepo
   repo_id: "R_xxxxxxxxxxxx"
-  category: "公告"
+  category: "Announcements"
   category_id: "DIC_xxxxxxxxxx"
   mapping: pathname
   reactions_enabled: 1
@@ -744,7 +744,7 @@ gitalk:
   # Gitalk's display language depends on user's browser or system environment
   # If you want everyone visiting your site to see a uniform language, you can set a force language value
   # Available values: en | es-ES | fr | ru | zh-CN | zh-TW
-  language: zh-CN
+  language: en
 
 # Utterances
 # For more information: https://utteranc.es

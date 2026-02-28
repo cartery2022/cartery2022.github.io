@@ -1,0 +1,53 @@
+/* NexT 8: Post meta 更紧凑、自动换行、胶囊样式（不删任何信息） */
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: center;
+  justify-content: center; /* 你截图是居中 */
+  line-height: 1.45;
+  font-size: 0.92em;
+  opacity: 0.90;
+}
+
+/* 每个 meta 项做成“chip” */
+.post-meta .post-meta-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+/* 图标和文字的间距 */
+.post-meta .post-meta-item-icon,
+.post-meta i,
+.post-meta svg {
+  margin-right: 4px;
+  opacity: 0.9;
+}
+
+/* 去掉默认分隔符（很多版本是 | 的 divider） */
+.post-meta .post-meta-divider {
+  display: none !important;
+}
+
+/* NexT: 分隔符“|”通常是伪元素生成的，直接干掉 */
+.post-meta .post-meta-item:not(:first-child)::before,
+.post-meta .post-meta-item:not(:first-child)::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* 手机端：不隐藏内容，只是再紧凑一点 */
+@media (max-width: 768px) {
+  .post-meta {
+    font-size: 0.85em;
+    gap: 5px 8px;
+  }
+  .post-meta .post-meta-item {
+    padding: 2px 6px;
+  }
+}
+

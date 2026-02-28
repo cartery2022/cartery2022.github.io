@@ -1,8 +1,12 @@
 .DS_Store
 Thumbs.db
+.idea/
 db.json
 *.log
 node_modules/
+cartery.github.io.en/node_modules
 public/
+.public_zh
 .deploy*/
+_multiconfig.yml
 _multiconfig.yml

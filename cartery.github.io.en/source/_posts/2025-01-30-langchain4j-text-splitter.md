@@ -1,31 +1,31 @@
 ---
-title: LangChain4j TextSplitter 实现说明
+title: LangChain4j TextSplitter — Implementation Notes
 date: 2025-01-30
 tags:
   - agent
   - java
   - langchain4j
-  - 源码解读
+  - source-reading
 categories:
   - agent
-  - 源码解读
+  - source-reading
   - textSplitter
 ---
 
-# LangChain4j Splitter包 文档分割 源码解读
+# LangChain4j Splitter Package — Document Splitting Source Walkthrough
 
-## 概述
+## Overview
 
-LangChain4j 在包 `dev.langchain4j.data.document.splitter` 下提供文档分割能力：通过 `DocumentSplitter` 接口将 `Document` 切分为多个 `TextSegment`，并支持按字符、行、段落、句子、词、正则等不同粒度。
+LangChain4j provides document splitting in the package `dev.langchain4j.data.document.splitter`: the `DocumentSplitter` interface turns a `Document` into multiple `TextSegment`s, with support for character, line, paragraph, sentence, word, and regex-based splitting.
 
-- 包文档：[dev.langchain4j.data.document.splitter](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html)
+- Package docs: [dev.langchain4j.data.document.splitter](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html)
 
-## 核心接口
+## Core interface
 
 ### DocumentSplitter
 
 ```java
-// 概念上的接口（LangChain4j）
+// Conceptual interface (LangChain4j)
 public interface DocumentSplitter {
     List<TextSegment> split(Document document);
     List<TextSegment> splitAll(Document... documents);
@@ -33,73 +33,72 @@ public interface DocumentSplitter {
 }
 ```
 
-- 输入：`Document`
-- 输出：`List<TextSegment>`，每个 segment 受 `maxSegmentSize` 限制
+- Input: `Document`
+- Output: `List<TextSegment>`, each segment bounded by `maxSegmentSize`
 
-## 内置分割器（LangChain4j）
+## Built-in splitters (LangChain4j)
 
-| 类名 | 分隔符 / 行为 | 说明 |
-|------|----------------|------|
-| `DocumentByParagraphSplitter` | `"\n\n"` | 按段落 |
-| `DocumentByLineSplitter` | `"\n"` | 按行 |
-| `DocumentBySentenceSplitter` | 句子边界 | 按句子 |
-| `DocumentByWordSplitter` | `" "` | 按词 |
-| `DocumentByCharacterSplitter` | 字符 | 按字符 |
-| `DocumentByRegexSplitter` | 正则 | 按正则 |
-| `HierarchicalDocumentSplitter` | - | 层级分割基类 |
+| Class | Separator / behavior | Description |
+|-------|----------------------|-------------|
+| `DocumentByParagraphSplitter` | `"\n\n"` | By paragraph |
+| `DocumentByLineSplitter` | `"\n"` | By line |
+| `DocumentBySentenceSplitter` | Sentence boundary | By sentence |
+| `DocumentByWordSplitter` | `" "` | By word |
+| `DocumentByCharacterSplitter` | Character | By character |
+| `DocumentByRegexSplitter` | Regex | By regex |
+| `HierarchicalDocumentSplitter` | - | Base for hierarchical splitting |
 
+## Source: HierarchicalDocumentSplitter and SegmentBuilder
 
-## 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder
+### 1. Overall flow (HierarchicalDocumentSplitter.split)
 
-### 1. 整体流程（HierarchicalDocumentSplitter.split）
+The core of hierarchical splitting is `HierarchicalDocumentSplitter.split(Document)`:
 
-层级分割的核心在 `HierarchicalDocumentSplitter.split(Document)`：
+1. Use the subclass’s `split(text)` to get `parts` at the current granularity (e.g. paragraph, line, word).
+2. Use **SegmentBuilder** to combine parts into segments of at most `maxSegmentSize`; when a part doesn’t fit, flush the current segment, then take a tail overlap of size `maxOverlapSize` as the start of the next segment.
+3. If a **single part** exceeds `maxSegmentSize`, hand it to **subSplitter** (e.g. long paragraph → split by sentence); sub-split results are reattached to the original Document’s metadata by index.
 
-1. 用子类实现的 `split(text)` 按当前粒度得到 `parts`（如段落、行、词等）。
-2. 用 **SegmentBuilder** 按 `maxSegmentSize` 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 `maxOverlapSize` 取尾部 overlap，作为下一段的开头。
-3. 若**单个 part 本身**就超过 `maxSegmentSize`，则交给 **subSplitter** 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。
+Size can be character count or token count via `TokenCountEstimator` and `estimateSize(text)` in SegmentBuilder.
 
-支持按字符数或按 token 数：通过 `TokenCountEstimator` 与 `estimateSize(text)` 注入到 SegmentBuilder 的“长度”计算里。
+### 2. SegmentBuilder role and structure
 
-### 2. SegmentBuilder 的职责与结构
+`SegmentBuilder` (`dev.langchain4j.data.document.splitter.SegmentBuilder`) is a package-level utility (`@Internal`). It has **no private inner classes** and only: concatenates text parts with a given separator without exceeding `maxSegmentSize`, and supports “overlap from end” by prepending in reverse order.
 
-`SegmentBuilder`（`dev.langchain4j.data.document.splitter.SegmentBuilder`）是包级工具类（`@Internal`），**没有定义任何私有内部类**，只负责：在不超过 `maxSegmentSize` 的前提下，用指定分隔符拼接多段文本，并支持“从尾部取 overlap”时用 `prepend` 逆序拼。
+**Private fields (6)**
 
-**私有字段（6 个）**
+| Field | Type | Meaning |
+|-------|------|---------|
+| `maxSegmentSize` | `int` | Max length per segment (chars or tokens) |
+| `sizeFunction` | `Function<String, Integer>` | Text length function |
+| `joinSeparator` | `String` | Separator when joining (e.g. `"\n\n"`) |
+| `joinSeparatorSize` | `int` | Length of the separator |
+| `segment` | `String` | Current segment content |
+| `segmentSize` | `int` | Current segment length (from sizeFunction) |
 
-| 字段 | 类型 | 含义 |
-|------|------|------|
-| `maxSegmentSize` | `int` | 单段最大长度（字符或 token） |
-| `sizeFunction` | `Function<String, Integer>` | 计算文本长度的函数 |
-| `joinSeparator` | `String` | 拼接时的分隔符（如 `"\n\n"`） |
-| `joinSeparatorSize` | `int` | 分隔符自身长度 |
-| `segment` | `String` | 当前正在拼的段内容 |
-| `segmentSize` | `int` | 当前段长度（由 sizeFunction 得到） |
+**Public API**
 
-**对外 API（均为 public 方法）**
+| Method | Purpose |
+|--------|---------|
+| `getSize()` | Current segment length |
+| `hasSpaceFor(String text)` / `hasSpaceFor(int size)` | Whether adding one more part still keeps size ≤ maxSegmentSize |
+| `sizeOf(String text)` | Compute text length via sizeFunction |
+| `append(String text)` | Append with joinSeparator (main flow) |
+| `prepend(String text)` | Prepend (for overlap from segment end) |
+| `isNotEmpty()` | Whether current segment is non-empty |
+| `toString()` | Returns `segment.trim()` |
+| `reset()` | Clear current segment for next one |
 
-| 方法 | 作用 |
-|------|------|
-| `getSize()` | 当前段长度 |
-| `hasSpaceFor(String text)` / `hasSpaceFor(int size)` | 再拼一段是否仍 ≤ maxSegmentSize |
-| `sizeOf(String text)` | 用 sizeFunction 计算 text 长度 |
-| `append(String text)` | 末尾用 joinSeparator 拼接（主流程拼段） |
-| `prepend(String text)` | 开头拼接（overlap 时从段尾逆序填） |
-| `isNotEmpty()` | 当前段是否非空 |
-| `toString()` | 返回 `segment.trim()` |
-| `reset()` | 清空当前段，开始拼下一段 |
+### 3. Overlap and subSplitter
 
-### 3. Overlap 与 subSplitter
+- **Overlap**: After flushing a segment, `overlapFrom(segmentText)` takes up to `maxOverlapSize` from the **end by sentence** (in reverse order) as the start of the next segment, so adjacent segments overlap without breaking semantics.
+- **subSplitter**: When a single part is too long, a sub-splitter (e.g. `DocumentBySentenceSplitter`) is used; the default chain is provided by `defaultSubSplitter()` (e.g. paragraph → sentence → word → character).
 
-- **Overlap**：刷出一个 segment 后，用 `overlapFrom(segmentText)` 从该段**按句子**逆序取最多 `maxOverlapSize` 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。
-- **subSplitter**：当单个 part 超长时，用子分割器（如 `DocumentBySentenceSplitter`）再切，子类通过 `defaultSubSplitter()` 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。
+## Recommended usage: DocumentSplitters.recursive()
 
-## 推荐用法：DocumentSplitters.recursive()
-
-LangChain4j 推荐对通用文本使用 **recursive** 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 `maxSegmentSize`。
+LangChain4j recommends **recursive** splitting for general text: try paragraph → line → sentence → word → character until `maxSegmentSize` is satisfied.
 
 ```java
-// LangChain4j 用法示例
+// LangChain4j example
 DocumentSplitter splitter = DocumentSplitters.recursive(
     1000,  // maxSegmentSize
     200    // maxOverlap
@@ -107,10 +106,10 @@ DocumentSplitter splitter = DocumentSplitters.recursive(
 List<TextSegment> segments = splitter.split(document);
 ```
 
-支持按字符数或按 token 数控制大小。
+Supports both character count and token count for size.
 
-## 参考链接
+## References
 
 - [LangChain4j DocumentSplitters](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html)
 - [LangChain4j DocumentByParagraphSplitter](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html)
-- [LangChain4j 包文档](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html)
+- [LangChain4j package summary](https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html)

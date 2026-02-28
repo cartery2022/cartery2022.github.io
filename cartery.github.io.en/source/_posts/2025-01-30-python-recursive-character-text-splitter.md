@@ -1,70 +1,70 @@
 ---
-title: Python RecursiveCharacterTextSplitter 源码解读
+title: Python RecursiveCharacterTextSplitter — Source Walkthrough
 date: 2025-01-30
 tags:
   - agent
   - python
-  - longchain
-  - 源码解读
+  - langchain
+  - source-reading
 categories:
   - agent
-  - 源码解读
+  - source-reading
   - textSplitter
 ---
 
-# Python RecursiveCharacterTextSplitter 源码解读
+# Python RecursiveCharacterTextSplitter — Source Walkthrough
 
-## 概述
+## Overview
 
-`RecursiveCharacterTextSplitter` 是 LangChain Python 中**推荐的通用文本分割器**。它按**分隔符优先级**递归切分文本，尽量保持段落、句子、词语的完整性，直到每个块满足 `chunk_size` 限制。
+`RecursiveCharacterTextSplitter` is the **recommended general-purpose text splitter** in LangChain Python. It recursively splits text by **separator priority**, trying to keep paragraphs, lines, and words intact until each chunk fits within the `chunk_size` limit.
 
-- 官方 API：[RecursiveCharacterTextSplitter](https://python.langchain.com/api_reference/text_splitters/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
+- API reference: [RecursiveCharacterTextSplitter](https://python.langchain.com/api_reference/text_splitters/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html)
 
-## 默认分隔符顺序
+## Default separator order
 
-按优先级依次尝试，直到切出的块不超过 `chunk_size`：
+Separators are tried in order until the resulting chunks do not exceed `chunk_size`:
 
-| 优先级 | 分隔符 | 含义     |
-|--------|--------|----------|
-| 1      | `"\n\n"` | 段落     |
-| 2      | `"\n"`   | 行       |
-| 3      | `" "`    | 空格（词）|
-| 4      | `""`     | 字符（兜底）|
+| Priority | Separator | Meaning        |
+|----------|-----------|----------------|
+| 1        | `"\n\n"`  | Paragraph      |
+| 2        | `"\n"`    | Line           |
+| 3        | `" "`     | Space (word)   |
+| 4        | `""`      | Character (fallback) |
 
-即：先按段落切，超长再按行，再按空格，最后才按字符切。
+So it first splits by paragraph, then by line if still too long, then by space, and finally by character.
 
-## 核心参数
+## Main parameters
 
-| 参数 | 类型 | 默认值 | 说明 | 来源 |
-|------|------|--------|------|------|
-| `chunk_size` | int | 1000 | 每个块的目标长度（字符数或 token 数） | **继承 TextSplitter** |
-| `chunk_overlap` | int | 200 | 相邻块之间的重叠长度 | **继承 TextSplitter** |
-| `length_function` | Callable | `len` | 计算长度的方式（字符数或 token 数） | **继承 TextSplitter** |
-| `separators` | List[str] | `["\n\n", "\n", " ", ""]` | 分隔符列表，按顺序使用 | 本类 / CharacterTextSplitter |
-| `keep_separator` | bool | True | 是否在切分后的文本中保留分隔符 | 本类 / CharacterTextSplitter |
-| `is_separator_regex` | bool | False | 分隔符是否按正则解析 | 本类 / CharacterTextSplitter |
+| Parameter           | Type      | Default                        | Description                                              | Source                    |
+|---------------------|-----------|--------------------------------|----------------------------------------------------------|---------------------------|
+| `chunk_size`        | int       | 1000                           | Target length per chunk (chars or tokens)                | **TextSplitter**          |
+| `chunk_overlap`     | int       | 200                            | Overlap between adjacent chunks                         | **TextSplitter**          |
+| `length_function`   | Callable  | `len`                          | How to measure length (chars or tokens)                  | **TextSplitter**          |
+| `separators`        | List[str] | `["\n\n", "\n", " ", ""]`      | Separator list, used in order                            | This class / CharacterTextSplitter |
+| `keep_separator`    | bool      | True                           | Whether to keep the separator in split text             | This class / CharacterTextSplitter |
+| `is_separator_regex`| bool      | False                          | Whether separators are treated as regex                  | This class / CharacterTextSplitter |
 
-**继承自 TextSplitter 的参数**：`chunk_size`、`chunk_overlap`、`length_function`（基类定义块大小、重叠与长度计算方式；本类在此基础上增加 `separators`、`keep_separator`、`is_separator_regex` 等与分隔符相关的配置）。
+**From TextSplitter**: `chunk_size`, `chunk_overlap`, `length_function`. This class adds separator-related options: `separators`, `keep_separator`, `is_separator_regex`.
 
-## 源码解读
+## Source walkthrough
 
-LangChain Python 的 `RecursiveCharacterTextSplitter` 继承自 `TextSplitter`，核心逻辑在**递归按分隔符切分**和**带重叠的合并**两处。
+LangChain Python’s `RecursiveCharacterTextSplitter` extends `TextSplitter`. The core logic is **recursive splitting by separators** and **merging with overlap**.
 
-### 1. 递归切分：`_split_text`
+### 1. Recursive split: `_split_text`
 
-按「当前分隔符」把文本拆成若干段；若某段仍超过 `chunk_size`，则用「下一个更细的分隔符」对该段递归切分。
+Split text by the “current” separator; if a segment still exceeds `chunk_size`, recursively split it with the “next finer” separator.
 
 ```python
 def _split_text(self, text: str, separators: List[str]) -> List[str]:
     if not text:
         return []
-    # 无更多分隔符时，按字符兜底
+    # No more separators: fallback to character split
     if not separators:
         return self._merge_splits(list(text), "")
 
-    sep = separators[0]                    # 当前分隔符（如 "\n\n"）
-    rest_separators = separators[1:]       # 更细的分隔符（如 "\n", " ", ""）
-    splits = self._split_on_separator(text, sep)  # 按 sep 切分
+    sep = separators[0]                    # Current separator (e.g. "\n\n")
+    rest_separators = separators[1:]       # Finer separators (e.g. "\n", " ", "")
+    splits = self._split_on_separator(text, sep)  # Split by sep
 
     good_splits = []
     for s in splits:
@@ -77,20 +77,20 @@ def _split_text(self, text: str, separators: List[str]) -> List[str]:
             if not rest_separators:
                 yield from self._merge_splits([s], sep)
             else:
-                yield from self._split_text(s, rest_separators)  # 递归
+                yield from self._split_text(s, rest_separators)  # Recurse
     if good_splits:
         yield from self._merge_splits(good_splits, sep)
 ```
 
-要点：
+Notes:
 
-- 用 `_split_on_separator(text, sep)` 得到当前层的 `splits`。
-- 长度 ≤ `chunk_size` 的进入 `good_splits`，凑一批后 `_merge_splits` 合并并产出。
-- 长度 > `chunk_size` 的：若还有 `rest_separators` 则递归 `_split_text(s, rest_separators)`；否则按当前层合并或按字符兜底。
+- `_split_on_separator(text, sep)` produces the current-level `splits`.
+- Segments with length ≤ `chunk_size` go into `good_splits`, then get merged with `_merge_splits` and yielded.
+- Segments longer than `chunk_size`: if `rest_separators` is non-empty, recurse with `_split_text(s, rest_separators)`; otherwise merge at current level or fall back to character split.
 
-### 2. 合并与重叠：`_merge_splits`
+### 2. Merge and overlap: `_merge_splits`
 
-将一批小片段合并成若干块，每块长度约 `chunk_size`，相邻块之间重叠 `chunk_overlap`。
+Merge a batch of small segments into chunks of about `chunk_size`, with `chunk_overlap` between adjacent chunks.
 
 ```python
 def _merge_splits(self, splits: List[str], separator: str) -> List[str]:
@@ -104,7 +104,7 @@ def _merge_splits(self, splits: List[str], separator: str) -> List[str]:
         if total_len + n > self._chunk_size and current:
             doc = self._join_docs(current, separator)
             docs.append(doc)
-            # 重叠：从队头丢弃片段，使剩余长度约等于 chunk_overlap
+            # Overlap: drop from the front until remaining length ≈ chunk_overlap
             while current and (total_len > self._chunk_overlap or total_len + n > self._chunk_size):
                 total_len -= self._length_function(current[0]) + (sep_len if len(current) > 1 else 0)
                 current = current[1:]
@@ -117,35 +117,35 @@ def _merge_splits(self, splits: List[str], separator: str) -> List[str]:
     return docs
 ```
 
-要点：
+Notes:
 
-- 顺序遍历 `splits`，累加长度；超过 `chunk_size` 时先产出当前块，再根据 `chunk_overlap` 从队头丢弃片段，实现块间重叠。
-- `_join_docs` 用 `separator` 把列表拼成最终字符串。
+- Iterate over `splits`, accumulate length; when over `chunk_size`, emit the current chunk, then trim from the front according to `chunk_overlap` to get overlap.
+- `_join_docs` joins the list with `separator` into the final string.
 
-### 3. 调用链
+### 3. Call chain
 
-| 入口方法 | 内部调用 |
-|----------|----------|
-| `split_text(text)` | `_split_text(text, self.separators)`，得到递归+合并后的块列表 |
-| `split_documents(documents)` | 对每个 document 的 `page_content` 调 `split_text`，再按索引挂回 metadata |
-| `create_documents(texts, metadatas)` | 对每个 `text` 调 `split_text`，用 `metadatas` 构造 Document |
+| Entry method | Internal call |
+|--------------|----------------|
+| `split_text(text)` | `_split_text(text, self.separators)` → list of chunks after recursive split + merge |
+| `split_documents(documents)` | For each document’s `page_content`, call `split_text`, then reattach metadata by index |
+| `create_documents(texts, metadatas)` | For each `text`, call `split_text`, build Document with `metadatas` |
 
-## 常用方法
+## Common methods
 
-| 方法 | 说明 | 来源 |
-|------|------|------|
-| `split_text(text: str) -> List[str]` | 对单个字符串切分，返回字符串列表 | **继承 TextSplitter**（本类重写内部逻辑，仍调 `_split_text`） |
-| `create_documents(texts: List[str], metadatas=None)` | 从字符串列表创建 Document 列表 | **继承 TextSplitter** |
-| `split_documents(documents: List[Document]) -> List[Document]` | 对 Document 列表切分，保留元数据 | **继承 TextSplitter** |
-| `transform_documents(documents: List[Document]) -> List[Document]` | 与 `split_documents` 等价，用于管道 | **继承 TextSplitter** |
-| `from_tiktoken_encoder(...)` | 类方法，按 tiktoken 的 token 数切分 | 本类 / CharacterTextSplitter |
-| `from_huggingface_tokenizer(...)` | 类方法，按 HuggingFace tokenizer 切分 | 本类 / CharacterTextSplitter |
-| `from_language(language, ...)` | 类方法，按编程语言预设分隔符 | 本类 / CharacterTextSplitter |
+| Method | Description | Source |
+|--------|-------------|--------|
+| `split_text(text: str) -> List[str]` | Split a single string; return list of strings | **TextSplitter** (this class overrides internals, still uses `_split_text`) |
+| `create_documents(texts: List[str], metadatas=None)` | Create list of Documents from list of strings | **TextSplitter** |
+| `split_documents(documents: List[Document]) -> List[Document]` | Split list of Documents, keep metadata | **TextSplitter** |
+| `transform_documents(documents: List[Document]) -> List[Document]` | Same as `split_documents`, for pipelines | **TextSplitter** |
+| `from_tiktoken_encoder(...)` | Class method: split by tiktoken token count | This class / CharacterTextSplitter |
+| `from_huggingface_tokenizer(...)` | Class method: split by HuggingFace tokenizer | This class / CharacterTextSplitter |
+| `from_language(language, ...)` | Class method: language-specific separator presets | This class / CharacterTextSplitter |
 
-**继承自 TextSplitter 的方法**：`split_text`、`create_documents`、`split_documents`、`transform_documents`（基类定义接口与默认实现，本类通过重写 `_split_text` 等改变切分行为）。
+**From TextSplitter**: `split_text`, `create_documents`, `split_documents`, `transform_documents`. This class changes behavior by overriding `_split_text` and related logic.
 
-## 算法要点
+## Algorithm summary
 
-1. **递归**：用当前分隔符切分；若有片段长度仍大于 `chunk_size`，则用下一个分隔符对该片段递归切分。
-2. **重叠**：相邻块之间保留 `chunk_overlap` 个字符（或 token），避免语义在边界处断裂。
-3. **长度计算**：默认用 `len()`（字符数）；通过 `length_function` 可改为 token 数（如 tiktoken）。
+1. **Recursion**: Split with the current separator; if any segment is still longer than `chunk_size`, recursively split it with the next separator.
+2. **Overlap**: Keep `chunk_overlap` characters (or tokens) between adjacent chunks to avoid cutting semantics at boundaries.
+3. **Length**: Default is `len()` (character count); `length_function` can be set to token count (e.g. tiktoken).

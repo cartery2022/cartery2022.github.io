@@ -185,18 +185,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">36</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-count">90</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -222,7 +222,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java8-features-summary/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-11-flyweight/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -240,7 +240,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java8-features-summary/" class="post-title-link" itemprop="url">Java 8 新特性总结与示例</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-11-flyweight/" class="post-title-link" itemprop="url">设计模式（十一）享元模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:03:23" itemprop="dateModified" datetime="2026-03-02T17:03:23+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -266,7 +266,11 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
         </span>
     </span>
 
@@ -276,14 +280,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>7.6k</span>
+      <span>1.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>7 分钟</span>
+      <span>1 分钟</span>
     </span>
 </div>
 
@@ -294,182 +298,41 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="java-8-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-8-新特性总结与示例"></a> Java 8 新特性总结与示例</h1>
-<p>Java 8（2014 年 3 月发布）是自 Java 5 以来变化最大的版本，引入了 Lambda、Stream、新日期时间 API 等，奠定了现代 Java 的写法。本文按「语言特性 → 类库 → 其它」梳理所有主要新特性，并配有可运行示例（基于 JDK 8）。</p>
+          <h1 id="享元模式flyweight"><a class="markdownIt-Anchor" href="#享元模式flyweight"></a> 享元模式（Flyweight）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>享元模式</strong>运用共享技术有效支持大量细粒度对象的复用，减少内存与对象数量。</p>
+<p><strong>解决的问题</strong>：存在大量相似对象（如相同字符、相同图标、相同配置），若每个都单独实例会占用大量内存；把 “可共享的内在状态” 与 “不可共享的外在状态” 分离，共享内在状态，外在状态由调用方传入。</p>
+<p><strong>定义</strong>：运用共享技术有效地支持大量细粒度的对象。</p>
 <hr>
-<h2 id="一-lambda-表达式与函数式接口"><a class="markdownIt-Anchor" href="#一-lambda-表达式与函数式接口"></a> 一、Lambda 表达式与函数式接口</h2>
-<h3 id="11-lambda-表达式"><a class="markdownIt-Anchor" href="#11-lambda-表达式"></a> 1.1 Lambda 表达式</h3>
-<p><strong>作用</strong>：把 “一段行为” 当作参数传递，减少匿名内部类样板代码。</p>
-<p>语法形式：<code>(参数列表) -&gt; 表达式或代码块</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.function.Consumer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LambdaDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        List&lt;String&gt; list = Arrays.asList(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 旧写法：匿名内部类</span></span><br><span class="line">        list.forEach(<span class="keyword">new</span> <span class="title class_">Consumer</span>&lt;String&gt;() {</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(String s)</span> {</span><br><span class="line">                System.out.println(s);</span><br><span class="line">            }</span><br><span class="line">        });</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Java 8：Lambda</span></span><br><span class="line">        list.forEach(s -&gt; System.out.println(s));</span><br><span class="line">        list.forEach(System.out::println);  <span class="comment">// 方法引用，见下节</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 多参数、多行</span></span><br><span class="line">        List&lt;Integer&gt; nums = Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line">        nums.sort((a, b) -&gt; {</span><br><span class="line">            <span class="type">int</span> <span class="variable">diff</span> <span class="operator">=</span> a - b;</span><br><span class="line">            <span class="keyword">return</span> Integer.compare(a, b);</span><br><span class="line">        });</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="12-函数式接口functionalinterface"><a class="markdownIt-Anchor" href="#12-函数式接口functionalinterface"></a> 1.2 函数式接口（@FunctionalInterface）</h3>
-<p><strong>定义</strong>：有且仅有一个抽象方法的接口，可用 <code>@FunctionalInterface</code> 标记，便于编译器检查。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MyCalculator</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>;</span><br><span class="line">    <span class="comment">// 只能有一个抽象方法；default/static 不计入</span></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="type">MyCalculator</span> <span class="variable">add</span> <span class="operator">=</span> (a, b) -&gt; a + b;</span><br><span class="line"><span class="type">MyCalculator</span> <span class="variable">mul</span> <span class="operator">=</span> (a, b) -&gt; a * b;</span><br><span class="line">System.out.println(add.compute(<span class="number">2</span>, <span class="number">3</span>));  <span class="comment">// 5</span></span><br><span class="line">System.out.println(mul.compute(<span class="number">2</span>, <span class="number">3</span>));  <span class="comment">// 6</span></span><br></pre></td></tr></tbody></table></figure>
-<p>常见内置函数式接口见第五节。</p>
-<hr>
-<h2 id="二-方法引用与构造器引用"><a class="markdownIt-Anchor" href="#二-方法引用与构造器引用"></a> 二、方法引用与构造器引用</h2>
-<p><strong>作用</strong>：当 Lambda 只是 “调用已有方法” 时，用 <code>::</code> 更简洁。</p>
-<p>四种形式：静态方法、实例方法（指定对象）、实例方法（任意对象）、构造器。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.function.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MethodRefDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// 1. 静态方法引用：类::静态方法</span></span><br><span class="line">        Function&lt;String, Integer&gt; p1 = Integer::parseInt;</span><br><span class="line">        System.out.println(p1.apply(<span class="string">"42"</span>));  <span class="comment">// 42</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 实例方法引用（指定对象）：对象::实例方法</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">s</span> <span class="operator">=</span> <span class="string">"hello"</span>;</span><br><span class="line">        Supplier&lt;Integer&gt; p2 = s::length;</span><br><span class="line">        System.out.println(p2.get());  <span class="comment">// 5</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 实例方法引用（任意对象）：类::实例方法</span></span><br><span class="line">        BiPredicate&lt;String, String&gt; p3 = String::equals;</span><br><span class="line">        System.out.println(p3.test(<span class="string">"a"</span>, <span class="string">"a"</span>));  <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4. 构造器引用：类::new</span></span><br><span class="line">        Supplier&lt;List&lt;String&gt;&gt; listSupplier = ArrayList::<span class="keyword">new</span>;</span><br><span class="line">        List&lt;String&gt; list = listSupplier.get();</span><br><span class="line"></span><br><span class="line">        Function&lt;Integer, <span class="type">int</span>[]&gt; arrayCreator = <span class="type">int</span>[]::<span class="keyword">new</span>;</span><br><span class="line">        <span class="type">int</span>[] arr = arrayCreator.apply(<span class="number">10</span>);  <span class="comment">// 长度为 10 的 int 数组</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-接口的默认方法与静态方法"><a class="markdownIt-Anchor" href="#三-接口的默认方法与静态方法"></a> 三、接口的默认方法与静态方法</h2>
-<h3 id="31-默认方法default"><a class="markdownIt-Anchor" href="#31-默认方法default"></a> 3.1 默认方法（default）</h3>
-<p><strong>作用</strong>：在接口里写带实现的方法，实现类不强制重写，便于接口演进而不破坏已有实现。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Vehicle</span> {</span><br><span class="line">    <span class="keyword">default</span> <span class="keyword">void</span> <span class="title function_">start</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"Vehicle started"</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Car</span> <span class="keyword">implements</span> <span class="title class_">Vehicle</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"Car running"</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="comment">// 可不重写 start()，直接继承默认实现</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="32-静态方法static"><a class="markdownIt-Anchor" href="#32-静态方法static"></a> 3.2 静态方法（static）</h3>
-<p><strong>作用</strong>：接口也可有静态方法，常用于工具方法。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MathUtil</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">add</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> {</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> MathUtil.add(<span class="number">1</span>, <span class="number">2</span>);  <span class="comment">// 3</span></span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="四-optional"><a class="markdownIt-Anchor" href="#四-optional"></a> 四、Optional</h2>
-<p><strong>作用</strong>：显式表达 “可能没有值”，减少 NPE 和散落的 <code>if (x != null)</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Optional;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OptionalDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// 创建</span></span><br><span class="line">        Optional&lt;String&gt; empty = Optional.empty();</span><br><span class="line">        Optional&lt;String&gt; present = Optional.of(<span class="string">"hello"</span>);</span><br><span class="line">        Optional&lt;String&gt; nullable = Optional.ofNullable(getMaybeNull());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 判断与取值</span></span><br><span class="line">        <span class="keyword">if</span> (present.isPresent()) {</span><br><span class="line">            System.out.println(present.get());</span><br><span class="line">        }</span><br><span class="line">        present.ifPresent(System.out::println);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 默认值</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">v1</span> <span class="operator">=</span> empty.orElse(<span class="string">"default"</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">v2</span> <span class="operator">=</span> empty.orElseGet(() -&gt; <span class="string">"computed"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 链式转换与过滤</span></span><br><span class="line">        Optional&lt;String&gt; upper = present.map(String::toUpperCase);</span><br><span class="line">        Optional&lt;String&gt; filtered = present.filter(s -&gt; s.length() &gt; <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 否则抛异常</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">must</span> <span class="operator">=</span> present.orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"missing"</span>));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">getMaybeNull</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> Math.random() &gt; <span class="number">0.5</span> ? <span class="string">"ok"</span> : <span class="literal">null</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="五-javautilfunction-常用函数式接口"><a class="markdownIt-Anchor" href="#五-javautilfunction-常用函数式接口"></a> 五、java.util.function 常用函数式接口</h2>
-<table>
-<thead>
-<tr>
-<th>接口</th>
-<th>抽象方法</th>
-<th>典型用途</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Predicate&lt;T&gt;</code></td>
-<td><code>boolean test(T t)</code></td>
-<td>过滤、判断</td>
-</tr>
-<tr>
-<td><code>Function&lt;T,R&gt;</code></td>
-<td><code>R apply(T t)</code></td>
-<td>转换、映射</td>
-</tr>
-<tr>
-<td><code>Consumer&lt;T&gt;</code></td>
-<td><code>void accept(T t)</code></td>
-<td>消费、副作用</td>
-</tr>
-<tr>
-<td><code>Supplier&lt;T&gt;</code></td>
-<td><code>T get()</code></td>
-<td>无参生成值</td>
-</tr>
-<tr>
-<td><code>UnaryOperator&lt;T&gt;</code></td>
-<td><code>T apply(T t)</code></td>
-<td>一元运算</td>
-</tr>
-<tr>
-<td><code>BiFunction&lt;T,U,R&gt;</code></td>
-<td><code>R apply(T t, U u)</code></td>
-<td>二元函数</td>
-</tr>
-</tbody>
-</table>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Predicate&lt;Integer&gt; even = n -&gt; n % <span class="number">2</span> == <span class="number">0</span>;</span><br><span class="line">Function&lt;String, Integer&gt; len = String::length;</span><br><span class="line">Consumer&lt;String&gt; print = System.out::println;</span><br><span class="line">Supplier&lt;Double&gt; random = Math::random;</span><br><span class="line"></span><br><span class="line">System.out.println(even.test(<span class="number">4</span>));       <span class="comment">// true</span></span><br><span class="line">System.out.println(len.apply(<span class="string">"abc"</span>));   <span class="comment">// 3</span></span><br><span class="line">print.accept(<span class="string">"hi"</span>);</span><br><span class="line">System.out.println(random.get());</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="六-stream-api"><a class="markdownIt-Anchor" href="#六-stream-api"></a> 六、Stream API</h2>
-<p><strong>作用</strong>：对集合做声明式 “流式” 操作（过滤、映射、排序、归约等），支持顺序与并行。</p>
-<h3 id="61-创建流"><a class="markdownIt-Anchor" href="#61-创建流"></a> 6.1 创建流</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.*;</span><br><span class="line"></span><br><span class="line">List&lt;String&gt; list = Arrays.asList(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>);</span><br><span class="line">Stream&lt;String&gt; s1 = list.stream();</span><br><span class="line">Stream&lt;String&gt; s2 = list.parallelStream();</span><br><span class="line">Stream&lt;String&gt; s3 = Stream.of(<span class="string">"x"</span>, <span class="string">"y"</span>);</span><br><span class="line">Stream&lt;Integer&gt; s4 = Stream.iterate(<span class="number">0</span>, n -&gt; n + <span class="number">1</span>).limit(<span class="number">5</span>);  <span class="comment">// 0,1,2,3,4</span></span><br><span class="line">Stream&lt;Double&gt; s5 = Stream.generate(Math::random).limit(<span class="number">3</span>);</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="62-中间操作与终止操作"><a class="markdownIt-Anchor" href="#62-中间操作与终止操作"></a> 6.2 中间操作与终止操作</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 过滤、映射、排序、去重、跳过、限制</span></span><br><span class="line">List&lt;Integer&gt; nums = Arrays.asList(<span class="number">3</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">2</span>, <span class="number">6</span>);</span><br><span class="line"></span><br><span class="line">List&lt;Integer&gt; result = nums.stream()</span><br><span class="line">    .filter(n -&gt; n &gt; <span class="number">2</span>)</span><br><span class="line">    .map(n -&gt; n * <span class="number">2</span>)</span><br><span class="line">    .distinct()</span><br><span class="line">    .sorted()</span><br><span class="line">    .skip(<span class="number">1</span>)</span><br><span class="line">    .limit(<span class="number">3</span>)</span><br><span class="line">    .collect(Collectors.toList());</span><br><span class="line"><span class="comment">// 结果依赖顺序，此处示例为 [8, 10, 12] 一类</span></span><br></pre></td></tr></tbody></table></figure>
-<h3 id="63-常用终止操作"><a class="markdownIt-Anchor" href="#63-常用终止操作"></a> 6.3 常用终止操作</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">count</span> <span class="operator">=</span> nums.stream().count();</span><br><span class="line">Optional&lt;Integer&gt; max = nums.stream().max(Integer::compareTo);</span><br><span class="line">Optional&lt;Integer&gt; min = nums.stream().min(Integer::compareTo);</span><br><span class="line"><span class="type">boolean</span> <span class="variable">any</span> <span class="operator">=</span> nums.stream().anyMatch(n -&gt; n &gt; <span class="number">5</span>);</span><br><span class="line"><span class="type">boolean</span> <span class="variable">all</span> <span class="operator">=</span> nums.stream().allMatch(n -&gt; n &gt; <span class="number">0</span>);</span><br><span class="line">Optional&lt;Integer&gt; first = nums.stream().findFirst();</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="variable">sum</span> <span class="operator">=</span> nums.stream().mapToInt(Integer::intValue).sum();</span><br><span class="line">Optional&lt;Integer&gt; reduce = nums.stream().reduce((a, b) -&gt; a + b);</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="64-收集器-collectors"><a class="markdownIt-Anchor" href="#64-收集器-collectors"></a> 6.4 收集器 Collectors</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; names = Arrays.asList(<span class="string">"Alice"</span>, <span class="string">"Bob"</span>, <span class="string">"Charlie"</span>);</span><br><span class="line"><span class="type">String</span> <span class="variable">joined</span> <span class="operator">=</span> names.stream().collect(Collectors.joining(<span class="string">", "</span>));</span><br><span class="line">Map&lt;Integer, List&lt;String&gt;&gt; byLen = names.stream()</span><br><span class="line">    .collect(Collectors.groupingBy(String::length));</span><br><span class="line">Map&lt;Boolean, List&lt;String&gt;&gt; partition = names.stream()</span><br><span class="line">    .collect(Collectors.partitioningBy(s -&gt; s.length() &gt; <span class="number">4</span>));</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="七-新的日期时间-apijavatime"><a class="markdownIt-Anchor" href="#七-新的日期时间-apijavatime"></a> 七、新的日期时间 API（java.time）</h2>
-<p><strong>作用</strong>：替代易错的 <code>Date</code>/<code>Calendar</code>，提供不可变、线程安全的日期时间类型。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.time.*;</span><br><span class="line"><span class="keyword">import</span> java.time.format.DateTimeFormatter;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 本地日期、时间、日期时间</span></span><br><span class="line"><span class="type">LocalDate</span> <span class="variable">date</span> <span class="operator">=</span> LocalDate.now();</span><br><span class="line"><span class="type">LocalDate</span> <span class="variable">date2</span> <span class="operator">=</span> LocalDate.of(<span class="number">2025</span>, <span class="number">3</span>, <span class="number">2</span>);</span><br><span class="line"><span class="type">LocalTime</span> <span class="variable">time</span> <span class="operator">=</span> LocalTime.of(<span class="number">14</span>, <span class="number">30</span>);</span><br><span class="line"><span class="type">LocalDateTime</span> <span class="variable">dateTime</span> <span class="operator">=</span> LocalDateTime.of(date2, time);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解析与格式化</span></span><br><span class="line"><span class="type">DateTimeFormatter</span> <span class="variable">fmt</span> <span class="operator">=</span> DateTimeFormatter.ofPattern(<span class="string">"yyyy-MM-dd HH:mm"</span>);</span><br><span class="line"><span class="type">String</span> <span class="variable">str</span> <span class="operator">=</span> dateTime.format(fmt);</span><br><span class="line"><span class="type">LocalDateTime</span> <span class="variable">parsed</span> <span class="operator">=</span> LocalDateTime.parse(<span class="string">"2025-03-02 14:30"</span>, fmt);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 加减</span></span><br><span class="line"><span class="type">LocalDate</span> <span class="variable">tomorrow</span> <span class="operator">=</span> date.plusDays(<span class="number">1</span>);</span><br><span class="line"><span class="type">LocalDateTime</span> <span class="variable">before</span> <span class="operator">=</span> dateTime.minusHours(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 带时区</span></span><br><span class="line"><span class="type">ZonedDateTime</span> <span class="variable">zoned</span> <span class="operator">=</span> ZonedDateTime.now(ZoneId.of(<span class="string">"Asia/Shanghai"</span>));</span><br><span class="line"><span class="type">Instant</span> <span class="variable">instant</span> <span class="operator">=</span> Instant.now();</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="八-重复注解与类型注解"><a class="markdownIt-Anchor" href="#八-重复注解与类型注解"></a> 八、重复注解与类型注解</h2>
-<h3 id="81-重复注解repeating-annotations"><a class="markdownIt-Anchor" href="#81-重复注解repeating-annotations"></a> 8.1 重复注解（Repeating Annotations）</h3>
-<p><strong>作用</strong>：同一注解可在同一位置多次使用，内部用 “容器注解” 保存。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.annotation.*;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Repeatable(Roles.class)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@interface</span> Role {</span><br><span class="line">    String <span class="title function_">value</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@interface</span> Roles {</span><br><span class="line">    Role[] value();</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="meta">@Role("admin")</span></span><br><span class="line"><span class="meta">@Role("user")</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> { }</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="82-类型注解type-annotations"><a class="markdownIt-Anchor" href="#82-类型注解type-annotations"></a> 8.2 类型注解（Type Annotations）</h3>
-<p><strong>作用</strong>：注解可写在类型使用处（如泛型、类型转换），用于更强类型检查或工具分析。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 需配合 Checker Framework 等使用，此处仅展示语法位置</span></span><br><span class="line"><span class="comment">// List&lt;@NonNull String&gt; list;</span></span><br><span class="line"><span class="comment">// String s = (@NonNull String) obj;</span></span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="九-base64-编码解码"><a class="markdownIt-Anchor" href="#九-base64-编码解码"></a> 九、Base64 编码解码</h2>
-<p><strong>作用</strong>：标准库内置 Base64，无需第三方库。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"></span><br><span class="line"><span class="type">String</span> <span class="variable">text</span> <span class="operator">=</span> <span class="string">"Hello, Java 8!"</span>;</span><br><span class="line"><span class="type">String</span> <span class="variable">encoded</span> <span class="operator">=</span> Base64.getEncoder().encodeToString(text.getBytes());</span><br><span class="line">System.out.println(encoded);</span><br><span class="line"></span><br><span class="line"><span class="type">byte</span>[] decoded = Base64.getDecoder().decode(encoded);</span><br><span class="line">System.out.println(<span class="keyword">new</span> <span class="title class_">String</span>(decoded));</span><br><span class="line"></span><br><span class="line"><span class="comment">// URL 安全、MIME 等变体：Base64.getUrlEncoder() / getMimeEncoder()</span></span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="十-nashorn-javascript-引擎"><a class="markdownIt-Anchor" href="#十-nashorn-javascript-引擎"></a> 十、Nashorn JavaScript 引擎</h2>
-<p><strong>作用</strong>：在 JVM 内执行 JavaScript（Java 15+ 已移除，仅作历史特性了解）。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.script.*;</span><br><span class="line"></span><br><span class="line"><span class="type">ScriptEngine</span> <span class="variable">engine</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ScriptEngineManager</span>().getEngineByName(<span class="string">"nashorn"</span>);</span><br><span class="line">engine.eval(<span class="string">"var greeting = 'Hello from JS'; greeting"</span>);</span><br><span class="line"><span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> engine.eval(<span class="string">"1 + 2"</span>);</span><br><span class="line">System.out.println(result);  <span class="comment">// 3.0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用 JS 函数</span></span><br><span class="line">engine.eval(<span class="string">"function add(a, b) { return a + b; }"</span>);</span><br><span class="line"><span class="type">Invocable</span> <span class="variable">invocable</span> <span class="operator">=</span> (Invocable) engine;</span><br><span class="line"><span class="type">Object</span> <span class="variable">sum</span> <span class="operator">=</span> invocable.invokeFunction(<span class="string">"add"</span>, <span class="number">10</span>, <span class="number">20</span>);</span><br><span class="line">System.out.println(sum);  <span class="comment">// 30.0</span></span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="十一-其它改进"><a class="markdownIt-Anchor" href="#十一-其它改进"></a> 十一、其它改进</h2>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>并行数组排序</strong>：<code>Arrays.parallelSort(...)</code> 大数组排序时可利用多核。</li>
-<li><strong>HashMap 冲突优化</strong>：桶内链表过长时转为红黑树，减少极端情况下的性能退化。</li>
-<li><strong>Compact Profiles</strong>：Java SE 8 提供 compact1/2/3 子集，便于小型设备。</li>
-<li><strong>参数名反射</strong>：通过 <code>Parameter</code> 可获取方法参数名（需编译时加 <code>-parameters</code>）。</li>
+<li><strong>Flyweight</strong>：享元接口，定义对外方法，方法参数中常包含 “外在状态”。</li>
+<li><strong>ConcreteFlyweight</strong>：具体享元，存储内在状态（可共享），方法中结合传入的外在状态完成行为。</li>
+<li><strong>FlyweightFactory</strong>：享元工厂，维护享元池，根据 key 返回共享实例；无则创建并缓存。</li>
+<li><strong>Client</strong>：使用享元时传入外在状态。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Flyweight</span> { <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteFlyweight</span> <span class="keyword">implements</span> <span class="title class_">Flyweight</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String intrinsicState;</span><br><span class="line">    ConcreteFlyweight(String intrinsicState) { <span class="built_in">this</span>.intrinsicState = intrinsicState; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span> {</span><br><span class="line">        System.out.println(intrinsicState + <span class="string">", "</span> + extrinsicState);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyweightFactory</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Flyweight&gt; pool = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    Flyweight <span class="title function_">get</span><span class="params">(String key)</span> {</span><br><span class="line">        <span class="keyword">return</span> pool.computeIfAbsent(key, ConcreteFlyweight::<span class="keyword">new</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>String 常量池、Integer 缓存</strong>：JVM / JDK 层面的 “享元”，相同内容的 String、小范围 Integer 共享实例；Spring 未单独实现，但业务中大量用 String 作为 key、缓存 key 时天然受益。</li>
+<li><strong>Bean 单例</strong>：单例 Bean 在容器内共享，可视为 “按 Bean 定义共享的实例”，与享元 “按 key 共享” 思想一致。</li>
+<li><strong>元数据、配置的缓存</strong>：如反射得到的 Method、Annotation 等元数据，Spring 会缓存复用，避免重复解析；可视为 “按类 / 方法等 key 的享元”。</li>
+<li><strong>线程池、连接池</strong>：池中的线程、连接是 “可复用对象”，与享元 “复用对象” 的目标一致，只是通常不叫 Flyweight 名字。</li>
 </ul>
 <hr>
-<h2 id="十二-小结"><a class="markdownIt-Anchor" href="#十二-小结"></a> 十二、小结</h2>
-<table>
-<thead>
-<tr>
-<th>类别</th>
-<th>特性</th>
-<th>一句话</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>语言</td>
-<td>Lambda</td>
-<td>把行为当参数，简化匿名类</td>
-</tr>
-<tr>
-<td>语言</td>
-<td>方法 / 构造器引用</td>
-<td><code>::</code> 简化 “只调一个方法” 的 Lambda</td>
-</tr>
-<tr>
-<td>语言</td>
-<td>接口 default/static</td>
-<td>接口可带实现，便于演进</td>
-</tr>
-<tr>
-<td>语言</td>
-<td>重复 / 类型注解</td>
-<td>多次注解、类型上的注解</td>
-</tr>
-<tr>
-<td>类库</td>
-<td>Optional</td>
-<td>显式 “可能无值”，减少 NPE</td>
-</tr>
-<tr>
-<td>类库</td>
-<td>Stream API</td>
-<td>声明式集合操作，支持并行</td>
-</tr>
-<tr>
-<td>类库</td>
-<td>java.util.function</td>
-<td>常用函数式接口</td>
-</tr>
-<tr>
-<td>类库</td>
-<td>java.time</td>
-<td>新日期时间 API</td>
-</tr>
-<tr>
-<td>类库</td>
-<td>Base64</td>
-<td>内置编码解码</td>
-</tr>
-<tr>
-<td>其它</td>
-<td>Nashorn、并行排序、HashMap 等</td>
-<td>脚本、性能与平台优化</td>
-</tr>
-</tbody>
-</table>
-<p>以上示例均在 JDK 8 下可运行（Nashorn 在 JDK 15+ 需单独依赖或改用 GraalJS）。掌握这些特性即可覆盖日常开发中绝大部分 Java 8 用法。</p>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>大量相似对象且可区分内在 / 外在</strong>：如棋牌游戏中 “牌面” 可共享（内在），每张牌的 “位置、归属” 由外部传入（外在）；文档编辑器中 “字符样式” 共享，“位置” 外在。</li>
+<li><strong>缓存、池化</strong>：按 key 缓存对象（如按配置 key 缓存解析结果），无则创建并放入池，有则直接返回，本质是享元工厂。</li>
+<li><strong>减少重复解析 / 编译</strong>：如模板引擎中相同模板只编译一次；规则引擎中相同规则只编译一次，运行时只传不同参数。</li>
+<li><strong>枚举、常量类</strong>：有限个实例对应有限个 “内在状态”，全应用共享，是享元的简化形式。</li>
+</ul>
+<p><strong>不适用</strong>：对象之间几乎没有可共享状态、或对象数量很少时，享元收益不大。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>享元模式通过 “内在状态共享 + 外在状态参数化” 减少对象数量与内存；Spring 中 <strong>单例 Bean</strong>、<strong>元数据缓存</strong>、<strong>池化</strong> 体现了共享复用思想。业务上适用于<strong>大量相似对象、缓存/池化、减少重复解析/编译、枚举/常量</strong>等场景。</p>
 
       
     </div>
@@ -496,7 +359,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-python-recursive-character-text-splitter/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-12-proxy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -514,7 +377,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/01/29/2025-01-30-python-recursive-character-text-splitter/" class="post-title-link" itemprop="url">Python RecursiveCharacterTextSplitter 源码解读</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-12-proxy/" class="post-title-link" itemprop="url">设计模式（十二）代理模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -525,14 +388,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00+08:00">2025-01-30</time>
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:03:23" itemprop="dateModified" datetime="2026-03-02T17:03:23+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -540,15 +403,11 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
         </span>
           ，
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
         </span>
     </span>
 
@@ -558,14 +417,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.8k</span>
+      <span>1.3k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>3 分钟</span>
+      <span>1 分钟</span>
     </span>
 </div>
 
@@ -576,199 +435,41 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="python-recursivecharactertextsplitter-源码解读"><a class="markdownIt-Anchor" href="#python-recursivecharactertextsplitter-源码解读"></a> Python RecursiveCharacterTextSplitter 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p><code>RecursiveCharacterTextSplitter</code> 是 LangChain Python 中<strong>推荐的通用文本分割器</strong>。它按<strong>分隔符优先级</strong>递归切分文本，尽量保持段落、句子、词语的完整性，直到每个块满足 <code>chunk_size</code> 限制。</p>
+          <h1 id="代理模式proxy"><a class="markdownIt-Anchor" href="#代理模式proxy"></a> 代理模式（Proxy）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>代理模式</strong>为对象提供代理，由代理控制对原对象的访问；客户通过代理间接访问目标，代理可在访问前后增加逻辑（权限、日志、事务等）。</p>
+<p><strong>解决的问题</strong>：不修改目标类的前提下，增加访问控制、延迟加载、增强逻辑等。</p>
+<p><strong>常见实现</strong>：静态代理（手写代理类）、JDK 动态代理（基于接口）、CGLIB 动态代理（基于子类）。Spring AOP 默认 “有接口用 JDK 动态代理，无接口用 CGLIB”。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li>官方 API：<a target="_blank" rel="noopener" href="https://python.langchain.com/api_reference/text_splitters/character/langchain_text_splitters.character.RecursiveCharacterTextSplitter.html">RecursiveCharacterTextSplitter</a></li>
+<li><strong>Subject</strong>：抽象主题，目标与代理的共同接口。</li>
+<li><strong>RealSubject</strong>：真实主题，被代理对象。</li>
+<li><strong>Proxy</strong>：代理，实现 Subject，持有 RealSubject（或通过工厂 / 延迟创建），在请求前后执行附加逻辑后转发给 RealSubject。</li>
 </ul>
-<h2 id="默认分隔符顺序"><a class="markdownIt-Anchor" href="#默认分隔符顺序"></a> 默认分隔符顺序</h2>
-<p>按优先级依次尝试，直到切出的块不超过 <code>chunk_size</code>：</p>
-<table>
-<thead>
-<tr>
-<th>优先级</th>
-<th>分隔符</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td><code>"\n\n"</code></td>
-<td>段落</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>"\n"</code></td>
-<td>行</td>
-</tr>
-<tr>
-<td>3</td>
-<td><code>" "</code></td>
-<td>空格（词）</td>
-</tr>
-<tr>
-<td>4</td>
-<td><code>""</code></td>
-<td>字符（兜底）</td>
-</tr>
-</tbody>
-</table>
-<p>即：先按段落切，超长再按行，再按空格，最后才按字符切。</p>
-<h2 id="核心参数"><a class="markdownIt-Anchor" href="#核心参数"></a> 核心参数</h2>
-<table>
-<thead>
-<tr>
-<th>参数</th>
-<th>类型</th>
-<th>默认值</th>
-<th>说明</th>
-<th>来源</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>chunk_size</code></td>
-<td>int</td>
-<td>1000</td>
-<td>每个块的目标长度（字符数或 token 数）</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>chunk_overlap</code></td>
-<td>int</td>
-<td>200</td>
-<td>相邻块之间的重叠长度</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>length_function</code></td>
-<td>Callable</td>
-<td><code>len</code></td>
-<td>计算长度的方式（字符数或 token 数）</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>separators</code></td>
-<td>List[str]</td>
-<td><code>["\n\n", "\n", " ", ""]</code></td>
-<td>分隔符列表，按顺序使用</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-<tr>
-<td><code>keep_separator</code></td>
-<td>bool</td>
-<td>True</td>
-<td>是否在切分后的文本中保留分隔符</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-<tr>
-<td><code>is_separator_regex</code></td>
-<td>bool</td>
-<td>False</td>
-<td>分隔符是否按正则解析</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-</tbody>
-</table>
-<p><strong>继承自 TextSplitter 的参数</strong>：<code>chunk_size</code>、<code>chunk_overlap</code>、<code>length_function</code>（基类定义块大小、重叠与长度计算方式；本类在此基础上增加 <code>separators</code>、<code>keep_separator</code>、<code>is_separator_regex</code> 等与分隔符相关的配置）。</p>
-<h2 id="源码解读"><a class="markdownIt-Anchor" href="#源码解读"></a> 源码解读</h2>
-<p>LangChain Python 的 <code>RecursiveCharacterTextSplitter</code> 继承自 <code>TextSplitter</code>，核心逻辑在<strong>递归按分隔符切分</strong>和<strong>带重叠的合并</strong>两处。</p>
-<h3 id="1-递归切分_split_text"><a class="markdownIt-Anchor" href="#1-递归切分_split_text"></a> 1. 递归切分：<code>_split_text</code></h3>
-<p>按「当前分隔符」把文本拆成若干段；若某段仍超过 <code>chunk_size</code>，则用「下一个更细的分隔符」对该段递归切分。</p>
-<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_split_text</span>(<span class="params">self, text: <span class="built_in">str</span>, separators: <span class="type">List</span>[<span class="built_in">str</span>]</span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> text:</span><br><span class="line">        <span class="keyword">return</span> []</span><br><span class="line">    <span class="comment"># 无更多分隔符时，按字符兜底</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> separators:</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>._merge_splits(<span class="built_in">list</span>(text), <span class="string">""</span>)</span><br><span class="line"></span><br><span class="line">    sep = separators[<span class="number">0</span>]                    <span class="comment"># 当前分隔符（如 "\n\n"）</span></span><br><span class="line">    rest_separators = separators[<span class="number">1</span>:]       <span class="comment"># 更细的分隔符（如 "\n", " ", ""）</span></span><br><span class="line">    splits = <span class="variable language_">self</span>._split_on_separator(text, sep)  <span class="comment"># 按 sep 切分</span></span><br><span class="line"></span><br><span class="line">    good_splits = []</span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>._length_function(s) &lt;= <span class="variable language_">self</span>._chunk_size:</span><br><span class="line">            good_splits.append(s)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">if</span> good_splits:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br><span class="line">                good_splits = []</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> rest_separators:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits([s], sep)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._split_text(s, rest_separators)  <span class="comment"># 递归</span></span><br><span class="line">    <span class="keyword">if</span> good_splits:</span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> <span class="variable language_">self</span>._merge_splits(good_splits, sep)</span><br></pre></td></tr></tbody></table></figure>
-<p>要点：</p>
+<p><strong>示例（静态代理）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Subject</span> { <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RealSubject</span> <span class="keyword">implements</span> <span class="title class_">Subject</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> { System.out.println(<span class="string">"real"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Proxy</span> <span class="keyword">implements</span> <span class="title class_">Subject</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">RealSubject</span> <span class="variable">target</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RealSubject</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"before"</span>);</span><br><span class="line">        target.request();</span><br><span class="line">        System.out.println(<span class="string">"after"</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li>用 <code>_split_on_separator(text, sep)</code> 得到当前层的 <code>splits</code>。</li>
-<li>长度 ≤ <code>chunk_size</code> 的进入 <code>good_splits</code>，凑一批后 <code>_merge_splits</code> 合并并产出。</li>
-<li>长度 &gt; <code>chunk_size</code> 的：若还有 <code>rest_separators</code> 则递归 <code>_split_text(s, rest_separators)</code>；否则按当前层合并或按字符兜底。</li>
+<li><strong>AOP 与 @Transactional</strong>：对 Bean 方法做事务、日志、权限等增强时，Spring 为 Bean 创建代理（JDK 或 CGLIB），调用方拿到的是代理对象，方法调用经代理再落到目标方法，是代理模式的直接应用。</li>
+<li><strong>ProxyFactoryBean</strong>：显式配置 AOP 代理时，通过 ProxyFactoryBean 指定目标与切面，由它生成代理 Bean。</li>
+<li><strong>远程调用 / RPC</strong>：客户端拿到的 “服务接口” 实现实为代理，代理将调用序列化后发到服务端，结果反序列化返回，对调用方透明。</li>
+<li><strong>懒加载 / Lazy</strong>：部分场景下注入的是 “懒代理”，首次使用时才初始化真实对象。</li>
 </ul>
-<h3 id="2-合并与重叠_merge_splits"><a class="markdownIt-Anchor" href="#2-合并与重叠_merge_splits"></a> 2. 合并与重叠：<code>_merge_splits</code></h3>
-<p>将一批小片段合并成若干块，每块长度约 <code>chunk_size</code>，相邻块之间重叠 <code>chunk_overlap</code>。</p>
-<figure class="highlight python"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_merge_splits</span>(<span class="params">self, splits: <span class="type">List</span>[<span class="built_in">str</span>], separator: <span class="built_in">str</span></span>) -&gt; <span class="type">List</span>[<span class="built_in">str</span>]:</span><br><span class="line">    docs = []</span><br><span class="line">    current = []</span><br><span class="line">    total_len = <span class="number">0</span></span><br><span class="line">    sep_len = <span class="variable language_">self</span>._length_function(separator)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> s <span class="keyword">in</span> splits:</span><br><span class="line">        n = <span class="variable language_">self</span>._length_function(s) + (sep_len <span class="keyword">if</span> current <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">if</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size <span class="keyword">and</span> current:</span><br><span class="line">            doc = <span class="variable language_">self</span>._join_docs(current, separator)</span><br><span class="line">            docs.append(doc)</span><br><span class="line">            <span class="comment"># 重叠：从队头丢弃片段，使剩余长度约等于 chunk_overlap</span></span><br><span class="line">            <span class="keyword">while</span> current <span class="keyword">and</span> (total_len &gt; <span class="variable language_">self</span>._chunk_overlap <span class="keyword">or</span> total_len + n &gt; <span class="variable language_">self</span>._chunk_size):</span><br><span class="line">                total_len -= <span class="variable language_">self</span>._length_function(current[<span class="number">0</span>]) + (sep_len <span class="keyword">if</span> <span class="built_in">len</span>(current) &gt; <span class="number">1</span> <span class="keyword">else</span> <span class="number">0</span>)</span><br><span class="line">                current = current[<span class="number">1</span>:]</span><br><span class="line">            total_len = <span class="built_in">sum</span>(<span class="variable language_">self</span>._length_function(x) <span class="keyword">for</span> x <span class="keyword">in</span> current) + sep_len * (<span class="built_in">len</span>(current) - <span class="number">1</span>)</span><br><span class="line">        current.append(s)</span><br><span class="line">        total_len += n</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> current:</span><br><span class="line">        docs.append(<span class="variable language_">self</span>._join_docs(current, separator))</span><br><span class="line">    <span class="keyword">return</span> docs</span><br></pre></td></tr></tbody></table></figure>
-<p>要点：</p>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li>顺序遍历 <code>splits</code>，累加长度；超过 <code>chunk_size</code> 时先产出当前块，再根据 <code>chunk_overlap</code> 从队头丢弃片段，实现块间重叠。</li>
-<li><code>_join_docs</code> 用 <code>separator</code> 把列表拼成最终字符串。</li>
+<li><strong>横切关注点</strong>：事务、日志、权限、限流、异常转换等，用代理统一加在方法调用前后，不改业务类。</li>
+<li><strong>远程 / 跨进程调用</strong>：本地接口的 “实现” 是代理，负责序列化、网络调用、反序列化。</li>
+<li><strong>访问控制</strong>：只允许通过代理访问敏感资源，代理中做鉴权、审计。</li>
+<li><strong>延迟加载</strong>：大对象或昂贵资源，首次使用时通过代理触发加载。</li>
+<li><strong>缓存</strong>：代理在调用前查缓存，命中则返回，未命中再调目标并回填缓存。</li>
 </ul>
-<h3 id="3-调用链"><a class="markdownIt-Anchor" href="#3-调用链"></a> 3. 调用链</h3>
-<table>
-<thead>
-<tr>
-<th>入口方法</th>
-<th>内部调用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>split_text(text)</code></td>
-<td><code>_split_text(text, self.separators)</code>，得到递归 + 合并后的块列表</td>
-</tr>
-<tr>
-<td><code>split_documents(documents)</code></td>
-<td>对每个 document 的 <code>page_content</code> 调 <code>split_text</code>，再按索引挂回 metadata</td>
-</tr>
-<tr>
-<td><code>create_documents(texts, metadatas)</code></td>
-<td>对每个 <code>text</code> 调 <code>split_text</code>，用 <code>metadatas</code> 构造 Document</td>
-</tr>
-</tbody>
-</table>
-<h2 id="常用方法"><a class="markdownIt-Anchor" href="#常用方法"></a> 常用方法</h2>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>说明</th>
-<th>来源</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>split_text(text: str) -&gt; List[str]</code></td>
-<td>对单个字符串切分，返回字符串列表</td>
-<td><strong>继承 TextSplitter</strong>（本类重写内部逻辑，仍调 <code>_split_text</code>）</td>
-</tr>
-<tr>
-<td><code>create_documents(texts: List[str], metadatas=None)</code></td>
-<td>从字符串列表创建 Document 列表</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>split_documents(documents: List[Document]) -&gt; List[Document]</code></td>
-<td>对 Document 列表切分，保留元数据</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>transform_documents(documents: List[Document]) -&gt; List[Document]</code></td>
-<td>与 <code>split_documents</code> 等价，用于管道</td>
-<td><strong>继承 TextSplitter</strong></td>
-</tr>
-<tr>
-<td><code>from_tiktoken_encoder(...)</code></td>
-<td>类方法，按 tiktoken 的 token 数切分</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-<tr>
-<td><code>from_huggingface_tokenizer(...)</code></td>
-<td>类方法，按 HuggingFace tokenizer 切分</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-<tr>
-<td><code>from_language(language, ...)</code></td>
-<td>类方法，按编程语言预设分隔符</td>
-<td>本类 / CharacterTextSplitter</td>
-</tr>
-</tbody>
-</table>
-<p><strong>继承自 TextSplitter 的方法</strong>：<code>split_text</code>、<code>create_documents</code>、<code>split_documents</code>、<code>transform_documents</code>（基类定义接口与默认实现，本类通过重写 <code>_split_text</code> 等改变切分行为）。</p>
-<h2 id="算法要点"><a class="markdownIt-Anchor" href="#算法要点"></a> 算法要点</h2>
-<ol>
-<li><strong>递归</strong>：用当前分隔符切分；若有片段长度仍大于 <code>chunk_size</code>，则用下一个分隔符对该片段递归切分。</li>
-<li><strong>重叠</strong>：相邻块之间保留 <code>chunk_overlap</code> 个字符（或 token），避免语义在边界处断裂。</li>
-<li><strong>长度计算</strong>：默认用 <code>len()</code>（字符数）；通过 <code>length_function</code> 可改为 token 数（如 tiktoken）。</li>
-</ol>
+<p><strong>不适用</strong>：无增强需求、无访问控制或远程需求时，直接依赖真实对象即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>代理模式通过 “代理与目标同一接口 + 代理控制访问并增强” 在不改目标的前提下扩展行为；Spring 中 <strong>AOP/@Transactional</strong>、<strong>ProxyFactoryBean</strong>、<strong>远程代理</strong> 是典型应用。业务上适用于<strong>横切关注点、远程调用、访问控制、延迟加载、缓存</strong>等场景。</p>
 
       
     </div>
@@ -795,7 +496,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-langchain4j-text-splitter/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -813,7 +514,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/01/29/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter 实现说明</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/" class="post-title-link" itemprop="url">设计模式（十三）责任链模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -824,14 +525,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00+08:00">2025-01-30</time>
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:03:23" itemprop="dateModified" datetime="2026-03-02T17:03:23+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -839,15 +540,11 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
         </span>
           ，
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
         </span>
     </span>
 
@@ -857,14 +554,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>2.5k</span>
+      <span>1.3k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
+      <span>1 分钟</span>
     </span>
 </div>
 
@@ -875,177 +572,1001 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
+          <h1 id="责任链模式chain-of-responsibility"><a class="markdownIt-Anchor" href="#责任链模式chain-of-responsibility"></a> 责任链模式（Chain of Responsibility）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>责任链模式</strong>使多个对象都有机会处理请求，将这些对象连成一条链，并沿链传递请求，直到有对象处理为止。</p>
+<p><strong>解决的问题</strong>：请求的发送者与多个处理者解耦，处理者可动态组合、顺序可调，且可随时增删节点。</p>
+<p><strong>定义</strong>：将请求的发送者和接收者解耦，使多个对象都有机会处理该请求；将这些对象连成链，并沿链传递请求。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li>包文档：<a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+<li><strong>Handler</strong>：抽象处理者，定义处理接口并持有后继者（next），在 handle 中可选地调用 next.handle()。</li>
+<li><strong>ConcreteHandler</strong>：具体处理者，能处理则处理并返回，否则交给后继。</li>
 </ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">protected</span> Handler next;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setNext</span><span class="params">(Handler next)</span> { <span class="built_in">this</span>.next = next; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">HandlerA</span> <span class="keyword">extends</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span> {</span><br><span class="line">        <span class="keyword">if</span> (canHandle(req)) { <span class="comment">/* 处理 */</span> <span class="keyword">return</span>; }</span><br><span class="line">        <span class="keyword">if</span> (next != <span class="literal">null</span>) next.handle(req);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">canHandle</span><span class="params">(Request req)</span> { <span class="keyword">return</span> <span class="literal">true</span>; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
+<li><strong>Filter 链（Servlet / Spring Security）</strong>：请求依次经过多个 Filter，每个 Filter 可决定是否放行、是否继续链；Spring Security 的 FilterChainProxy 编排多个 SecurityFilter，是责任链。</li>
+<li><strong>HandlerInterceptor</strong>：Spring MVC 中 preHandle/postHandle/afterCompletion 构成 “拦截链”，多个 Interceptor 按顺序执行，任一 preHandle 返回 false 可中断。</li>
+<li><strong>AOP 的 Advice 链</strong>：多个 Advisor / Advice 组成拦截链，按顺序执行，可视为责任链。</li>
+<li><strong>异常解析链</strong>：HandlerExceptionResolver 有多个实现，按顺序尝试解析异常，直到某个能处理为止。</li>
 </ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>按段落</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>按行</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>按词</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>层级分割基类</td>
-</tr>
-</tbody>
-</table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
-<ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
-</ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>分隔符自身长度</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>当前正在拼的段内容</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>当前段长度</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
+<li><strong>多级审批、工作流</strong>：请求按 “一级 → 二级 → 三级” 传递，每级能处理则处理并结束，否则交给下一级。</li>
+<li><strong>请求预处理 / 后处理</strong>：如鉴权 → 限流 → 日志 → 业务，每步可中断或放行。</li>
+<li><strong>异常 / 错误处理</strong>：多种异常处理器按顺序尝试，直到某个能处理（转换、记录、返回统一格式）。</li>
+<li><strong>管道式处理</strong>：数据经多道 “处理器”（校验、转换、丰富、落库），每道可选处理或跳过。</li>
 </ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
+<p><strong>不适用</strong>：请求必然只由一个固定对象处理、或处理逻辑无 “链式传递” 需求时。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>责任链模式通过 “处理者持有后继 + 沿链传递请求” 实现发送者与多个处理者解耦；Spring 中 <strong>Filter/FilterChain</strong>、<strong>HandlerInterceptor</strong>、<strong>AOP 链</strong>、<strong>HandlerExceptionResolver</strong> 是典型应用。业务上适用于<strong>多级审批、请求预处理链、异常解析链、管道处理</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-15-interpreter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-15-interpreter/" class="post-title-link" itemprop="url">设计模式（十五）解释器模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="解释器模式interpreter"><a class="markdownIt-Anchor" href="#解释器模式interpreter"></a> 解释器模式（Interpreter）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>解释器模式</strong>给定一门语言（或表达式）的表示与解释方式，用解释器解释句子（或表达式）并执行。</p>
+<p><strong>解决的问题</strong>：当存在一种 “小语言”（如表达式、简单脚本、规则描述），需要解析并执行时，用解释器把语法拆成若干类，每类负责一种语法单元的解析与求值。</p>
+<p><strong>定义</strong>：给定一个语言，定义它的文法的一种表示，并定义一个解释器，用该解释器解释语言中的句子。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
+<li><strong>AbstractExpression</strong>：抽象表达式，声明 interpret (Context) 接口。</li>
+<li><strong>TerminalExpression</strong>：终结符表达式，对应文法中的终结符（如常量、变量）。</li>
+<li><strong>NonterminalExpression</strong>：非终结符表达式，对应文法中的规则，内部包含多个子表达式并组合求值。</li>
+<li><strong>Context</strong>：上下文，存放变量、输入等，供解释过程使用。</li>
 </ul>
+<p><strong>示例</strong>（简单加减法）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Number</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line">    Number(<span class="type">int</span> value) { <span class="built_in">this</span>.value = value; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> { <span class="keyword">return</span> value; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Expr left, right;</span><br><span class="line">    Add(Expr l, Expr r) { left = l; right = r; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> {</span><br><span class="line">        <span class="keyword">return</span> left.interpret(ctx) + right.interpret(ctx);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>SpEL（Spring Expression Language）</strong>：Spring 的表达式语言，用于 @Value、@ConditionalOnExpression、缓存 key、安全表达式等；内部将表达式解析成 AST 并解释执行，是典型的解释器模式。</li>
+<li><strong>ExpressionParser 与 Expression</strong>：<code>ExpressionParser.parseExpression(expr)</code> 得到 <code>Expression</code>，再 <code>getValue(context)</code> 求值，对应 “解析 + 解释”。</li>
+<li><strong>条件注解中的表达式</strong>：如 <code>@ConditionalOnExpression("...")</code>，字符串被解析并求值，决定是否加载 Bean。</li>
+<li><strong>简单规则引擎</strong>：若业务中用 “规则字符串” 描述条件（如 “age &gt; 18 &amp;&amp; city == ‘Beijing’”），可用解释器或 SpEL 解析并求值。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>配置 / 脚本中的表达式</strong>：如配置里写 <code>"${env}-${version}"</code>、简单运算或条件，需要解析并求值。</li>
+<li><strong>规则 / 策略的文本描述</strong>：如风控规则 “金额 &gt; 10000 且 次数 &gt; 5”，用小型 DSL 描述并由解释器执行。</li>
+<li><strong>查询 / 过滤条件</strong>：用户输入简单条件表达式，解析后生成过滤逻辑或 SQL 条件（需防注入）。</li>
+<li><strong>公式计算</strong>：如报表中的单元格公式、定价公式，用表达式描述并由解释器求值。</li>
+</ul>
+<p><strong>不适用</strong>：语法复杂、性能要求高时，应使用 parser generator 或预编译；简单固定格式用正则或手写解析即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>解释器模式通过 “为语法中的每种符号定义解释类 + 组合求值” 实现小语言的解析与执行；Spring 中 <strong>SpEL</strong>、<strong>ExpressionParser/Expression</strong>、<strong>条件表达式</strong> 是典型应用。业务上适用于<strong>配置表达式、规则描述、简单公式 / 条件</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-16-iterator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-16-iterator/" class="post-title-link" itemprop="url">设计模式（十六）迭代器模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="迭代器模式iterator"><a class="markdownIt-Anchor" href="#迭代器模式iterator"></a> 迭代器模式（Iterator）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>迭代器模式</strong>提供一种顺序访问聚合对象元素的方法，且不暴露其内部表示。</p>
+<p><strong>解决的问题</strong>：聚合结构（列表、树、图）的遍历方式多样（顺序、逆序、过滤等），若在聚合内部写死会违反单一职责；把遍历逻辑抽到迭代器中，聚合只负责存储，迭代器负责 “如何遍历”。</p>
+<p><strong>定义</strong>：提供一种方法顺序访问聚合对象中的元素，而又不暴露其内部表示。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Iterator</strong>：迭代器接口，定义 hasNext ()、next () 等。</li>
+<li><strong>ConcreteIterator</strong>：具体迭代器，持有聚合的引用或内部状态，实现遍历逻辑。</li>
+<li><strong>Aggregate</strong>：聚合接口，定义 createIterator ()。</li>
+<li><strong>ConcreteAggregate</strong>：具体聚合，实现 createIterator () 返回对应迭代器。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Iterator</span>&lt;T&gt; {</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">hasNext</span><span class="params">()</span>;</span><br><span class="line">    T <span class="title function_">next</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Aggregate</span>&lt;T&gt; {</span><br><span class="line">    Iterator&lt;T&gt; <span class="title function_">iterator</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ListAggregate</span>&lt;T&gt; <span class="keyword">implements</span> <span class="title class_">Aggregate</span>&lt;T&gt; {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;T&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">public</span> Iterator&lt;T&gt; <span class="title function_">iterator</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ListIterator</span>&lt;&gt;(list);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>Java 的 <code>java.util.Iterator</code> 与 <code>Iterable</code> 已是语言级支持。</p>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>集合的迭代</strong>：Spring 大量使用 <code>Collection</code>、<code>Iterable</code>、<code>Iterator</code> 遍历 Bean 列表、Resource 列表等；与 JDK 一致，不单独实现迭代器接口，但 “通过迭代器访问聚合” 的思想一致。</li>
+<li><strong>Resource 的 getInputStream / 遍历</strong>：如 <code>Resource[]</code>、多位置资源时，通过迭代或 Stream 顺序访问，不暴露底层存储结构。</li>
+<li><strong>Bean 定义、属性等的遍历</strong>：BeanDefinition 的 property、constructor-arg 等，通过迭代方式访问，内部结构可变化。</li>
+<li><strong>Spring Data 的 Page / Slice</strong>：分页结果实现 <code>Iterable</code>，可用 for-each 或 Iterator 遍历，隐藏分页拉取细节。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>统一遍历多种集合</strong>：列表、树、图用同一 “迭代器” 接口遍历，调用方不关心底层是数组还是链表。</li>
+<li><strong>惰性遍历 / 流式</strong>：迭代器按需取下一个元素，适合大集合或 “无限” 序列，不必一次性加载到内存。</li>
+<li><strong>多种遍历方式</strong>：同一聚合提供 “正序迭代器”“逆序迭代器”“过滤迭代器” 等，满足不同遍历需求。</li>
+<li><strong>封装内部结构</strong>：聚合内部从数组改为链表，只要迭代器接口不变，调用方无需修改。</li>
+</ul>
+<p><strong>不适用</strong>：简单数组/列表一次性遍历、且无多种遍历方式需求时，直接 for/forEach 即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>迭代器模式通过 “迭代器接口 + 聚合提供迭代器” 解耦遍历与存储；Java 与 Spring 中 <strong>Iterator/Iterable</strong>、<strong>集合与 Resource 的遍历</strong>、<strong>Spring Data 分页</strong> 都体现了该思想。业务上适用于<strong>统一遍历多种结构、惰性 / 流式遍历、多种遍历方式、封装内部结构</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-17-mediator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-17-mediator/" class="post-title-link" itemprop="url">设计模式（十七）中介者模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="中介者模式mediator"><a class="markdownIt-Anchor" href="#中介者模式mediator"></a> 中介者模式（Mediator）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>中介者模式</strong>用一个中介对象封装一系列对象交互，使各对象不需要显式相互引用，从而降低耦合。</p>
+<p><strong>解决的问题</strong>：多个对象之间两两通信会导致关系网状化、难以维护；引入中介者后，对象只与中介者通信，由中介者协调多方，结构变为星形。</p>
+<p><strong>定义</strong>：用一个中介对象封装一系列对象交互；中介者使各对象不需要显式相互引用，从而使其耦合松散。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Mediator</strong>：中介者接口，定义与各 Colleague 通信的方法（如 send (message, from)）。</li>
+<li><strong>ConcreteMediator</strong>：具体中介者，持有所有 Colleague 的引用，实现协调逻辑，负责把消息路由到目标 Colleague。</li>
+<li><strong>Colleague</strong>：同事类，各 Colleague 只依赖 Mediator，不直接引用其他 Colleague；需要通知他人时调用 mediator.send()。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteMediator</span> <span class="keyword">implements</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">private</span> Colleague a, b;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColleagues</span><span class="params">(Colleague a, Colleague b)</span> { <span class="built_in">this</span>.a = a; <span class="built_in">this</span>.b = b; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span> {</span><br><span class="line">        <span class="keyword">if</span> (from == a) b.receive(msg); <span class="keyword">else</span> a.receive(msg);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Colleague</span> {</span><br><span class="line">    <span class="keyword">protected</span> Mediator mediator;</span><br><span class="line">    Colleague(Mediator m) { <span class="built_in">this</span>.mediator = m; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">receive</span><span class="params">(String msg)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>MVC 中的 Controller</strong>：Controller 作为 “中介”，接收请求后协调 Model（服务 / 数据）与 View（渲染）；不直接让 View 与 Model 互相引用，降低耦合。</li>
+<li><strong>事件与 ApplicationEventMulticaster</strong>：多个监听器与事件发布者不直接引用，通过 ApplicationContext（或 Multicaster）作为中介广播事件，监听器只订阅 “某类事件”。</li>
+<li><strong>消息中间件</strong>：MQ 作为中介，生产者与消费者不直接引用，通过 Topic / Queue 通信，可视为 “消息中介者”。</li>
+<li><strong>网关 / API 网关</strong>：网关作为中介，协调认证、路由、限流与后端服务，各服务不直接互调。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>多对象需协调</strong>：如 “订单创建” 涉及库存、支付、消息、积分等多模块，由 “订单服务” 或 “领域协调器” 作为中介，统一调用各模块，模块之间不直接依赖。</li>
+<li><strong>聊天室 / 协作</strong>：多个用户 / 组件只与 “房间” 或 “会话” 通信，由中介者把消息分发给其他人。</li>
+<li><strong>表单 / UI 组件联动</strong>：多个输入框、下拉框相互联动（如省市区、品类与规格），由表单中介者统一处理变更并更新其他组件。</li>
+<li><strong>工作流 / 审批流</strong>：节点之间不直接引用，由流程引擎作为中介推进流程、分配任务。</li>
+</ul>
+<p><strong>不适用</strong>：对象之间关系简单、只有一对一或少量交互时，不必引入中介者。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>中介者模式通过 “中介者集中协调、同事只依赖中介者” 将网状交互变为星形；Spring 中 <strong>MVC Controller</strong>、<strong>事件广播</strong>、<strong>消息 / 网关</strong> 体现了中介思想。业务上适用于<strong>多对象协调、聊天 / 协作、表单联动、工作流</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-18-memento/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-18-memento/" class="post-title-link" itemprop="url">设计模式（十八）备忘录模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="备忘录模式memento"><a class="markdownIt-Anchor" href="#备忘录模式memento"></a> 备忘录模式（Memento）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>备忘录模式</strong>在不破坏封装的前提下捕获对象的内部状态，并在对象之外保存该状态，以便之后恢复。</p>
+<p><strong>解决的问题</strong>：需要保存 / 恢复对象某一时刻的状态（如撤销、快照、回放），又不希望把内部状态直接暴露给外部；通过 “备忘录” 对象保存状态，由原发者自己写入与读出。</p>
+<p><strong>定义</strong>：在不破坏封装性的前提下捕获对象的内部状态，并在对象之外保存这个状态，以便之后恢复。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Originator</strong>：原发者，产生需要保存的状态，可 createMemento () 生成备忘录，也可 restore (memento) 从备忘录恢复。</li>
+<li><strong>Memento</strong>：备忘录，存放 Originator 的内部状态；通常只由 Originator 读写，对外可只暴露给 Caretaker 存储而不暴露内容。</li>
+<li><strong>Caretaker</strong>：负责人，持有 Memento，不操作其内容，只负责 “保存” 和 “交给 Originator 恢复”。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Memento</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    Memento(String state) { <span class="built_in">this</span>.state = state; }</span><br><span class="line">    String <span class="title function_">getState</span><span class="params">()</span> { <span class="keyword">return</span> state; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Originator</span> {</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">save</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Memento</span>(state); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">restore</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.state = m.getState(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Caretaker</span> {</span><br><span class="line">    <span class="keyword">private</span> Memento memento;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">save</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.memento = m; }</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">get</span><span class="params">()</span> { <span class="keyword">return</span> memento; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Spring Web Flow 状态管理</strong>：流程状态（如 conversation、flow 的 snapshot）被保存以便恢复、回退，可视为 “流程的备忘录”；状态存储在 session 或存储中，由框架管理。</li>
+<li><strong>会话 / 请求级状态</strong>：如 “草稿”“多步表单的已填数据”，保存为某种 Memento 结构（如 Map、DTO），在提交前可恢复或重填。</li>
+<li><strong>事务的 savepoint</strong>：数据库 savepoint 相当于 “事务状态的备忘录”，可回滚到某一点。</li>
+<li><strong>快照 / 版本</strong>：实体保存历史版本（如文档版本、配置版本），需要时恢复到某一版本，本质是 “状态的备忘录 + 恢复”。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>撤销 / 重做</strong>：编辑器中每步操作前保存 Memento，撤销时 restore；命令模式常与备忘录结合（命令里保存执行前状态以便 undo）。</li>
+<li><strong>草稿 / 自动保存</strong>：表单或文档定期把当前状态保存为 Memento，崩溃或关闭后可恢复。</li>
+<li><strong>多步 wizard 的回退</strong>：每步完成后保存当前步骤与数据，用户可回到上一步并恢复当时状态。</li>
+<li><strong>快照与回滚</strong>：配置、脚本、虚拟机等做快照，出问题后回滚到某快照。</li>
+<li><strong>游戏存档</strong>：把角色 / 场景状态序列化为 Memento 存盘，读档时 restore。</li>
+</ul>
+<p><strong>不适用</strong>：状态简单、无需恢复或只需简单 “重算” 即可得到历史状态时，不必引入 Memento。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>备忘录模式通过 “原发者生成 / 恢复 Memento + Caretaker 只负责存储” 实现状态保存与恢复且不破坏封装；Spring 中 <strong>Web Flow 状态</strong>、<strong>会话 / 草稿</strong>、<strong>savepoint</strong> 有体现。业务上适用于<strong>撤销重做、草稿/自动保存、wizard 回退、快照/回滚、存档</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-14-command/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-14-command/" class="post-title-link" itemprop="url">设计模式（十四）命令模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="命令模式command"><a class="markdownIt-Anchor" href="#命令模式command"></a> 命令模式（Command）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>命令模式</strong>将请求封装成对象，从而可用不同的请求对客户进行参数化、支持请求排队、记录日志、撤销等。</p>
+<p><strong>解决的问题</strong>：把 “操作” 变成对象，便于传递、排队、记录、撤销 / 重做；调用方只依赖 “命令” 接口，不依赖具体执行者。</p>
+<p><strong>定义</strong>：将请求封装为对象，从而可以参数化客户、排队、记录请求日志、支持撤销等。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Command</strong>：抽象命令，声明 execute ()（及可选 undo ()）。</li>
+<li><strong>ConcreteCommand</strong>：具体命令，持有 Receiver 的引用，execute () 中调用 Receiver 的相应方法。</li>
+<li><strong>Receiver</strong>：接收者，真正执行操作的对象。</li>
+<li><strong>Invoker</strong>：调用者，持有 Command，在适当时机调用 command.execute()。</li>
+<li><strong>Client</strong>：组装 Command 与 Receiver，将 Command 交给 Invoker。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Command</span> { <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Receiver</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">action</span><span class="params">()</span> { System.out.println(<span class="string">"do"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteCommand</span> <span class="keyword">implements</span> <span class="title class_">Command</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Receiver</span> <span class="variable">receiver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Receiver</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span> { receiver.action(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Invoker</span> {</span><br><span class="line">    <span class="keyword">private</span> Command command;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setCommand</span><span class="params">(Command c)</span> { <span class="built_in">this</span>.command = c; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> { command.execute(); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Runnable / Callable 作为 “命令”</strong>：线程池提交的 Runnable / Callable 可视为命令对象，Invoker 是线程池，Receiver 是业务逻辑；Spring 的 @Async、TaskExecutor 也基于此类 “可执行命令”。</li>
+<li><strong>JdbcTemplate 的 StatementCreator / PreparedStatementCallback</strong>：将 “创建语句 / 执行语句” 封装成对象，由模板在合适时机（获取连接后）执行，具有命令模式思想。</li>
+<li><strong>Spring MVC 的 HandlerExecutionChain</strong>：Handler 与 Interceptor 可视为 “命令 + 链”，DispatcherServlet 作为 Invoker 在合适时机执行。</li>
+<li><strong>消息驱动</strong>：MQ 消息体可视为 “命令”，消费者根据消息类型执行不同逻辑，支持异步、排队、重试。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>撤销 / 重做</strong>：每次操作封装成命令并入栈，撤销时执行 undo 或从栈中弹出并反向执行。</li>
+<li><strong>任务队列、异步执行</strong>：任务封装成命令对象，放入队列，由工作线程依次执行；支持延迟、重试、优先级。</li>
+<li><strong>多端触发同一操作</strong>：UI、API、定时任务都可发出同一 “命令对象”，由统一 Invoker 执行，便于扩展与测试。</li>
+<li><strong>审计、日志</strong>：命令对象可记录 “谁在何时执行了什么”，便于审计与回放。</li>
+<li><strong>宏 / 批处理</strong>：将多个命令组合成复合命令，一次执行一批操作。</li>
+</ul>
+<p><strong>不适用</strong>：操作极简单、无需排队/撤销/审计时，直接调用即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>命令模式通过 “将请求封装为对象” 支持参数化、排队、撤销、审计；Spring 中 <strong>Runnable / Callable 与线程池</strong>、<strong>JdbcTemplate 回调</strong>、<strong>消息驱动</strong> 体现了命令思想。业务上适用于<strong>撤销重做、任务队列、多端触发、审计、宏 / 批处理</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-19-observer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-19-observer/" class="post-title-link" itemprop="url">设计模式（十九）观察者模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="观察者模式observer"><a class="markdownIt-Anchor" href="#观察者模式observer"></a> 观察者模式（Observer）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>观察者模式</strong>定义对象间的一对多依赖，当一个对象状态改变时，其所有依赖者都会收到通知并自动更新。</p>
+<p><strong>解决的问题</strong>：一个主题（被观察者）状态变化时，需要通知多个订阅者且不与之强耦合；主题只负责发布 “我变了”，观察者自行订阅与处理。</p>
+<p><strong>定义</strong>：定义对象间的一种一对多依赖关系，使得每当一个对象状态发生改变时，其相关依赖对象皆得到通知并自动更新。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Subject</strong>：主题，维护观察者列表，提供 attach / detach，状态变化时 notify 所有观察者。</li>
+<li><strong>Observer</strong>：观察者接口，定义 update ()（或 onEvent），供主题调用。</li>
+<li><strong>ConcreteSubject</strong>：具体主题，状态改变时调用 notify。</li>
+<li><strong>ConcreteObserver</strong>：具体观察者，实现 update () 以响应通知。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Observer</span> { <span class="keyword">void</span> <span class="title function_">update</span><span class="params">(String state)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Subject</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Observer&gt; observers = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">attach</span><span class="params">(Observer o)</span> { observers.add(o); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(String state)</span> {</span><br><span class="line">        <span class="built_in">this</span>.state = state;</span><br><span class="line">        observers.forEach(o -&gt; o.update(state));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Spring 事件机制</strong>：<code>ApplicationEventPublisher.publishEvent(event)</code> 发布事件，实现 <code>ApplicationListener&lt;E&gt;</code> 或使用 <code>@EventListener</code> 的 Bean 作为观察者被自动调用；主题是 ApplicationContext（或事件发布者），观察者是各 Listener。</li>
+<li><strong>ContextRefreshedEvent、RequestHandledEvent 等</strong>：容器刷新完成、请求处理完毕等生命周期节点发布事件，监听器可做初始化、统计、清理等，与核心逻辑解耦。</li>
+<li><strong>自定义业务事件</strong>：继承 <code>ApplicationEvent</code>，在业务中 publish，多个监听器分别处理（发消息、记日志、更新缓存等），是观察者模式的直接应用。</li>
+<li><strong>@TransactionalEventListener</strong>：在事务提交后等阶段再触发监听器，仍属 “事件 → 观察者” 模型。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>事件驱动、解耦通知</strong>：如 “订单支付成功” 后需要更新库存、发短信、送积分、记审计，支付模块只发布 “支付成功” 事件，各处理方订阅即可，支付模块不依赖具体处理逻辑。</li>
+<li><strong>配置 / 数据变更通知</strong>：配置中心推送变更，多个服务订阅并刷新本地配置；缓存失效时通知多个节点。</li>
+<li><strong>UI 与数据同步</strong>：MVC 中 Model 变化后通知 View 更新；前端也常用观察者 / 订阅发布（如 Rx、EventBus）。</li>
+<li><strong>日志、监控、审计</strong>：核心业务发布 “关键操作” 事件，日志/监控/审计监听器统一处理，业务代码不写这些横切逻辑。</li>
+<li><strong>生命周期钩子</strong>：容器启动/关闭、请求开始/结束发布事件，便于做统一初始化或清理。</li>
+</ul>
+<p><strong>不适用</strong>：通知方与接收方严格一对一、且逻辑稳定不变时，直接调用即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>观察者模式通过 “主题维护观察者列表 + 状态变化时通知” 实现一对多解耦；Spring 中 <strong>ApplicationEvent/ApplicationListener</strong>、<strong>@EventListener</strong>、<strong>@TransactionalEventListener</strong> 是典型实现。业务上适用于<strong>事件驱动、配置/缓存通知、UI 同步、日志/监控/审计、生命周期钩子</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-20-state/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-20-state/" class="post-title-link" itemprop="url">设计模式（二十）状态模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="状态模式state"><a class="markdownIt-Anchor" href="#状态模式state"></a> 状态模式（State）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>状态模式</strong>允许对象在内部状态改变时改变其行为，对象看起来像是修改了类。</p>
+<p><strong>解决的问题</strong>：当对象行为依赖多种状态且不同状态下行为差异大时，若用大量 if-else/switch 会难以维护；把 “每种状态” 封装成独立类，状态转换时切换当前状态对象，行为随状态对象变化。</p>
+<p><strong>定义</strong>：允许一个对象在其内部状态改变时改变它的行为，对象看起来修改了它的类。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Context</strong>：上下文，持有当前 State，客户请求委托给当前 state 处理；可提供 setState () 供状态类切换状态。</li>
+<li><strong>State</strong>：抽象状态，定义行为接口（如 handle ()）。</li>
+<li><strong>ConcreteState</strong>：具体状态，实现行为，并在适当时机调用 context.setState(nextState) 切换状态。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">State</span> { <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> State state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(State s)</span> { <span class="built_in">this</span>.state = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> { state.handle(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteStateA</span> <span class="keyword">implements</span> <span class="title class_">State</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span> {</span><br><span class="line">        <span class="comment">// 处理并可能切换</span></span><br><span class="line">        ctx.setState(<span class="keyword">new</span> <span class="title class_">ConcreteStateB</span>());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Spring State Machine</strong>：spring-statemachine 库显式支持状态机建模，状态与迁移由配置或代码定义，事件驱动迁移，是状态模式的完整实现；适用于订单、工作流、审批等有明确状态与迁移的场景。</li>
+<li><strong>Bean 生命周期</strong>：Bean 的创建、初始化、运行、销毁等可视为不同 “状态”，容器在不同状态下执行不同逻辑（如 PostProcessor、InitializingBean），可抽象为状态思想。</li>
+<li><strong>连接 / 会话状态</strong>：如 TCP 连接、WebSocket 会话的 “未连接/已连接/关闭中/已关闭”，用状态对象封装各阶段行为与迁移条件。</li>
+<li><strong>事务状态</strong>：事务管理器内部有 “无事务/活跃/提交中/回滚中” 等状态，行为（提交、回滚、挂起）随状态变化。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>订单/工单/审批流</strong>：待支付、已支付、发货中、已完成、已取消等，每状态下可执行的操作与下一状态不同，用状态模式（或状态机）清晰建模。</li>
+<li><strong>游戏 / 动画</strong>：角色 “待机/跑/攻击/受伤” 等，每状态对应不同动画与输入响应，切换状态即切换行为。</li>
+<li><strong>连接 / 会话管理</strong>：连接建立、认证、传输、关闭等阶段，每阶段允许的操作与错误处理不同。</li>
+<li><strong>UI 控件</strong>：按钮 “正常/禁用/加载中”，不同状态下点击行为、样式不同。</li>
+<li><strong>协议解析</strong>：解析器处于 “读头/读体/读尾” 等状态，收到数据时根据当前状态决定如何处理与迁移。</li>
+</ul>
+<p><strong>不适用</strong>：状态很少、行为差异不大时，简单分支即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>状态模式通过 “状态即对象 + 行为委托给当前状态 + 状态间迁移” 消除复杂分支；Spring 中 <strong>Spring State Machine</strong>、<strong>Bean 生命周期</strong>、<strong>连接 / 事务状态</strong> 有体现。业务上适用于<strong>订单/工作流、游戏/动画、连接/会话、UI 状态、协议解析</strong>等场景。</p>
 
       
     </div>
@@ -1065,7 +1586,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
@@ -1087,13 +1608,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">56k</span>
+    <span title="站点总字数">89k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">51 分钟</span>
+    <span title="站点阅读时长">1:21</span>
   </span>
 </div>
 <div class="busuanzi-count">

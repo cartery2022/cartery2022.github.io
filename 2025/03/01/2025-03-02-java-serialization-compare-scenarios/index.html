@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous" defer></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Java 序列化对比：官方 Serializable 与常见三方库的优缺点与适用场景 本文以 Java 官方序列化（java.io.ObjectOutputStream &#x2F; ObjectInputStream，即 Serializable 那套）为基准，对比常见三方方案（JSON &#x2F; 高性能二进制 &#x2F; 跨语言协议）的优缺点、源码层面差异，以及各自适用场景。   一、官方 Serializable">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景">
+<meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-serialization-compare-scenarios/index.html">
+<meta property="og:site_name" content="贝加尔湖畔">
+<meta property="og:description" content="Java 序列化对比：官方 Serializable 与常见三方库的优缺点与适用场景 本文以 Java 官方序列化（java.io.ObjectOutputStream &#x2F; ObjectInputStream，即 Serializable 那套）为基准，对比常见三方方案（JSON &#x2F; 高性能二进制 &#x2F; 跨语言协议）的优缺点、源码层面差异，以及各自适用场景。   一、官方 Serializable">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-02T04:06:49.246Z">
+<meta property="article:author" content="cartery">
+<meta property="article:tag" content="Jackson">
+<meta property="article:tag" content="Kryo">
+<meta property="article:tag" content="Protobuf">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="序列化">
+<meta property="article:tag" content="选型">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-serialization-compare-scenarios/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-serialization-compare-scenarios/","path":"2025/03/01/2025-03-02-java-serialization-compare-scenarios/","title":"Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景 | 贝加尔湖畔</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/7.2.0/pangu.umd.js" integrity="sha256-JnmRRnJK7DC6RQJbAJb6AXOM9OmWzS6z8eYultk/48Y=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+  <script src="/js/third-party/pace.js" defer></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-serialization-compare-scenarios/"}</script>
+  <script src="/js/third-party/quicklink.js" defer></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">贝加尔湖畔</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java-%E5%BA%8F%E5%88%97%E5%8C%96%E5%AF%B9%E6%AF%94%E5%AE%98%E6%96%B9-serializable-%E4%B8%8E%E5%B8%B8%E8%A7%81%E4%B8%89%E6%96%B9%E5%BA%93%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text"> Java 序列化对比：官方 Serializable 与常见三方库的优缺点与适用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E5%AE%98%E6%96%B9-serializable-%E7%9A%84%E5%BA%95%E5%B1%82%E5%86%B3%E5%AE%9A%E4%BA%86%E5%AE%83%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、官方 Serializable 的 “底层决定了它的优缺点”</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6%E6%BA%90%E7%A0%81%E8%A6%81%E7%82%B9"><span class="nav-number">1.1.1.</span> <span class="nav-text"> 1.1 核心机制（源码要点）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#12-%E7%94%B1%E6%AD%A4%E5%B8%A6%E6%9D%A5%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.1.2.</span> <span class="nav-text"> 1.2 由此带来的优缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E6%BA%90%E7%A0%81%E5%B7%AE%E5%BC%82%E5%BD%92%E7%BA%B3%E4%BA%94%E6%9D%A1%E5%9B%A0%E6%9E%9C%E9%93%BE"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、源码差异归纳：五条因果链</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E5%86%99%E4%B8%8D%E5%86%99-class-descriptorobjectstreamclass"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 写不写 class descriptor（ObjectStreamClass）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E5%AD%97%E6%AE%B5%E6%A0%87%E8%AF%86%E6%96%B9%E5%BC%8F%E5%AD%97%E6%AE%B5%E5%90%8D-vs-%E6%95%B0%E5%AD%97-tag-vs-%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 字段标识方式：字段名 vs 数字 tag vs 顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#23-%E5%AF%B9%E8%B1%A1%E5%9B%BE%E8%AF%AD%E4%B9%89%E5%BC%95%E7%94%A8%E5%BE%AA%E7%8E%AF%E6%98%AF%E5%90%A6%E5%8D%8F%E8%AE%AE%E5%8E%9F%E7%94%9F%E6%94%AF%E6%8C%81"><span class="nav-number">1.2.3.</span> <span class="nav-text"> 2.3 对象图语义（引用 &#x2F; 循环）是否协议原生支持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#24-%E5%AF%B9%E8%B1%A1%E5%88%9B%E5%BB%BA%E6%96%B9%E5%BC%8F%E7%BB%95%E8%BF%87%E6%9E%84%E9%80%A0%E5%99%A8-vs-%E6%AD%A3%E5%B8%B8%E6%9E%84%E9%80%A0"><span class="nav-number">1.2.4.</span> <span class="nav-text"> 2.4 对象创建方式：绕过构造器 vs 正常构造</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#25-%E5%8F%8D%E5%B0%84-vs-%E5%AD%97%E8%8A%82%E7%A0%81%E7%94%9F%E6%88%90-vs-%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90"><span class="nav-number">1.2.5.</span> <span class="nav-text"> 2.5 反射 vs 字节码生成 vs 代码生成</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E5%90%84%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E6%BA%90%E7%A0%81%E5%B7%AE%E5%BC%82"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、各方案对比：优缺点与源码差异</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-json-%E7%B1%BBjackson-fastjson2-gson"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 JSON 类：Jackson &#x2F; Fastjson2 &#x2F; Gson</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E9%AB%98%E6%80%A7%E8%83%BD-java-%E4%BA%8C%E8%BF%9B%E5%88%B6kryo-protostuff"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 高性能 Java 二进制：Kryo &#x2F; Protostuff</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-%E8%B7%A8%E8%AF%AD%E8%A8%80%E5%8D%8F%E8%AE%AEprotobuf-avro-messagepack"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 跨语言协议：Protobuf &#x2F; Avro &#x2F; MessagePack</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF%E6%8C%89%E6%A1%86%E6%9E%B6"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、适用场景（按框架）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-%E5%AE%98%E6%96%B9-serializable"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 官方 Serializable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-jackson%E4%BC%81%E4%B8%9A-rest-%E6%A0%87%E5%87%86"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 Jackson（企业 REST 标准）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-fastjson2"><span class="nav-number">1.4.3.</span> <span class="nav-text"> 4.3 Fastjson2</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#44-kryo%E9%AB%98%E6%80%A7%E8%83%BD-java-%E5%86%85%E9%83%A8%E4%BA%8C%E8%BF%9B%E5%88%B6"><span class="nav-number">1.4.4.</span> <span class="nav-text"> 4.4 Kryo（高性能 Java 内部二进制）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#45-protobuf%E5%BE%AE%E6%9C%8D%E5%8A%A1-rpc-%E9%A6%96%E9%80%89"><span class="nav-number">1.4.5.</span> <span class="nav-text"> 4.5 Protobuf（微服务 &#x2F; RPC 首选）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#46-avro%E6%95%B0%E6%8D%AE%E7%AE%A1%E9%81%93-kafka"><span class="nav-number">1.4.6.</span> <span class="nav-text"> 4.6 Avro（数据管道 &#x2F; Kafka）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#47-messagepack"><span class="nav-number">1.4.7.</span> <span class="nav-text"> 4.7 MessagePack</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E5%B7%A5%E7%A8%8B%E9%80%89%E5%9E%8B%E9%80%9F%E6%9F%A5"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、工程选型速查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%B8%80%E5%8F%A5%E8%AF%9D%E6%80%BB%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、一句话总结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartery</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-serialization-compare-scenarios/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景 | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 12:06:49" itemprop="dateModified" datetime="2026-03-02T12:06:49+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">架构</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="java-序列化对比官方-serializable-与常见三方库的优缺点与适用场景"><a class="markdownIt-Anchor" href="#java-序列化对比官方-serializable-与常见三方库的优缺点与适用场景"></a> Java 序列化对比：官方 Serializable 与常见三方库的优缺点与适用场景</h1>
+<p>本文以 <strong>Java 官方序列化</strong>（<code>java.io.ObjectOutputStream</code> / <code>ObjectInputStream</code>，即 Serializable 那套）为基准，对比常见三方方案（JSON / 高性能二进制 / 跨语言协议）的<strong>优缺点</strong>、<strong>源码层面差异</strong>，以及<strong>各自适用场景</strong>。</p>
+<hr>
+<h2 id="一-官方-serializable-的底层决定了它的优缺点"><a class="markdownIt-Anchor" href="#一-官方-serializable-的底层决定了它的优缺点"></a> 一、官方 Serializable 的 “底层决定了它的优缺点”</h2>
+<h3 id="11-核心机制源码要点"><a class="markdownIt-Anchor" href="#11-核心机制源码要点"></a> 1.1 核心机制（源码要点）</h3>
+<ul>
+<li><strong>写类元数据</strong>：<code>ObjectOutputStream.writeClassDesc()</code> / <code>writeNonProxyDesc()</code> 把 <code>ObjectStreamClass</code> 的 class descriptor（类名、serialVersionUID、字段列表等）写进流。</li>
+<li><strong>写对象图 + 循环引用</strong>：<code>writeObject0()</code> + <strong>HandleTable</strong>（句柄表）+ <code>ObjectStreamClass</code>，实现 “同一对象只写一次、后续写引用句柄”。</li>
+<li><strong>字段写入路径</strong>：默认走 <code>ObjectStreamClass</code> 的字段描述写 primitive / object；特殊情况走 <code>writeObject</code>/<code>readObject</code>、Externalizable、<code>writeReplace</code>/<code>readResolve</code> 等钩子。</li>
+<li><strong>反序列化创建对象</strong>：<code>ObjectInputStream.readObject0()</code> + <code>ObjectStreamClass.newInstance()</code>（内部用 ReflectionFactory 等 “绕过构造器” 的路径），再把字段灌进去。</li>
+</ul>
+<h3 id="12-由此带来的优缺点"><a class="markdownIt-Anchor" href="#12-由此带来的优缺点"></a> 1.2 由此带来的优缺点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象图完整，循环引用 / 共享引用天然支持</td>
+<td>流里带大量类描述，体积大</td>
+</tr>
+<tr>
+<td>对 Java 对象模型最忠实</td>
+<td>反射 + 安全检查多，性能一般</td>
+</tr>
+<tr>
+<td>一套 API 覆盖各种对象</td>
+<td>强绑定 Java 类结构，跨语言差、演进麻烦</td>
+</tr>
+<tr>
+<td></td>
+<td>历史上反序列化安全风险高（gadget 链）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论</strong>：三方库的优缺点，本质上来自这几件事的差异 ——<strong> 是否写类描述、是否用 schema / 字段 tag、是否大量反射、是否保留对象图语义、对象创建方式</strong>。</p>
+<hr>
+<h2 id="二-源码差异归纳五条因果链"><a class="markdownIt-Anchor" href="#二-源码差异归纳五条因果链"></a> 二、源码差异归纳：五条因果链</h2>
+<h3 id="21-写不写-class-descriptorobjectstreamclass"><a class="markdownIt-Anchor" href="#21-写不写-class-descriptorobjectstreamclass"></a> 2.1 写不写 class descriptor（ObjectStreamClass）</h3>
+<table>
+<thead>
+<tr>
+<th>做法</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>写</strong></td>
+<td>官方 Serializable</td>
+<td>通用、能完整恢复对象图，但臃肿、强绑定 Java</td>
+</tr>
+<tr>
+<td><strong>不写</strong></td>
+<td>多数三方</td>
+<td>更小更快，但要靠 schema / 注册 / 约定</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-字段标识方式字段名-vs-数字-tag-vs-顺序"><a class="markdownIt-Anchor" href="#22-字段标识方式字段名-vs-数字-tag-vs-顺序"></a> 2.2 字段标识方式：字段名 vs 数字 tag vs 顺序</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>字段名字符串</strong></td>
+<td>JSON</td>
+<td>可读、演进宽松，但体积大、解析慢</td>
+</tr>
+<tr>
+<td><strong>数字 tag</strong></td>
+<td>Protobuf / Avro</td>
+<td>紧凑、快、演进强，但要维护 schema</td>
+</tr>
+<tr>
+<td><strong>顺序</strong></td>
+<td>部分 Kryo / 自定义</td>
+<td>最快最小，但对字段增删改最敏感</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-对象图语义引用循环是否协议原生支持"><a class="markdownIt-Anchor" href="#23-对象图语义引用循环是否协议原生支持"></a> 2.3 对象图语义（引用 / 循环）是否协议原生支持</h3>
+<table>
+<thead>
+<tr>
+<th>支持方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协议原生</strong></td>
+<td>官方 Serializable（HandleTable）</td>
+<td>同一对象只写一次，读回同一引用，环自然还原</td>
+</tr>
+<tr>
+<td><strong>默认不支持</strong></td>
+<td>JSON / Protobuf</td>
+<td>需自己用 ID 引用等方式表达</td>
+</tr>
+<tr>
+<td><strong>可选</strong></td>
+<td>Kryo</td>
+<td>可配置引用跟踪，不一定默认等价 Serializable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-对象创建方式绕过构造器-vs-正常构造"><a class="markdownIt-Anchor" href="#24-对象创建方式绕过构造器-vs-正常构造"></a> 2.4 对象创建方式：绕过构造器 vs 正常构造</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>绕过构造器</strong></td>
+<td>官方（ReflectionFactory 等）</td>
+<td>能恢复复杂对象图，但反序列化风险高、行为复杂</td>
+</tr>
+<tr>
+<td><strong>构造器 / 无参 + setter</strong></td>
+<td>JSON 类库</td>
+<td>行为更可预期，安全面更好</td>
+</tr>
+<tr>
+<td><strong>生成代码控制</strong></td>
+<td>Protobuf</td>
+<td>构建过程可控，性能好</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-反射-vs-字节码生成-vs-代码生成"><a class="markdownIt-Anchor" href="#25-反射-vs-字节码生成-vs-代码生成"></a> 2.5 反射 vs 字节码生成 vs 代码生成</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>反射 + 复杂元数据</strong></td>
+<td>官方 Serializable</td>
+<td>灵活但慢、安全检查多</td>
+</tr>
+<tr>
+<td><strong>反射 + 缓存 + 可选 bytecode</strong></td>
+<td>Jackson</td>
+<td>平衡可读与性能</td>
+</tr>
+<tr>
+<td><strong>生成代码 + 紧凑二进制</strong></td>
+<td>Protobuf</td>
+<td>通常最快、最稳定、跨语言</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三-各方案对比优缺点与源码差异"><a class="markdownIt-Anchor" href="#三-各方案对比优缺点与源码差异"></a> 三、各方案对比：优缺点与源码差异</h2>
+<h3 id="31-json-类jackson-fastjson2-gson"><a class="markdownIt-Anchor" href="#31-json-类jackson-fastjson2-gson"></a> 3.1 JSON 类：Jackson / Fastjson2 / Gson</h3>
+<p><strong>与官方的核心差异</strong>：不走 <code>ObjectStreamClass</code> / <code>writeClassDesc</code> 的二进制协议，而是：</p>
+<ul>
+<li>字符/UTF-8 的 token 流（字段名、数值、数组/对象边界）</li>
+<li>映射层把 “字段名/注解/策略” 绑定到 POJO</li>
+</ul>
+<p><strong>Jackson 典型源码点</strong>：</p>
+<ul>
+<li>写：<code>ObjectMapper#writeValue</code> → <code>JsonFactory</code> → <code>JsonGenerator</code>，<code>BeanSerializer</code> / <code>BeanPropertyWriter</code> 遍历属性输出 JSON</li>
+<li>读：<code>ObjectMapper#readValue</code> → <code>JsonParser</code> 读 token，<code>BeanDeserializer</code> / <code>SettableBeanProperty</code> 把值 set 进对象</li>
+</ul>
+<p><strong>Fastjson2</strong>：入口类似 <code>JSON#toJSONString</code> / <code>parseObject</code>，更多快速路径、按类型走专用 reader / writer，性能更激进。</p>
+<p><strong>Gson</strong>：<code>TypeAdapter</code> + 反射读写字段，结构简单，配置与优化路径相对少。</p>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨语言（JSON 通用）</td>
+<td>不天然保留对象图（循环 / 共享引用默认丢，需额外机制如 Jackson object identity）</td>
+</tr>
+<tr>
+<td>可读、可调试</td>
+<td>类型信息缺失，多态 / 接口需显式 type info</td>
+</tr>
+<tr>
+<td>schema 变更相对宽松（新增字段对旧端友好）</td>
+<td>性能 / 体积一般不如高效二进制（字段名重复、文本解析）</td>
+</tr>
+<tr>
+<td>安全面通常好于 Serializable（不会自动走 gadget 链那套）</td>
+<td>Fastjson 历史安全包袱需谨慎配置</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="32-高性能-java-二进制kryo-protostuff"><a class="markdownIt-Anchor" href="#32-高性能-java-二进制kryo-protostuff"></a> 3.2 高性能 Java 二进制：Kryo / Protostuff</h3>
+<p><strong>与官方的核心差异</strong>：一般不把 “完整 class descriptor” 写在每个对象旁，而是 <strong>type id + 字段序列化</strong> 的紧凑模型。</p>
+<p><strong>Kryo 典型源码点</strong>：</p>
+<ul>
+<li>入口：<code>Kryo#writeObject</code> / <code>readObject</code></li>
+<li><code>Serializer</code> 体系（如 <code>FieldSerializer</code>），<code>Output</code>/<code>Input</code> 做紧凑二进制（varint、无字段名）</li>
+<li>引用跟踪是<strong>可配置特性</strong>，不是协议必带</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>体积小、速度快（无大段 writeClassDesc）</td>
+<td>跨语言差（Java 内部协议）</td>
+</tr>
+<tr>
+<td>注册类 → 小整数 id，进一步缩小体积</td>
+<td>类演进敏感，字段顺序 / 增删改需控制 serializer 或兼容策略</td>
+</tr>
+<tr>
+<td>可选引用跟踪</td>
+<td>对象图语义依赖配置，不一定默认等价 Serializable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Protostuff</strong>：思路类似 “Protobuf 编码 + POJO 友好”，无类描述字符串、字段用 tag、二进制紧凑，在性能/紧凑与演进/跨语言之间取平衡。</p>
+<hr>
+<h3 id="33-跨语言协议protobuf-avro-messagepack"><a class="markdownIt-Anchor" href="#33-跨语言协议protobuf-avro-messagepack"></a> 3.3 跨语言协议：Protobuf / Avro / MessagePack</h3>
+<p><strong>共同点</strong>：不写 Java 类描述（<code>ObjectStreamClass</code>），用 <strong>schema + 字段 tag / 编号</strong> 编码，生成代码或按 schema 驱动解析，减少反射。</p>
+<p><strong>Protobuf</strong>：</p>
+<ul>
+<li>Java 侧：<code>CodedOutputStream</code> / <code>CodedInputStream</code> 做 varint、tag 编码，字段用<strong>数字 tag</strong> 而非字段名</li>
+<li>大量场景用<strong>代码生成</strong>的 <code>MessageLite</code> 子类读写</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>超紧凑、快、跨语言</td>
+<td>需维护 .proto（或等价 schema）</td>
+</tr>
+<tr>
+<td>schema 演进能力强（tag 不变，新增字段对旧端安全）</td>
+<td>对复杂 “任意对象图” 不友好，引用 / 循环需自己设计 ID</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Avro</strong>：schema 驱动（常为 JSON schema），reader/writer schema 可不同，靠 schema resolution 做兼容，适合数据管道/Kafka；对象图语义同样不是目标。</p>
+<p><strong>MessagePack</strong>：二进制 JSON，比 JSON 更紧凑、解析更快，跨语言；若不用 schema，类型与演进需自行约定，对象图也不天然保留。</p>
+<hr>
+<h2 id="四-适用场景按框架"><a class="markdownIt-Anchor" href="#四-适用场景按框架"></a> 四、适用场景（按框架）</h2>
+<h3 id="41-官方-serializable"><a class="markdownIt-Anchor" href="#41-官方-serializable"></a> 4.1 官方 Serializable</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纯 Java 内部短期持久化（如 HttpSession、本地临时缓存）</td>
+<td>微服务、跨语言、高性能系统</td>
+</tr>
+<tr>
+<td>Java RMI（历史项目）</td>
+<td>公网输入反序列化（安全风险）</td>
+</tr>
+<tr>
+<td>原型 / Demo</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：写完整类描述、强绑 serialVersionUID、HandleTable 维护对象图、反序列化可绕过构造器 → 适合 “完整恢复 Java 对象图”，不适合高性能与跨语言。</p>
+<hr>
+<h3 id="42-jackson企业-rest-标准"><a class="markdownIt-Anchor" href="#42-jackson企业-rest-标准"></a> 4.2 Jackson（企业 REST 标准）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REST API（Spring Boot 默认）</td>
+<td>超高 QPS 内部 RPC</td>
+</tr>
+<tr>
+<td>配置文件（YAML、JSON config）</td>
+<td>需要极致压缩</td>
+</tr>
+<tr>
+<td>ES / OpenSearch 文档映射</td>
+<td></td>
+</tr>
+<tr>
+<td>中等规模缓存（如 Redis JSON）</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：基于字段名、JsonGenerator / JsonParser、反射 + 缓存 BeanSerializer → 可读、跨语言、兼容性好，但字段名重复、体积较大。</p>
+<hr>
+<h3 id="43-fastjson2"><a class="markdownIt-Anchor" href="#43-fastjson2"></a> 4.3 Fastjson2</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高 QPS JSON 服务</td>
+<td>安全要求极高的公网反序列化（需谨慎配置）</td>
+</tr>
+<tr>
+<td>内部系统接口、Redis JSON 序列化</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：高性能 Reader / Writer、优化路径多，比 Jackson 快，但生态标准仍是 Jackson，安全历史需注意。</p>
+<hr>
+<h3 id="44-kryo高性能-java-内部二进制"><a class="markdownIt-Anchor" href="#44-kryo高性能-java-内部二进制"></a> 4.4 Kryo（高性能 Java 内部二进制）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis 高性能缓存（对象 → byte []）</td>
+<td>跨语言</td>
+</tr>
+<tr>
+<td>Spark / Flink 等分布式计算对象传输</td>
+<td>长期存储（类结构变动风险大）</td>
+</tr>
+<tr>
+<td>内部 Java RPC、本地内存持久化</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：不写 class descriptor、可注册类→小整数 ID、Output / Input 紧凑、可选引用跟踪 → 小、快，但强依赖类定义。</p>
+<hr>
+<h3 id="45-protobuf微服务-rpc-首选"><a class="markdownIt-Anchor" href="#45-protobuf微服务-rpc-首选"></a> 4.5 Protobuf（微服务 / RPC 首选）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>微服务 RPC（gRPC 标准）</td>
+<td>直接存复杂对象图</td>
+</tr>
+<tr>
+<td>跨语言系统（Java / Go / Python / C++）</td>
+<td>无 schema 管理能力的团队</td>
+</tr>
+<tr>
+<td>高性能网关、移动端 API</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：tag 编码、CodedOutputStream、生成代码、不存字段名 → 小、快、强 schema 版本兼容。</p>
+<hr>
+<h3 id="46-avro数据管道-kafka"><a class="markdownIt-Anchor" href="#46-avro数据管道-kafka"></a> 4.6 Avro（数据管道 / Kafka）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kafka 消息、大数据平台</td>
+<td>复杂对象模型</td>
+</tr>
+<tr>
+<td>需要 Schema 演进的场景</td>
+<td>实时高并发 RPC（通常不如 Protobuf）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：reader / writer schema 机制专门解决版本演进 → 数据平台常用。</p>
+<hr>
+<h3 id="47-messagepack"><a class="markdownIt-Anchor" href="#47-messagepack"></a> 4.7 MessagePack</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>替代 JSON、WebSocket 二进制传输</td>
+<td>强 schema 系统</td>
+</tr>
+<tr>
+<td>游戏服务器等</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：JSON 二进制化、无字段名重复、无强 schema → 比 JSON 小、快、跨语言。</p>
+<hr>
+<h2 id="五-工程选型速查"><a class="markdownIt-Anchor" href="#五-工程选型速查"></a> 五、工程选型速查</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spring Boot REST</td>
+<td>Jackson</td>
+</tr>
+<tr>
+<td>Redis 缓存</td>
+<td>Kryo / JSON</td>
+</tr>
+<tr>
+<td>内部 Java RPC</td>
+<td>Kryo</td>
+</tr>
+<tr>
+<td>微服务跨语言</td>
+<td>Protobuf</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Avro</td>
+</tr>
+<tr>
+<td>WebSocket 二进制</td>
+<td>MessagePack</td>
+</tr>
+<tr>
+<td>本地 Java 持久化</td>
+<td>Kryo</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="六-一句话总结"><a class="markdownIt-Anchor" href="#六-一句话总结"></a> 六、一句话总结</h2>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Serializable</strong></td>
+<td>恢复 Java 对象图</td>
+</tr>
+<tr>
+<td><strong>JSON（Jackson/Fastjson/Gson）</strong></td>
+<td>交换数据、可读、跨语言</td>
+</tr>
+<tr>
+<td><strong>Kryo</strong></td>
+<td>快速 Java 内部二进制</td>
+</tr>
+<tr>
+<td><strong>Protobuf</strong></td>
+<td>跨语言高性能协议</td>
+</tr>
+<tr>
+<td><strong>Avro</strong></td>
+<td>数据平台 schema 管理</td>
+</tr>
+<tr>
+<td><strong>MessagePack</strong></td>
+<td>二进制 JSON</td>
+</tr>
+</tbody>
+</table>
+<p><strong>源码层面的本质区别</strong>：是否写 class descriptor、字段用名字还是 tag 还是顺序、是否原生支持对象图、对象创建方式（反射/构造/生成代码），共同决定了体积、性能、演进能力和适用场景。选型时按 “是否跨语言、是否要对象图、是否要极致性能、是否有 schema 管理” 对号入座即可。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag"># 序列化</a>
+              <a href="/tags/Jackson/" rel="tag"># Jackson</a>
+              <a href="/tags/Kryo/" rel="tag"># Kryo</a>
+              <a href="/tags/Protobuf/" rel="tag"># Protobuf</a>
+              <a href="/tags/%E9%80%89%E5%9E%8B/" rel="tag"># 选型</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/01/29/2025-01-30-python-recursive-character-text-splitter/" rel="prev" title="Python RecursiveCharacterTextSplitter 源码解读">
+                  <i class="fa fa-angle-left"></i> Python RecursiveCharacterTextSplitter 源码解读
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-serializable-implementation/" rel="next" title="Java 标准库 Serializable 整体实现流程（源码与示例）">
+                  Java 标准库 Serializable 整体实现流程（源码与示例） <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cartery</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">20k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">18 分钟</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

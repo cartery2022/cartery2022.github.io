@@ -1,193 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>LangChain4j TextSplitter 实现说明</title>
-    <url>/2025/01/29/2025-01-30-langchain4j-text-splitter/</url>
-    <content><![CDATA[<h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
-<ul>
-<li>包文档：<a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
-</ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
-</ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>按段落</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>按行</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>按词</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>层级分割基类</td>
-</tr>
-</tbody>
-</table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
-<ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
-</ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>分隔符自身长度</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>当前正在拼的段内容</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>当前段长度</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
-<ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
-</ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
-<ul>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>agent</category>
-        <category>源码解读</category>
-        <category>textSplitter</category>
-      </categories>
-      <tags>
-        <tag>agent</tag>
-        <tag>java</tag>
-        <tag>langchain4j</tag>
-        <tag>源码解读</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Python RecursiveCharacterTextSplitter 源码解读</title>
     <url>/2025/01/29/2025-01-30-python-recursive-character-text-splitter/</url>
     <content><![CDATA[<h1 id="python-recursivecharactertextsplitter-源码解读"><a class="markdownIt-Anchor" href="#python-recursivecharactertextsplitter-源码解读"></a> Python RecursiveCharacterTextSplitter 源码解读</h1>
@@ -391,9 +204,9 @@
       </categories>
       <tags>
         <tag>agent</tag>
-        <tag>源码解读</tag>
         <tag>python</tag>
         <tag>longchain</tag>
+        <tag>源码解读</tag>
       </tags>
   </entry>
   <entry>
@@ -547,11 +360,732 @@
         <category>源码解读</category>
       </categories>
       <tags>
-        <tag>java</tag>
         <tag>源码解读</tag>
+        <tag>java</tag>
         <tag>序列化</tag>
         <tag>ObjectOutputStream</tag>
         <tag>ObjectInputStream</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LangChain4j TextSplitter 实现说明</title>
+    <url>/2025/01/29/2025-01-30-langchain4j-text-splitter/</url>
+    <content><![CDATA[<h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
+<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
+<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
+<ul>
+<li>包文档：<a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+</ul>
+<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
+<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>输入：<code>Document</code></li>
+<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
+</ul>
+<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>分隔符 / 行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentByParagraphSplitter</code></td>
+<td><code>"\n\n"</code></td>
+<td>按段落</td>
+</tr>
+<tr>
+<td><code>DocumentByLineSplitter</code></td>
+<td><code>"\n"</code></td>
+<td>按行</td>
+</tr>
+<tr>
+<td><code>DocumentBySentenceSplitter</code></td>
+<td>句子边界</td>
+<td>按句子</td>
+</tr>
+<tr>
+<td><code>DocumentByWordSplitter</code></td>
+<td><code>" "</code></td>
+<td>按词</td>
+</tr>
+<tr>
+<td><code>DocumentByCharacterSplitter</code></td>
+<td>字符</td>
+<td>按字符</td>
+</tr>
+<tr>
+<td><code>DocumentByRegexSplitter</code></td>
+<td>正则</td>
+<td>按正则</td>
+</tr>
+<tr>
+<td><code>HierarchicalDocumentSplitter</code></td>
+<td>-</td>
+<td>层级分割基类</td>
+</tr>
+</tbody>
+</table>
+<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
+<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
+<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
+<ol>
+<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
+<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
+<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
+</ol>
+<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
+<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
+<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
+<p><strong>私有字段（6 个）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maxSegmentSize</code></td>
+<td><code>int</code></td>
+<td>单段最大长度（字符或 token）</td>
+</tr>
+<tr>
+<td><code>sizeFunction</code></td>
+<td><code>Function&lt;String, Integer&gt;</code></td>
+<td>计算文本长度的函数</td>
+</tr>
+<tr>
+<td><code>joinSeparator</code></td>
+<td><code>String</code></td>
+<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
+</tr>
+<tr>
+<td><code>joinSeparatorSize</code></td>
+<td><code>int</code></td>
+<td>分隔符自身长度</td>
+</tr>
+<tr>
+<td><code>segment</code></td>
+<td><code>String</code></td>
+<td>当前正在拼的段内容</td>
+</tr>
+<tr>
+<td><code>segmentSize</code></td>
+<td><code>int</code></td>
+<td>当前段长度（由 sizeFunction 得到）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对外 API（均为 public 方法）</strong></p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>getSize()</code></td>
+<td>当前段长度</td>
+</tr>
+<tr>
+<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
+<td>再拼一段是否仍 ≤ maxSegmentSize</td>
+</tr>
+<tr>
+<td><code>sizeOf(String text)</code></td>
+<td>用 sizeFunction 计算 text 长度</td>
+</tr>
+<tr>
+<td><code>append(String text)</code></td>
+<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
+</tr>
+<tr>
+<td><code>prepend(String text)</code></td>
+<td>开头拼接（overlap 时从段尾逆序填）</td>
+</tr>
+<tr>
+<td><code>isNotEmpty()</code></td>
+<td>当前段是否非空</td>
+</tr>
+<tr>
+<td><code>toString()</code></td>
+<td>返回 <code>segment.trim()</code></td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>清空当前段，开始拼下一段</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
+<ul>
+<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
+<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
+</ul>
+<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
+<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
+<p>支持按字符数或按 token 数控制大小。</p>
+<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
+<ul>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>agent</category>
+        <category>源码解读</category>
+        <category>textSplitter</category>
+      </categories>
+      <tags>
+        <tag>agent</tag>
+        <tag>源码解读</tag>
+        <tag>java</tag>
+        <tag>langchain4j</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景</title>
+    <url>/2025/03/01/2025-03-02-java-serialization-compare-scenarios/</url>
+    <content><![CDATA[<h1 id="java-序列化对比官方-serializable-与常见三方库的优缺点与适用场景"><a class="markdownIt-Anchor" href="#java-序列化对比官方-serializable-与常见三方库的优缺点与适用场景"></a> Java 序列化对比：官方 Serializable 与常见三方库的优缺点与适用场景</h1>
+<p>本文以 <strong>Java 官方序列化</strong>（<code>java.io.ObjectOutputStream</code> / <code>ObjectInputStream</code>，即 Serializable 那套）为基准，对比常见三方方案（JSON / 高性能二进制 / 跨语言协议）的<strong>优缺点</strong>、<strong>源码层面差异</strong>，以及<strong>各自适用场景</strong>。</p>
+<hr>
+<h2 id="一-官方-serializable-的底层决定了它的优缺点"><a class="markdownIt-Anchor" href="#一-官方-serializable-的底层决定了它的优缺点"></a> 一、官方 Serializable 的 “底层决定了它的优缺点”</h2>
+<h3 id="11-核心机制源码要点"><a class="markdownIt-Anchor" href="#11-核心机制源码要点"></a> 1.1 核心机制（源码要点）</h3>
+<ul>
+<li><strong>写类元数据</strong>：<code>ObjectOutputStream.writeClassDesc()</code> / <code>writeNonProxyDesc()</code> 把 <code>ObjectStreamClass</code> 的 class descriptor（类名、serialVersionUID、字段列表等）写进流。</li>
+<li><strong>写对象图 + 循环引用</strong>：<code>writeObject0()</code> + <strong>HandleTable</strong>（句柄表）+ <code>ObjectStreamClass</code>，实现 “同一对象只写一次、后续写引用句柄”。</li>
+<li><strong>字段写入路径</strong>：默认走 <code>ObjectStreamClass</code> 的字段描述写 primitive / object；特殊情况走 <code>writeObject</code>/<code>readObject</code>、Externalizable、<code>writeReplace</code>/<code>readResolve</code> 等钩子。</li>
+<li><strong>反序列化创建对象</strong>：<code>ObjectInputStream.readObject0()</code> + <code>ObjectStreamClass.newInstance()</code>（内部用 ReflectionFactory 等 “绕过构造器” 的路径），再把字段灌进去。</li>
+</ul>
+<h3 id="12-由此带来的优缺点"><a class="markdownIt-Anchor" href="#12-由此带来的优缺点"></a> 1.2 由此带来的优缺点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>对象图完整，循环引用 / 共享引用天然支持</td>
+<td>流里带大量类描述，体积大</td>
+</tr>
+<tr>
+<td>对 Java 对象模型最忠实</td>
+<td>反射 + 安全检查多，性能一般</td>
+</tr>
+<tr>
+<td>一套 API 覆盖各种对象</td>
+<td>强绑定 Java 类结构，跨语言差、演进麻烦</td>
+</tr>
+<tr>
+<td></td>
+<td>历史上反序列化安全风险高（gadget 链）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论</strong>：三方库的优缺点，本质上来自这几件事的差异 ——<strong> 是否写类描述、是否用 schema / 字段 tag、是否大量反射、是否保留对象图语义、对象创建方式</strong>。</p>
+<hr>
+<h2 id="二-源码差异归纳五条因果链"><a class="markdownIt-Anchor" href="#二-源码差异归纳五条因果链"></a> 二、源码差异归纳：五条因果链</h2>
+<h3 id="21-写不写-class-descriptorobjectstreamclass"><a class="markdownIt-Anchor" href="#21-写不写-class-descriptorobjectstreamclass"></a> 2.1 写不写 class descriptor（ObjectStreamClass）</h3>
+<table>
+<thead>
+<tr>
+<th>做法</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>写</strong></td>
+<td>官方 Serializable</td>
+<td>通用、能完整恢复对象图，但臃肿、强绑定 Java</td>
+</tr>
+<tr>
+<td><strong>不写</strong></td>
+<td>多数三方</td>
+<td>更小更快，但要靠 schema / 注册 / 约定</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-字段标识方式字段名-vs-数字-tag-vs-顺序"><a class="markdownIt-Anchor" href="#22-字段标识方式字段名-vs-数字-tag-vs-顺序"></a> 2.2 字段标识方式：字段名 vs 数字 tag vs 顺序</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>字段名字符串</strong></td>
+<td>JSON</td>
+<td>可读、演进宽松，但体积大、解析慢</td>
+</tr>
+<tr>
+<td><strong>数字 tag</strong></td>
+<td>Protobuf / Avro</td>
+<td>紧凑、快、演进强，但要维护 schema</td>
+</tr>
+<tr>
+<td><strong>顺序</strong></td>
+<td>部分 Kryo / 自定义</td>
+<td>最快最小，但对字段增删改最敏感</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-对象图语义引用循环是否协议原生支持"><a class="markdownIt-Anchor" href="#23-对象图语义引用循环是否协议原生支持"></a> 2.3 对象图语义（引用 / 循环）是否协议原生支持</h3>
+<table>
+<thead>
+<tr>
+<th>支持方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协议原生</strong></td>
+<td>官方 Serializable（HandleTable）</td>
+<td>同一对象只写一次，读回同一引用，环自然还原</td>
+</tr>
+<tr>
+<td><strong>默认不支持</strong></td>
+<td>JSON / Protobuf</td>
+<td>需自己用 ID 引用等方式表达</td>
+</tr>
+<tr>
+<td><strong>可选</strong></td>
+<td>Kryo</td>
+<td>可配置引用跟踪，不一定默认等价 Serializable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-对象创建方式绕过构造器-vs-正常构造"><a class="markdownIt-Anchor" href="#24-对象创建方式绕过构造器-vs-正常构造"></a> 2.4 对象创建方式：绕过构造器 vs 正常构造</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>绕过构造器</strong></td>
+<td>官方（ReflectionFactory 等）</td>
+<td>能恢复复杂对象图，但反序列化风险高、行为复杂</td>
+</tr>
+<tr>
+<td><strong>构造器 / 无参 + setter</strong></td>
+<td>JSON 类库</td>
+<td>行为更可预期，安全面更好</td>
+</tr>
+<tr>
+<td><strong>生成代码控制</strong></td>
+<td>Protobuf</td>
+<td>构建过程可控，性能好</td>
+</tr>
+</tbody>
+</table>
+<h3 id="25-反射-vs-字节码生成-vs-代码生成"><a class="markdownIt-Anchor" href="#25-反射-vs-字节码生成-vs-代码生成"></a> 2.5 反射 vs 字节码生成 vs 代码生成</h3>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>代表</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>反射 + 复杂元数据</strong></td>
+<td>官方 Serializable</td>
+<td>灵活但慢、安全检查多</td>
+</tr>
+<tr>
+<td><strong>反射 + 缓存 + 可选 bytecode</strong></td>
+<td>Jackson</td>
+<td>平衡可读与性能</td>
+</tr>
+<tr>
+<td><strong>生成代码 + 紧凑二进制</strong></td>
+<td>Protobuf</td>
+<td>通常最快、最稳定、跨语言</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三-各方案对比优缺点与源码差异"><a class="markdownIt-Anchor" href="#三-各方案对比优缺点与源码差异"></a> 三、各方案对比：优缺点与源码差异</h2>
+<h3 id="31-json-类jackson-fastjson2-gson"><a class="markdownIt-Anchor" href="#31-json-类jackson-fastjson2-gson"></a> 3.1 JSON 类：Jackson / Fastjson2 / Gson</h3>
+<p><strong>与官方的核心差异</strong>：不走 <code>ObjectStreamClass</code> / <code>writeClassDesc</code> 的二进制协议，而是：</p>
+<ul>
+<li>字符/UTF-8 的 token 流（字段名、数值、数组/对象边界）</li>
+<li>映射层把 “字段名/注解/策略” 绑定到 POJO</li>
+</ul>
+<p><strong>Jackson 典型源码点</strong>：</p>
+<ul>
+<li>写：<code>ObjectMapper#writeValue</code> → <code>JsonFactory</code> → <code>JsonGenerator</code>，<code>BeanSerializer</code> / <code>BeanPropertyWriter</code> 遍历属性输出 JSON</li>
+<li>读：<code>ObjectMapper#readValue</code> → <code>JsonParser</code> 读 token，<code>BeanDeserializer</code> / <code>SettableBeanProperty</code> 把值 set 进对象</li>
+</ul>
+<p><strong>Fastjson2</strong>：入口类似 <code>JSON#toJSONString</code> / <code>parseObject</code>，更多快速路径、按类型走专用 reader / writer，性能更激进。</p>
+<p><strong>Gson</strong>：<code>TypeAdapter</code> + 反射读写字段，结构简单，配置与优化路径相对少。</p>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>跨语言（JSON 通用）</td>
+<td>不天然保留对象图（循环 / 共享引用默认丢，需额外机制如 Jackson object identity）</td>
+</tr>
+<tr>
+<td>可读、可调试</td>
+<td>类型信息缺失，多态 / 接口需显式 type info</td>
+</tr>
+<tr>
+<td>schema 变更相对宽松（新增字段对旧端友好）</td>
+<td>性能 / 体积一般不如高效二进制（字段名重复、文本解析）</td>
+</tr>
+<tr>
+<td>安全面通常好于 Serializable（不会自动走 gadget 链那套）</td>
+<td>Fastjson 历史安全包袱需谨慎配置</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="32-高性能-java-二进制kryo-protostuff"><a class="markdownIt-Anchor" href="#32-高性能-java-二进制kryo-protostuff"></a> 3.2 高性能 Java 二进制：Kryo / Protostuff</h3>
+<p><strong>与官方的核心差异</strong>：一般不把 “完整 class descriptor” 写在每个对象旁，而是 <strong>type id + 字段序列化</strong> 的紧凑模型。</p>
+<p><strong>Kryo 典型源码点</strong>：</p>
+<ul>
+<li>入口：<code>Kryo#writeObject</code> / <code>readObject</code></li>
+<li><code>Serializer</code> 体系（如 <code>FieldSerializer</code>），<code>Output</code>/<code>Input</code> 做紧凑二进制（varint、无字段名）</li>
+<li>引用跟踪是<strong>可配置特性</strong>，不是协议必带</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>体积小、速度快（无大段 writeClassDesc）</td>
+<td>跨语言差（Java 内部协议）</td>
+</tr>
+<tr>
+<td>注册类 → 小整数 id，进一步缩小体积</td>
+<td>类演进敏感，字段顺序 / 增删改需控制 serializer 或兼容策略</td>
+</tr>
+<tr>
+<td>可选引用跟踪</td>
+<td>对象图语义依赖配置，不一定默认等价 Serializable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Protostuff</strong>：思路类似 “Protobuf 编码 + POJO 友好”，无类描述字符串、字段用 tag、二进制紧凑，在性能/紧凑与演进/跨语言之间取平衡。</p>
+<hr>
+<h3 id="33-跨语言协议protobuf-avro-messagepack"><a class="markdownIt-Anchor" href="#33-跨语言协议protobuf-avro-messagepack"></a> 3.3 跨语言协议：Protobuf / Avro / MessagePack</h3>
+<p><strong>共同点</strong>：不写 Java 类描述（<code>ObjectStreamClass</code>），用 <strong>schema + 字段 tag / 编号</strong> 编码，生成代码或按 schema 驱动解析，减少反射。</p>
+<p><strong>Protobuf</strong>：</p>
+<ul>
+<li>Java 侧：<code>CodedOutputStream</code> / <code>CodedInputStream</code> 做 varint、tag 编码，字段用<strong>数字 tag</strong> 而非字段名</li>
+<li>大量场景用<strong>代码生成</strong>的 <code>MessageLite</code> 子类读写</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>超紧凑、快、跨语言</td>
+<td>需维护 .proto（或等价 schema）</td>
+</tr>
+<tr>
+<td>schema 演进能力强（tag 不变，新增字段对旧端安全）</td>
+<td>对复杂 “任意对象图” 不友好，引用 / 循环需自己设计 ID</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Avro</strong>：schema 驱动（常为 JSON schema），reader/writer schema 可不同，靠 schema resolution 做兼容，适合数据管道/Kafka；对象图语义同样不是目标。</p>
+<p><strong>MessagePack</strong>：二进制 JSON，比 JSON 更紧凑、解析更快，跨语言；若不用 schema，类型与演进需自行约定，对象图也不天然保留。</p>
+<hr>
+<h2 id="四-适用场景按框架"><a class="markdownIt-Anchor" href="#四-适用场景按框架"></a> 四、适用场景（按框架）</h2>
+<h3 id="41-官方-serializable"><a class="markdownIt-Anchor" href="#41-官方-serializable"></a> 4.1 官方 Serializable</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纯 Java 内部短期持久化（如 HttpSession、本地临时缓存）</td>
+<td>微服务、跨语言、高性能系统</td>
+</tr>
+<tr>
+<td>Java RMI（历史项目）</td>
+<td>公网输入反序列化（安全风险）</td>
+</tr>
+<tr>
+<td>原型 / Demo</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：写完整类描述、强绑 serialVersionUID、HandleTable 维护对象图、反序列化可绕过构造器 → 适合 “完整恢复 Java 对象图”，不适合高性能与跨语言。</p>
+<hr>
+<h3 id="42-jackson企业-rest-标准"><a class="markdownIt-Anchor" href="#42-jackson企业-rest-标准"></a> 4.2 Jackson（企业 REST 标准）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REST API（Spring Boot 默认）</td>
+<td>超高 QPS 内部 RPC</td>
+</tr>
+<tr>
+<td>配置文件（YAML、JSON config）</td>
+<td>需要极致压缩</td>
+</tr>
+<tr>
+<td>ES / OpenSearch 文档映射</td>
+<td></td>
+</tr>
+<tr>
+<td>中等规模缓存（如 Redis JSON）</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：基于字段名、JsonGenerator / JsonParser、反射 + 缓存 BeanSerializer → 可读、跨语言、兼容性好，但字段名重复、体积较大。</p>
+<hr>
+<h3 id="43-fastjson2"><a class="markdownIt-Anchor" href="#43-fastjson2"></a> 4.3 Fastjson2</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高 QPS JSON 服务</td>
+<td>安全要求极高的公网反序列化（需谨慎配置）</td>
+</tr>
+<tr>
+<td>内部系统接口、Redis JSON 序列化</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：高性能 Reader / Writer、优化路径多，比 Jackson 快，但生态标准仍是 Jackson，安全历史需注意。</p>
+<hr>
+<h3 id="44-kryo高性能-java-内部二进制"><a class="markdownIt-Anchor" href="#44-kryo高性能-java-内部二进制"></a> 4.4 Kryo（高性能 Java 内部二进制）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Redis 高性能缓存（对象 → byte []）</td>
+<td>跨语言</td>
+</tr>
+<tr>
+<td>Spark / Flink 等分布式计算对象传输</td>
+<td>长期存储（类结构变动风险大）</td>
+</tr>
+<tr>
+<td>内部 Java RPC、本地内存持久化</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：不写 class descriptor、可注册类→小整数 ID、Output / Input 紧凑、可选引用跟踪 → 小、快，但强依赖类定义。</p>
+<hr>
+<h3 id="45-protobuf微服务-rpc-首选"><a class="markdownIt-Anchor" href="#45-protobuf微服务-rpc-首选"></a> 4.5 Protobuf（微服务 / RPC 首选）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>微服务 RPC（gRPC 标准）</td>
+<td>直接存复杂对象图</td>
+</tr>
+<tr>
+<td>跨语言系统（Java / Go / Python / C++）</td>
+<td>无 schema 管理能力的团队</td>
+</tr>
+<tr>
+<td>高性能网关、移动端 API</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：tag 编码、CodedOutputStream、生成代码、不存字段名 → 小、快、强 schema 版本兼容。</p>
+<hr>
+<h3 id="46-avro数据管道-kafka"><a class="markdownIt-Anchor" href="#46-avro数据管道-kafka"></a> 4.6 Avro（数据管道 / Kafka）</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kafka 消息、大数据平台</td>
+<td>复杂对象模型</td>
+</tr>
+<tr>
+<td>需要 Schema 演进的场景</td>
+<td>实时高并发 RPC（通常不如 Protobuf）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：reader / writer schema 机制专门解决版本演进 → 数据平台常用。</p>
+<hr>
+<h3 id="47-messagepack"><a class="markdownIt-Anchor" href="#47-messagepack"></a> 4.7 MessagePack</h3>
+<table>
+<thead>
+<tr>
+<th>适用</th>
+<th>不适用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>替代 JSON、WebSocket 二进制传输</td>
+<td>强 schema 系统</td>
+</tr>
+<tr>
+<td>游戏服务器等</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原因</strong>：JSON 二进制化、无字段名重复、无强 schema → 比 JSON 小、快、跨语言。</p>
+<hr>
+<h2 id="五-工程选型速查"><a class="markdownIt-Anchor" href="#五-工程选型速查"></a> 五、工程选型速查</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spring Boot REST</td>
+<td>Jackson</td>
+</tr>
+<tr>
+<td>Redis 缓存</td>
+<td>Kryo / JSON</td>
+</tr>
+<tr>
+<td>内部 Java RPC</td>
+<td>Kryo</td>
+</tr>
+<tr>
+<td>微服务跨语言</td>
+<td>Protobuf</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Avro</td>
+</tr>
+<tr>
+<td>WebSocket 二进制</td>
+<td>MessagePack</td>
+</tr>
+<tr>
+<td>本地 Java 持久化</td>
+<td>Kryo</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="六-一句话总结"><a class="markdownIt-Anchor" href="#六-一句话总结"></a> 六、一句话总结</h2>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Serializable</strong></td>
+<td>恢复 Java 对象图</td>
+</tr>
+<tr>
+<td><strong>JSON（Jackson/Fastjson/Gson）</strong></td>
+<td>交换数据、可读、跨语言</td>
+</tr>
+<tr>
+<td><strong>Kryo</strong></td>
+<td>快速 Java 内部二进制</td>
+</tr>
+<tr>
+<td><strong>Protobuf</strong></td>
+<td>跨语言高性能协议</td>
+</tr>
+<tr>
+<td><strong>Avro</strong></td>
+<td>数据平台 schema 管理</td>
+</tr>
+<tr>
+<td><strong>MessagePack</strong></td>
+<td>二进制 JSON</td>
+</tr>
+</tbody>
+</table>
+<p><strong>源码层面的本质区别</strong>：是否写 class descriptor、字段用名字还是 tag 还是顺序、是否原生支持对象图、对象创建方式（反射/构造/生成代码），共同决定了体积、性能、演进能力和适用场景。选型时按 “是否跨语言、是否要对象图、是否要极致性能、是否有 schema 管理” 对号入座即可。</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>架构</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>序列化</tag>
+        <tag>Jackson</tag>
+        <tag>Kryo</tag>
+        <tag>Protobuf</tag>
+        <tag>选型</tag>
       </tags>
   </entry>
 </search>

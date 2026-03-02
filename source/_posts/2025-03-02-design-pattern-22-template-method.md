@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 模板方法
-  - Template Method
   - Spring
 categories:
   - 设计模式

@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 工厂方法
-  - Factory Method
   - Spring
 categories:
   - 设计模式

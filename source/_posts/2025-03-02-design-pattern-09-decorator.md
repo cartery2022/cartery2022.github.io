@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 装饰器
-  - Decorator
   - Spring
 categories:
   - 设计模式

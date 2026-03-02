@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 抽象工厂
-  - Abstract Factory
   - Spring
 categories:
   - 设计模式

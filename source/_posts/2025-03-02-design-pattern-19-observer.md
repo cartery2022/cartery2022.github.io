@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 观察者
-  - Observer
   - Spring
   - 事件
 categories:

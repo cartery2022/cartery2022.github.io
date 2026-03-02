@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - 设计模式
   - 代理
-  - Proxy
   - Spring
   - AOP
 categories:

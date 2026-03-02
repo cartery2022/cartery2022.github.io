@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous" defer></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景，并单独梳理 Java 9 及以后版本 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。   一、三者关系与定位    类 可变性 线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动">
+<meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/index.html">
+<meta property="og:site_name" content="贝加尔湖畔">
+<meta property="og:description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景，并单独梳理 Java 9 及以后版本 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。   一、三者关系与定位    类 可变性 线程">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-02T07:56:30.239Z">
+<meta property="article:author" content="cartery">
+<meta property="article:tag" content="String">
+<meta property="article:tag" content="StringBuffer">
+<meta property="article:tag" content="StringBuilder">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="源码解读">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/","path":"2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/","title":"String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 | 贝加尔湖畔</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/7.2.0/pangu.umd.js" integrity="sha256-JnmRRnJK7DC6RQJbAJb6AXOM9OmWzS6z8eYultk/48Y=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+  <script src="/js/third-party/pace.js" defer></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/"}</script>
+  <script src="/js/third-party/quicklink.js" defer></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">贝加尔湖畔</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#string-stringbuffer-stringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%B8%89%E8%80%85%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%AE%9A%E4%BD%8D"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、三者关系与定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-string-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、String 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E5%B8%B8%E7%94%A8%E6%9E%84%E9%80%A0%E4%B8%8E-lengthcodepoint"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 常用构造与 length &#x2F; codePoint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#23-%E4%B8%8D%E5%8F%AF%E5%8F%98%E4%B8%8E%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">1.2.3.</span> <span class="nav-text"> 2.3 不可变与常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#24-string-%E7%9A%84-hashcode-%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%94%A8%E7%9A%84"><span class="nav-number">1.2.4.</span> <span class="nav-text"> 2.4 String 的 hashCode 是干什么用的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-abstractstringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、AbstractStringBuilder 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E5%88%9D%E5%A7%8B%E5%AE%B9%E9%87%8F%E4%B8%8E%E6%89%A9%E5%AE%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 初始容量与扩容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-append-insert-delete"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 append &#x2F; insert &#x2F; delete</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-stringbuffer-%E4%B8%8E-stringbuilder-%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、StringBuffer 与 StringBuilder 的差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-java-9-%E5%8F%8A%E4%BB%A5%E5%90%8E%E5%AF%B9%E4%B8%89%E8%80%85%E7%9A%84%E6%94%B9%E5%8A%A8%E6%B1%87%E6%80%BB"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、Java 9 及以后对三者的改动汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-%E7%B4%A7%E5%87%91%E5%AD%97%E7%AC%A6%E4%B8%B2jep-254-string-abstractstringbuilder-%E5%9D%87%E5%8F%97%E7%9B%8A"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%8B%BC%E6%8E%A5%E7%BC%96%E8%AF%91%E6%96%B9%E5%BC%8Fjep-280-indify-string-concatenation"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-%E5%90%8E%E7%BB%AD%E7%89%88%E6%9C%AC%E4%B8%AD%E7%9A%84%E5%B0%8F%E8%A1%A5%E5%85%85"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 后续版本中的小补充</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE%E4%B8%8E%E5%B0%8F%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、使用建议与小结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartery</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 15:56:30" itemprop="dateModified" datetime="2026-03-02T15:56:30+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="string-stringbuffer-stringbuilder-源码解读与-java-9-改动"><a class="markdownIt-Anchor" href="#string-stringbuffer-stringbuilder-源码解读与-java-9-改动"></a> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</h1>
+<p>本文从 JDK 源码出发，说明 <strong>String</strong>、<strong>StringBuffer</strong>、<strong>StringBuilder</strong> 三者的实现结构、核心逻辑与使用场景，并单独梳理 <strong>Java 9 及以后版本</strong> 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。</p>
+<hr>
+<h2 id="一-三者关系与定位"><a class="markdownIt-Anchor" href="#一-三者关系与定位"></a> 一、三者关系与定位</h2>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>可变性</th>
+<th>线程安全</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>String</strong></td>
+<td>不可变</td>
+<td>天然线程安全</td>
+<td>常量、键、单次赋值</td>
+</tr>
+<tr>
+<td><strong>StringBuffer</strong></td>
+<td>可变</td>
+<td>同步（synchronized）</td>
+<td>多线程下可变的字符序列</td>
+</tr>
+<tr>
+<td><strong>StringBuilder</strong></td>
+<td>可变</td>
+<td>非线程安全</td>
+<td>单线程下大量拼接、构造字符串</td>
+</tr>
+</tbody>
+</table>
+<p><strong>继承关系</strong>：<code>StringBuffer</code> 与 <code>StringBuilder</code> 都继承 <strong>AbstractStringBuilder</strong>，没有继承关系；<code>String</code> 独立实现，与后两者无继承关系。</p>
+<hr>
+<h2 id="二-string-源码解读"><a class="markdownIt-Anchor" href="#二-string-源码解读"></a> 二、String 源码解读</h2>
+<h3 id="21-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#21-内部存储java-8-vs-java-9"></a> 2.1 内部存储（Java 8 vs Java 9+）</h3>
+<p><strong>Java 8 及以前</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">char</span>[] value;   <span class="comment">// UTF-16，每字符 2 字节</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;            <span class="comment">// 缓存 hashCode</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>用 <strong>char[]</strong> 存字符，每个 char 为 UTF-16 码元，占 <strong>2 字节</strong>。</li>
+<li><strong>value 为 final</strong>，引用不变，且对外不暴露可变接口，因此 <strong>String 不可变</strong>。</li>
+</ul>
+<p><strong>Java 9 及以后（JEP 254 Compact Strings）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span>[] value;  <span class="comment">// 按编码可能是 1 字节/字符 或 2 字节/字符</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span> coder;     <span class="comment">// 0 = LATIN1，1 = UTF16</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>改为 <strong>byte[] + coder</strong>：
+<ul>
+<li><strong>LATIN1（coder=0）</strong>：仅含 Latin-1 范围内字符时，每字符 <strong>1 字节</strong>，节省约一半内存。</li>
+<li><strong>UTF16（coder=1）</strong>：含其它 Unicode 时，每字符 <strong>2 字节</strong>，与原来语义一致。</li>
+</ul>
+</li>
+<li>仍为 <strong>final byte[]</strong>，String 依然 <strong>不可变</strong>。</li>
+<li>可通过 JVM 参数 <code>-XX:-CompactStrings</code> 关闭紧凑字符串（部分版本）。</li>
+<li>内部常量化：<code>static final byte LATIN1 = 0;</code>、<code>static final byte UTF16 = 1;</code>，与 <code>StringLatin1</code>/<code>StringUTF16</code> 工具类配合实现 indexOf、concat 等。</li>
+</ul>
+<h3 id="22-常用构造与-lengthcodepoint"><a class="markdownIt-Anchor" href="#22-常用构造与-lengthcodepoint"></a> 2.2 常用构造与 length / codePoint</h3>
+<ul>
+<li><strong>length()</strong>：返回的是 <strong>字符个数</strong>（对 UTF-16 即 code unit 个数），在 Java 9+ 内部按 coder 从 byte [] 计算。</li>
+<li><strong>codePointCount 等</strong>：按 Unicode 码点处理，与 length 可能不同（存在代理对时）。</li>
+</ul>
+<p>构造时若传入 <code>char[]</code>，在 Java 9+ 会按内容选择 LATIN1 或 UTF16 编码再存入 byte []。</p>
+<h3 id="23-不可变与常量池"><a class="markdownIt-Anchor" href="#23-不可变与常量池"></a> 2.3 不可变与常量池</h3>
+<ul>
+<li>所有 “修改” 操作（concat、replace、trim 等）都 <strong>返回新 String</strong>，不修改原对象。</li>
+<li><strong>字面量</strong> 和 <strong>intern()</strong> 进入 <strong>字符串常量池</strong>，相同内容的 intern 可共享实例，减少重复对象。</li>
+</ul>
+<h3 id="24-string-的-hashcode-是干什么用的"><a class="markdownIt-Anchor" href="#24-string-的-hashcode-是干什么用的"></a> 2.4 String 的 hashCode 是干什么用的</h3>
+<p>源码里 String 有一个字段 <strong><code>private int hash</code></strong>（默认 0），用来<strong>缓存</strong> <code>hashCode()</code> 的返回值。</p>
+<p><strong>作用一：满足 “基于哈希的容器” 的约定</strong></p>
+<ul>
+<li>和 <code>equals</code> 一起用：若 <code>a.equals(b)</code> 为 true，则必须 <code>a.hashCode() == b.hashCode()</code>。</li>
+<li>这样 <strong>HashMap、HashSet、Hashtable</strong> 等才能按 “先算 hash → 再按桶找 → 再 equals” 正确找到同一个逻辑对象。</li>
+</ul>
+<p><strong>作用二：实际用在哪</strong></p>
+<ul>
+<li><strong>HashMap / HashSet</strong>：用 <code>key.hashCode()</code> 算桶下标，减少逐个 <code>equals</code> 比较。</li>
+<li>字符串做 key 时（如 <code>Map&lt;String, User&gt;</code>、<code>Set&lt;String&gt;</code>）都依赖 String 的 hashCode 做快速查找、去重。</li>
+<li>任何用 “对象做 key” 或 “按对象去重” 的哈希结构都会用到该对象的 hashCode，String 是最常用的一种。</li>
+</ul>
+<p><strong>为什么要缓存 <code>hash</code>？</strong></p>
+<ul>
+<li>String <strong>不可变</strong>，算过一次 hashCode 后结果永远不变。</li>
+<li>把结果存进 <code>hash</code>（0 表示 “还没算过”），下次再调 <code>hashCode()</code> 直接返回缓存，<strong>避免重复计算</strong>。</li>
+<li>同一个 String 常会多次参与 HashMap 的 put / get，缓存能明显减少重复计算。</li>
+</ul>
+<p><strong>一句话</strong>：String 的 hashCode 用于在 HashMap、HashSet 等容器里<strong>快速定位和比较</strong>“是不是同一个字符串”；<code>hash</code> 字段用来<strong>缓存</strong>这个值，因为字符串不可变，算一次即可。</p>
+<hr>
+<h2 id="三-abstractstringbuilder-源码解读"><a class="markdownIt-Anchor" href="#三-abstractstringbuilder-源码解读"></a> 三、AbstractStringBuilder 源码解读</h2>
+<p><code>StringBuffer</code> 和 <code>StringBuilder</code> 的公共逻辑都在 <strong>AbstractStringBuilder</strong> 中。</p>
+<h3 id="31-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#31-内部存储java-8-vs-java-9"></a> 3.1 内部存储（Java 8 vs Java 9+）</h3>
+<p><strong>Java 8</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">char</span>[] value;   <span class="comment">// 可扩容，非 final</span></span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 已用字符数（逻辑长度）</span></span><br><span class="line">    <span class="comment">// 容量即 value.length</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Java 9+</strong>：与 String 对齐，改为 <strong>byte[] + coder</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">byte</span>[] value;</span><br><span class="line">    <span class="type">byte</span> coder;</span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 字符数（按 code unit 计）</span></span><br><span class="line">    <span class="comment">// 容量为 value.length &gt;&gt; coder 或按字节语义</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>value 非 final</strong>，可扩容，因此是 <strong>可变</strong> 字符序列。</li>
+<li>扩容、append、getChars 等都会根据 <strong>coder</strong> 走对应实现（如 StringLatin1 / StringUTF16 的静态方法），保证与 String 的 Compact Strings 一致。</li>
+</ul>
+<h3 id="32-初始容量与扩容"><a class="markdownIt-Anchor" href="#32-初始容量与扩容"></a> 3.2 初始容量与扩容</h3>
+<ul>
+<li><strong>无参构造</strong>：初始容量一般为 <strong>16</strong>（字符数）。</li>
+<li><strong>带初始字符串 / 容量构造</strong>：容量 = 字符串长度 + 16 或指定值。</li>
+</ul>
+<p><strong>扩容逻辑</strong>（概念一致，Java 9+ 中按 byte 容量换算）：</p>
+<ol>
+<li>若 <code>count + 待追加长度 &gt; value 容量</code>，则扩容。</li>
+<li>新容量通常为 <strong>旧容量 * 2 + 2</strong>（<code>(capacity &lt;&lt; 1) + 2</code>）。</li>
+<li>若仍不足，则新容量 = 所需最小容量。</li>
+<li>上限约为 <strong>Integer.MAX_VALUE - 8</strong>（或实现定义上限），否则抛 <code>OutOfMemoryError</code>。</li>
+<li>使用 <strong>Arrays.copyOf</strong> 复制到新数组。</li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 扩容逻辑（伪代码，Java 8 风格便于理解）</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">ensureCapacityInternal</span><span class="params">(<span class="type">int</span> minimumCapacity)</span> {</span><br><span class="line">    <span class="keyword">if</span> (minimumCapacity - value.length &gt; <span class="number">0</span>) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">newCapacity</span> <span class="operator">=</span> (value.length &lt;&lt; <span class="number">1</span>) + <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity - minimumCapacity &lt; <span class="number">0</span>) newCapacity = minimumCapacity;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">OutOfMemoryError</span>();</span><br><span class="line">        value = Arrays.copyOf(value, newCapacity);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="33-append-insert-delete"><a class="markdownIt-Anchor" href="#33-append-insert-delete"></a> 3.3 append / insert / delete</h3>
+<ul>
+<li><strong>append(String str)</strong>：先 <strong>ensureCapacity(count + str.length())</strong>，再把 str 的字符（通过 getChars 或等价逻辑）拷贝到 value，更新 count，返回 this。</li>
+<li><strong>insert / delete</strong>：同样先保证容量，再移动区间内元素，更新 count。</li>
+<li>若传入 null，通常当作 <code>"null"</code> 字符串处理（appendNull）。</li>
+</ul>
+<hr>
+<h2 id="四-stringbuffer-与-stringbuilder-的差异"><a class="markdownIt-Anchor" href="#四-stringbuffer-与-stringbuilder-的差异"></a> 四、StringBuffer 与 StringBuilder 的差异</h2>
+<p>两者都继承 AbstractStringBuilder，<strong>API 完全一致</strong>，区别只有 <strong>线程安全</strong>：</p>
+<ul>
+<li><strong>StringBuffer</strong>：对外方法（append、insert、delete、replace 等）都加 <strong>synchronized</strong>，多线程下安全，但存在锁开销。</li>
+<li><strong>StringBuilder</strong>：无同步，单线程下更快，<strong>推荐在单线程场景使用</strong>。</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// StringBuffer 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> StringBuffer <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// StringBuilder 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> StringBuilder <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-java-9-及以后对三者的改动汇总"><a class="markdownIt-Anchor" href="#五-java-9-及以后对三者的改动汇总"></a> 五、Java 9 及以后对三者的改动汇总</h2>
+<h3 id="51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"><a class="markdownIt-Anchor" href="#51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"></a> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>Java 8</th>
+<th>Java 9+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>String</strong></td>
+<td><code>char[] value</code>，2 字节 / 字符</td>
+<td><code>byte[] value</code> + <code>byte coder</code>，LATIN1 时 1 字节 / 字符</td>
+</tr>
+<tr>
+<td><strong>AbstractStringBuilder</strong>（及 StringBuffer / StringBuilder）</td>
+<td><code>char[] value</code></td>
+<td><code>byte[] value</code> + <code>byte coder</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>动机</strong>：大量字符串只含 Latin-1 字符，堆上 String 占比高，改为按需 1 字节 / 字符可显著 <strong>降低内存与 GC 压力</strong>。</li>
+<li><strong>对 StringBuffer / StringBuilder</strong>：内部存储与 String 统一，转换与拷贝时无需再在 char [] 与 byte [] 间多做转换，实现更一致。</li>
+</ul>
+<h3 id="52-字符串拼接编译方式jep-280-indify-string-concatenation"><a class="markdownIt-Anchor" href="#52-字符串拼接编译方式jep-280-indify-string-concatenation"></a> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</h3>
+<ul>
+<li><strong>Java 8 及以前</strong>：<code>"a" + b + "c"</code> 编译为 <strong>显式 StringBuilder</strong>：new StringBuilder → 多次 append → toString ()。</li>
+<li><strong>Java 9+</strong>：改为 <strong>invokedynamic</strong>（如 <code>makeConcatWithConstants</code>），由 JVM 在运行时选择拼接策略（可优化为直接使用 byte []、避免中间 StringBuilder 等），<strong>字节码更简洁</strong>，且未来可继续优化而无需重新编译应用。</li>
+<li><strong>注意</strong>：早期版本（如 Java 11–18）存在 “先求值再转字符串” 的顺序与旧行为不一致的 bug，<strong>Java 19 已修复</strong>。</li>
+</ul>
+<p>这主要影响 <strong>编译期</strong> 对 <code>+</code> 拼接的翻译，不改变 String / StringBuilder 的公开 API，但运行时生成的实现会随 JDK 版本演进。</p>
+<h3 id="53-后续版本中的小补充"><a class="markdownIt-Anchor" href="#53-后续版本中的小补充"></a> 5.3 后续版本中的小补充</h3>
+<ul>
+<li><strong>Java 11</strong>：String 增加 <strong>isBlank()、strip()、repeat()、lines()</strong> 等（你已在 Java 11 博文中写过），内部实现基于 byte []+coder。</li>
+<li><strong>Java 17</strong>：<strong>String.format()</strong> 等实现有优化，性能有提升。</li>
+<li><strong>Java 21</strong>：<strong>字符串模板</strong>（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 <strong>可变数组参数</strong> 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。</li>
+</ul>
+<hr>
+<h2 id="六-使用建议与小结"><a class="markdownIt-Anchor" href="#六-使用建议与小结"></a> 六、使用建议与小结</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>常量、键、单次赋值、不需要修改</td>
+<td><strong>String</strong></td>
+</tr>
+<tr>
+<td>单线程下多次拼接、构造大字符串</td>
+<td><strong>StringBuilder</strong></td>
+</tr>
+<tr>
+<td>多线程下共享可变字符序列</td>
+<td><strong>StringBuffer</strong></td>
+</tr>
+<tr>
+<td>简单少量拼接（如 <code>"a"+b</code>）</td>
+<td>直接 <code>+</code>，Java 9+ 由 invokedynamic 优化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>源码层面的要点</strong>：</p>
+<ul>
+<li><strong>String</strong>：不可变，Java 9+ 用 byte []+coder 做紧凑存储；所有 “修改” 都是新对象。</li>
+<li><strong>AbstractStringBuilder</strong>：可变，Java 9+ 同样 byte []+coder，扩容规则 *2 + 2，与 String 编码一致。</li>
+<li><strong>StringBuffer</strong> = AbstractStringBuilder + synchronized；<strong>StringBuilder</strong> = AbstractStringBuilder，无同步。</li>
+<li><strong>Java 9+</strong>：三者存储统一为 byte []+coder（Compact Strings），字符串 <code>+</code> 的编译从 StringBuilder 链式调用改为 invokedynamic，后续版本继续在 format、构造器、模板等方面做增强。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="tag"># 源码解读</a>
+              <a href="/tags/String/" rel="tag"># String</a>
+              <a href="/tags/StringBuilder/" rel="tag"># StringBuilder</a>
+              <a href="/tags/StringBuffer/" rel="tag"># StringBuffer</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java11-features-summary/" rel="prev" title="Java 11 新特性总结与示例">
+                  <i class="fa fa-angle-left"></i> Java 11 新特性总结与示例
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-serialization-compare-scenarios/" rel="next" title="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景">
+                  Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cartery</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">51k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">47 分钟</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

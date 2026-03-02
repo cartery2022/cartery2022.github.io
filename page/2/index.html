@@ -196,7 +196,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">90</span>
+        <span class="site-state-item-count">68</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -213,143 +213,6 @@
     </div>
 
     <div class="main-inner index posts-expand">
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-11-flyweight/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-11-flyweight/" class="post-title-link" itemprop="url">设计模式（十一）享元模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="享元模式flyweight"><a class="markdownIt-Anchor" href="#享元模式flyweight"></a> 享元模式（Flyweight）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>享元模式</strong>运用共享技术有效支持大量细粒度对象的复用，减少内存与对象数量。</p>
-<p><strong>解决的问题</strong>：存在大量相似对象（如相同字符、相同图标、相同配置），若每个都单独实例会占用大量内存；把 “可共享的内在状态” 与 “不可共享的外在状态” 分离，共享内在状态，外在状态由调用方传入。</p>
-<p><strong>定义</strong>：运用共享技术有效地支持大量细粒度的对象。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Flyweight</strong>：享元接口，定义对外方法，方法参数中常包含 “外在状态”。</li>
-<li><strong>ConcreteFlyweight</strong>：具体享元，存储内在状态（可共享），方法中结合传入的外在状态完成行为。</li>
-<li><strong>FlyweightFactory</strong>：享元工厂，维护享元池，根据 key 返回共享实例；无则创建并缓存。</li>
-<li><strong>Client</strong>：使用享元时传入外在状态。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Flyweight</span> { <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteFlyweight</span> <span class="keyword">implements</span> <span class="title class_">Flyweight</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String intrinsicState;</span><br><span class="line">    ConcreteFlyweight(String intrinsicState) { <span class="built_in">this</span>.intrinsicState = intrinsicState; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span> {</span><br><span class="line">        System.out.println(intrinsicState + <span class="string">", "</span> + extrinsicState);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyweightFactory</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Flyweight&gt; pool = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    Flyweight <span class="title function_">get</span><span class="params">(String key)</span> {</span><br><span class="line">        <span class="keyword">return</span> pool.computeIfAbsent(key, ConcreteFlyweight::<span class="keyword">new</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>String 常量池、Integer 缓存</strong>：JVM / JDK 层面的 “享元”，相同内容的 String、小范围 Integer 共享实例；Spring 未单独实现，但业务中大量用 String 作为 key、缓存 key 时天然受益。</li>
-<li><strong>Bean 单例</strong>：单例 Bean 在容器内共享，可视为 “按 Bean 定义共享的实例”，与享元 “按 key 共享” 思想一致。</li>
-<li><strong>元数据、配置的缓存</strong>：如反射得到的 Method、Annotation 等元数据，Spring 会缓存复用，避免重复解析；可视为 “按类 / 方法等 key 的享元”。</li>
-<li><strong>线程池、连接池</strong>：池中的线程、连接是 “可复用对象”，与享元 “复用对象” 的目标一致，只是通常不叫 Flyweight 名字。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>大量相似对象且可区分内在 / 外在</strong>：如棋牌游戏中 “牌面” 可共享（内在），每张牌的 “位置、归属” 由外部传入（外在）；文档编辑器中 “字符样式” 共享，“位置” 外在。</li>
-<li><strong>缓存、池化</strong>：按 key 缓存对象（如按配置 key 缓存解析结果），无则创建并放入池，有则直接返回，本质是享元工厂。</li>
-<li><strong>减少重复解析 / 编译</strong>：如模板引擎中相同模板只编译一次；规则引擎中相同规则只编译一次，运行时只传不同参数。</li>
-<li><strong>枚举、常量类</strong>：有限个实例对应有限个 “内在状态”，全应用共享，是享元的简化形式。</li>
-</ul>
-<p><strong>不适用</strong>：对象之间几乎没有可共享状态、或对象数量很少时，享元收益不大。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>享元模式通过 “内在状态共享 + 外在状态参数化” 减少对象数量与内存；Spring 中 <strong>单例 Bean</strong>、<strong>元数据缓存</strong>、<strong>池化</strong> 体现了共享复用思想。业务上适用于<strong>大量相似对象、缓存/池化、减少重复解析/编译、枚举/常量</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
 
     
 
@@ -395,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -496,6 +359,145 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-14-command/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-14-command/" class="post-title-link" itemprop="url">设计模式（十四）命令模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="命令模式command"><a class="markdownIt-Anchor" href="#命令模式command"></a> 命令模式（Command）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>命令模式</strong>将请求封装成对象，从而可用不同的请求对客户进行参数化、支持请求排队、记录日志、撤销等。</p>
+<p><strong>解决的问题</strong>：把 “操作” 变成对象，便于传递、排队、记录、撤销 / 重做；调用方只依赖 “命令” 接口，不依赖具体执行者。</p>
+<p><strong>定义</strong>：将请求封装为对象，从而可以参数化客户、排队、记录请求日志、支持撤销等。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Command</strong>：抽象命令，声明 execute ()（及可选 undo ()）。</li>
+<li><strong>ConcreteCommand</strong>：具体命令，持有 Receiver 的引用，execute () 中调用 Receiver 的相应方法。</li>
+<li><strong>Receiver</strong>：接收者，真正执行操作的对象。</li>
+<li><strong>Invoker</strong>：调用者，持有 Command，在适当时机调用 command.execute()。</li>
+<li><strong>Client</strong>：组装 Command 与 Receiver，将 Command 交给 Invoker。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Command</span> { <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Receiver</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">action</span><span class="params">()</span> { System.out.println(<span class="string">"do"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteCommand</span> <span class="keyword">implements</span> <span class="title class_">Command</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Receiver</span> <span class="variable">receiver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Receiver</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span> { receiver.action(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Invoker</span> {</span><br><span class="line">    <span class="keyword">private</span> Command command;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setCommand</span><span class="params">(Command c)</span> { <span class="built_in">this</span>.command = c; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> { command.execute(); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Runnable / Callable 作为 “命令”</strong>：线程池提交的 Runnable / Callable 可视为命令对象，Invoker 是线程池，Receiver 是业务逻辑；Spring 的 @Async、TaskExecutor 也基于此类 “可执行命令”。</li>
+<li><strong>JdbcTemplate 的 StatementCreator / PreparedStatementCallback</strong>：将 “创建语句 / 执行语句” 封装成对象，由模板在合适时机（获取连接后）执行，具有命令模式思想。</li>
+<li><strong>Spring MVC 的 HandlerExecutionChain</strong>：Handler 与 Interceptor 可视为 “命令 + 链”，DispatcherServlet 作为 Invoker 在合适时机执行。</li>
+<li><strong>消息驱动</strong>：MQ 消息体可视为 “命令”，消费者根据消息类型执行不同逻辑，支持异步、排队、重试。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>撤销 / 重做</strong>：每次操作封装成命令并入栈，撤销时执行 undo 或从栈中弹出并反向执行。</li>
+<li><strong>任务队列、异步执行</strong>：任务封装成命令对象，放入队列，由工作线程依次执行；支持延迟、重试、优先级。</li>
+<li><strong>多端触发同一操作</strong>：UI、API、定时任务都可发出同一 “命令对象”，由统一 Invoker 执行，便于扩展与测试。</li>
+<li><strong>审计、日志</strong>：命令对象可记录 “谁在何时执行了什么”，便于审计与回放。</li>
+<li><strong>宏 / 批处理</strong>：将多个命令组合成复合命令，一次执行一批操作。</li>
+</ul>
+<p><strong>不适用</strong>：操作极简单、无需排队/撤销/审计时，直接调用即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>命令模式通过 “将请求封装为对象” 支持参数化、排队、撤销、审计；Spring 中 <strong>Runnable / Callable 与线程池</strong>、<strong>JdbcTemplate 回调</strong>、<strong>消息驱动</strong> 体现了命令思想。业务上适用于<strong>撤销重做、任务队列、多端触发、审计、宏 / 批处理</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -532,7 +534,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -554,7 +556,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
+      <span>1.4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -631,143 +633,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-15-interpreter/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-15-interpreter/" class="post-title-link" itemprop="url">设计模式（十五）解释器模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="解释器模式interpreter"><a class="markdownIt-Anchor" href="#解释器模式interpreter"></a> 解释器模式（Interpreter）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>解释器模式</strong>给定一门语言（或表达式）的表示与解释方式，用解释器解释句子（或表达式）并执行。</p>
-<p><strong>解决的问题</strong>：当存在一种 “小语言”（如表达式、简单脚本、规则描述），需要解析并执行时，用解释器把语法拆成若干类，每类负责一种语法单元的解析与求值。</p>
-<p><strong>定义</strong>：给定一个语言，定义它的文法的一种表示，并定义一个解释器，用该解释器解释语言中的句子。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>AbstractExpression</strong>：抽象表达式，声明 interpret (Context) 接口。</li>
-<li><strong>TerminalExpression</strong>：终结符表达式，对应文法中的终结符（如常量、变量）。</li>
-<li><strong>NonterminalExpression</strong>：非终结符表达式，对应文法中的规则，内部包含多个子表达式并组合求值。</li>
-<li><strong>Context</strong>：上下文，存放变量、输入等，供解释过程使用。</li>
-</ul>
-<p><strong>示例</strong>（简单加减法）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Number</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line">    Number(<span class="type">int</span> value) { <span class="built_in">this</span>.value = value; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> { <span class="keyword">return</span> value; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Expr left, right;</span><br><span class="line">    Add(Expr l, Expr r) { left = l; right = r; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> {</span><br><span class="line">        <span class="keyword">return</span> left.interpret(ctx) + right.interpret(ctx);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>SpEL（Spring Expression Language）</strong>：Spring 的表达式语言，用于 @Value、@ConditionalOnExpression、缓存 key、安全表达式等；内部将表达式解析成 AST 并解释执行，是典型的解释器模式。</li>
-<li><strong>ExpressionParser 与 Expression</strong>：<code>ExpressionParser.parseExpression(expr)</code> 得到 <code>Expression</code>，再 <code>getValue(context)</code> 求值，对应 “解析 + 解释”。</li>
-<li><strong>条件注解中的表达式</strong>：如 <code>@ConditionalOnExpression("...")</code>，字符串被解析并求值，决定是否加载 Bean。</li>
-<li><strong>简单规则引擎</strong>：若业务中用 “规则字符串” 描述条件（如 “age &gt; 18 &amp;&amp; city == ‘Beijing’”），可用解释器或 SpEL 解析并求值。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>配置 / 脚本中的表达式</strong>：如配置里写 <code>"${env}-${version}"</code>、简单运算或条件，需要解析并求值。</li>
-<li><strong>规则 / 策略的文本描述</strong>：如风控规则 “金额 &gt; 10000 且 次数 &gt; 5”，用小型 DSL 描述并由解释器执行。</li>
-<li><strong>查询 / 过滤条件</strong>：用户输入简单条件表达式，解析后生成过滤逻辑或 SQL 条件（需防注入）。</li>
-<li><strong>公式计算</strong>：如报表中的单元格公式、定价公式，用表达式描述并由解释器求值。</li>
-</ul>
-<p><strong>不适用</strong>：语法复杂、性能要求高时，应使用 parser generator 或预编译；简单固定格式用正则或手写解析即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>解释器模式通过 “为语法中的每种符号定义解释类 + 组合求值” 实现小语言的解析与执行；Spring 中 <strong>SpEL</strong>、<strong>ExpressionParser/Expression</strong>、<strong>条件表达式</strong> 是典型应用。业务上适用于<strong>配置表达式、规则描述、简单公式 / 条件</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-16-iterator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -804,7 +669,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -942,7 +807,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -964,7 +829,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>1.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1078,7 +943,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1100,7 +965,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>1.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1179,7 +1044,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-14-command/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-15-interpreter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1197,7 +1062,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-14-command/" class="post-title-link" itemprop="url">设计模式（十四）命令模式 — 详解、Spring 运用与业务场景</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-15-interpreter/" class="post-title-link" itemprop="url">设计模式（十五）解释器模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1215,7 +1080,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1237,7 +1102,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>1.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1255,43 +1120,176 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="命令模式command"><a class="markdownIt-Anchor" href="#命令模式command"></a> 命令模式（Command）</h1>
+          <h1 id="解释器模式interpreter"><a class="markdownIt-Anchor" href="#解释器模式interpreter"></a> 解释器模式（Interpreter）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>命令模式</strong>将请求封装成对象，从而可用不同的请求对客户进行参数化、支持请求排队、记录日志、撤销等。</p>
-<p><strong>解决的问题</strong>：把 “操作” 变成对象，便于传递、排队、记录、撤销 / 重做；调用方只依赖 “命令” 接口，不依赖具体执行者。</p>
-<p><strong>定义</strong>：将请求封装为对象，从而可以参数化客户、排队、记录请求日志、支持撤销等。</p>
+<p><strong>解释器模式</strong>给定一门语言（或表达式）的表示与解释方式，用解释器解释句子（或表达式）并执行。</p>
+<p><strong>解决的问题</strong>：当存在一种 “小语言”（如表达式、简单脚本、规则描述），需要解析并执行时，用解释器把语法拆成若干类，每类负责一种语法单元的解析与求值。</p>
+<p><strong>定义</strong>：给定一个语言，定义它的文法的一种表示，并定义一个解释器，用该解释器解释语言中的句子。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Command</strong>：抽象命令，声明 execute ()（及可选 undo ()）。</li>
-<li><strong>ConcreteCommand</strong>：具体命令，持有 Receiver 的引用，execute () 中调用 Receiver 的相应方法。</li>
-<li><strong>Receiver</strong>：接收者，真正执行操作的对象。</li>
-<li><strong>Invoker</strong>：调用者，持有 Command，在适当时机调用 command.execute()。</li>
-<li><strong>Client</strong>：组装 Command 与 Receiver，将 Command 交给 Invoker。</li>
+<li><strong>AbstractExpression</strong>：抽象表达式，声明 interpret (Context) 接口。</li>
+<li><strong>TerminalExpression</strong>：终结符表达式，对应文法中的终结符（如常量、变量）。</li>
+<li><strong>NonterminalExpression</strong>：非终结符表达式，对应文法中的规则，内部包含多个子表达式并组合求值。</li>
+<li><strong>Context</strong>：上下文，存放变量、输入等，供解释过程使用。</li>
 </ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Command</span> { <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Receiver</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">action</span><span class="params">()</span> { System.out.println(<span class="string">"do"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteCommand</span> <span class="keyword">implements</span> <span class="title class_">Command</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Receiver</span> <span class="variable">receiver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Receiver</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">()</span> { receiver.action(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Invoker</span> {</span><br><span class="line">    <span class="keyword">private</span> Command command;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setCommand</span><span class="params">(Command c)</span> { <span class="built_in">this</span>.command = c; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> { command.execute(); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>示例</strong>（简单加减法）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Number</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line">    Number(<span class="type">int</span> value) { <span class="built_in">this</span>.value = value; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> { <span class="keyword">return</span> value; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Expr left, right;</span><br><span class="line">    Add(Expr l, Expr r) { left = l; right = r; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> {</span><br><span class="line">        <span class="keyword">return</span> left.interpret(ctx) + right.interpret(ctx);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>Runnable / Callable 作为 “命令”</strong>：线程池提交的 Runnable / Callable 可视为命令对象，Invoker 是线程池，Receiver 是业务逻辑；Spring 的 @Async、TaskExecutor 也基于此类 “可执行命令”。</li>
-<li><strong>JdbcTemplate 的 StatementCreator / PreparedStatementCallback</strong>：将 “创建语句 / 执行语句” 封装成对象，由模板在合适时机（获取连接后）执行，具有命令模式思想。</li>
-<li><strong>Spring MVC 的 HandlerExecutionChain</strong>：Handler 与 Interceptor 可视为 “命令 + 链”，DispatcherServlet 作为 Invoker 在合适时机执行。</li>
-<li><strong>消息驱动</strong>：MQ 消息体可视为 “命令”，消费者根据消息类型执行不同逻辑，支持异步、排队、重试。</li>
+<li><strong>SpEL（Spring Expression Language）</strong>：Spring 的表达式语言，用于 @Value、@ConditionalOnExpression、缓存 key、安全表达式等；内部将表达式解析成 AST 并解释执行，是典型的解释器模式。</li>
+<li><strong>ExpressionParser 与 Expression</strong>：<code>ExpressionParser.parseExpression(expr)</code> 得到 <code>Expression</code>，再 <code>getValue(context)</code> 求值，对应 “解析 + 解释”。</li>
+<li><strong>条件注解中的表达式</strong>：如 <code>@ConditionalOnExpression("...")</code>，字符串被解析并求值，决定是否加载 Bean。</li>
+<li><strong>简单规则引擎</strong>：若业务中用 “规则字符串” 描述条件（如 “age &gt; 18 &amp;&amp; city == ‘Beijing’”），可用解释器或 SpEL 解析并求值。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>撤销 / 重做</strong>：每次操作封装成命令并入栈，撤销时执行 undo 或从栈中弹出并反向执行。</li>
-<li><strong>任务队列、异步执行</strong>：任务封装成命令对象，放入队列，由工作线程依次执行；支持延迟、重试、优先级。</li>
-<li><strong>多端触发同一操作</strong>：UI、API、定时任务都可发出同一 “命令对象”，由统一 Invoker 执行，便于扩展与测试。</li>
-<li><strong>审计、日志</strong>：命令对象可记录 “谁在何时执行了什么”，便于审计与回放。</li>
-<li><strong>宏 / 批处理</strong>：将多个命令组合成复合命令，一次执行一批操作。</li>
+<li><strong>配置 / 脚本中的表达式</strong>：如配置里写 <code>"${env}-${version}"</code>、简单运算或条件，需要解析并求值。</li>
+<li><strong>规则 / 策略的文本描述</strong>：如风控规则 “金额 &gt; 10000 且 次数 &gt; 5”，用小型 DSL 描述并由解释器执行。</li>
+<li><strong>查询 / 过滤条件</strong>：用户输入简单条件表达式，解析后生成过滤逻辑或 SQL 条件（需防注入）。</li>
+<li><strong>公式计算</strong>：如报表中的单元格公式、定价公式，用表达式描述并由解释器求值。</li>
 </ul>
-<p><strong>不适用</strong>：操作极简单、无需排队/撤销/审计时，直接调用即可。</p>
+<p><strong>不适用</strong>：语法复杂、性能要求高时，应使用 parser generator 或预编译；简单固定格式用正则或手写解析即可。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>命令模式通过 “将请求封装为对象” 支持参数化、排队、撤销、审计；Spring 中 <strong>Runnable / Callable 与线程池</strong>、<strong>JdbcTemplate 回调</strong>、<strong>消息驱动</strong> 体现了命令思想。业务上适用于<strong>撤销重做、任务队列、多端触发、审计、宏 / 批处理</strong>等场景。</p>
+<p>解释器模式通过 “为语法中的每种符号定义解释类 + 组合求值” 实现小语言的解析与执行；Spring 中 <strong>SpEL</strong>、<strong>ExpressionParser/Expression</strong>、<strong>条件表达式</strong> 是典型应用。业务上适用于<strong>配置表达式、规则描述、简单公式 / 条件</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-05-prototype/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-05-prototype/" class="post-title-link" itemprop="url">设计模式（五）原型模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">创建型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="原型模式prototype"><a class="markdownIt-Anchor" href="#原型模式prototype"></a> 原型模式（Prototype）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>原型模式</strong>用原型实例指定创建对象的种类，并通过复制该原型创建新对象。</p>
+<p><strong>解决的问题</strong>：当直接 new 成本高（如构造需大量计算或 I / O），或希望基于已有对象 “复制一份再改” 时，通过克隆避免重复初始化。</p>
+<p><strong>定义</strong>：用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
+<hr>
+<h2 id="二-结构与实现"><a class="markdownIt-Anchor" href="#二-结构与实现"></a> 二、结构与实现</h2>
+<ul>
+<li><strong>Prototype</strong>：声明克隆方法的接口（Java 中常用 <code>Cloneable</code> + <code>clone()</code>）。</li>
+<li><strong>ConcretePrototype</strong>：实现克隆逻辑；浅拷贝直接复制字段，深拷贝需递归复制引用类型。</li>
+</ul>
+<p><strong>示例（浅拷贝）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Document</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> {</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; paragraphs;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Document <span class="title function_">clone</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            <span class="keyword">return</span> (Document) <span class="built_in">super</span>.clone(); <span class="comment">// 浅拷贝，paragraphs 仍共享引用</span></span><br><span class="line">        } <span class="keyword">catch</span> (CloneNotSupportedException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>深拷贝可重写 <code>clone()</code> 中对 <code>paragraphs</code> 等集合做 new 并复制元素，或使用序列化 / 拷贝构造器等方式。</p>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Bean 的 scope=“prototype”</strong>：每次 <code>getBean()</code> 或注入时，容器都会<strong>新建一个实例</strong>，相当于 “根据 Bean 定义这一‘原型’复制出新对象”；与单例的 “只一份” 相对。</li>
+<li><strong>ObjectFactory / Provider 注入</strong>：获取 prototype Bean 时，通过 <code>ObjectFactory&lt;T&gt;</code> 或 <code>Provider&lt;T&gt;</code> 延迟获取，每次 <code>getObject()</code> 得到新实例，避免单例 Bean 持有 prototype 导致只拿到同一实例的问题。</li>
+<li><strong>Bean 的创建过程</strong>：容器内部根据 BeanDefinition 创建实例，可视为 “按定义原型创建”，但一般不直接实现 <code>Cloneable</code>，而是反射 / 构造器创建。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>创建成本高、状态可复制</strong>：如大对象初始化慢，或从模板复制后只改少量字段（如合同、工单从模板生成）。</li>
+<li><strong>需要隔离实例状态</strong>：如每次请求 / 会话需要独立对象，避免线程或请求间共享导致并发问题，Spring 中对应 <strong>prototype 作用域</strong>。</li>
+<li><strong>撤销 / 重做、快照</strong>：保存当前状态的一份拷贝，后续可恢复或对比（需深拷贝以保证一致性）。</li>
+<li><strong>缓存与模板</strong>：从缓存中的 “模板对象” 克隆出一份再填充数据，避免污染模板。</li>
+</ul>
+<p><strong>不适用</strong>：对象无状态或创建成本很低时，用 new 或工厂即可；深拷贝成本高或引用关系复杂时需权衡。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>原型模式通过 “克隆已有对象” 创建新对象，避免重复昂贵初始化；Spring 中 <strong>prototype 作用域</strong> 与 <strong>ObjectFactory/Provider</strong> 体现了 “按需创建新实例” 的思想。业务上适用于<strong>高创建成本、需实例隔离、模板复制、快照 / 撤销</strong>等场景。</p>
 
       
     </div>
@@ -1354,7 +1352,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1376,7 +1374,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>1.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1492,7 +1490,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:30:50" itemprop="dateModified" datetime="2026-03-02T17:30:50+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1514,7 +1512,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
+      <span>1.4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1608,13 +1606,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">89k</span>
+    <span title="站点总字数">94k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:21</span>
+    <span title="站点阅读时长">1:26</span>
   </span>
 </div>
 <div class="busuanzi-count">

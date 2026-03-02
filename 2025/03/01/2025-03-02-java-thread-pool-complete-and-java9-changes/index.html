@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous" defer></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="Java 线程池知识点与 Java 9+ 改动 本文梳理 Java 线程池 的完整知识点：体系结构、核心参数、任务流程、拒绝策略、Executors 工厂方法、ForkJoinPool 与定时任务，以及 Java 9 及以后版本 对线程池与相关 API 的改动（CompletableFuture 增强、虚拟线程 Executor 等）。   一、体系结构 123456Executor（接口）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 线程池知识点与 Java 9+ 改动">
+<meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/index.html">
+<meta property="og:site_name" content="贝加尔湖畔">
+<meta property="og:description" content="Java 线程池知识点与 Java 9+ 改动 本文梳理 Java 线程池 的完整知识点：体系结构、核心参数、任务流程、拒绝策略、Executors 工厂方法、ForkJoinPool 与定时任务，以及 Java 9 及以后版本 对线程池与相关 API 的改动（CompletableFuture 增强、虚拟线程 Executor 等）。   一、体系结构 123456Executor（接口）">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-02T09:03:23.432Z">
+<meta property="article:author" content="cartery">
+<meta property="article:tag" content="Executor">
+<meta property="article:tag" content="ThreadPoolExecutor">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="线程池">
+<meta property="article:tag" content="虚拟线程">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/","path":"2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/","title":"Java 线程池知识点与 Java 9+ 改动"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Java 线程池知识点与 Java 9+ 改动 | 贝加尔湖畔</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/7.2.0/pangu.umd.js" integrity="sha256-JnmRRnJK7DC6RQJbAJb6AXOM9OmWzS6z8eYultk/48Y=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+  <script src="/js/third-party/pace.js" defer></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/"}</script>
+  <script src="/js/third-party/quicklink.js" defer></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">贝加尔湖畔</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9F%A5%E8%AF%86%E7%82%B9%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> Java 线程池知识点与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、体系结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-threadpoolexecutor-%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、ThreadPoolExecutor 核心参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E4%BB%BB%E5%8A%A1%E6%8F%90%E4%BA%A4%E6%B5%81%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、任务提交流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E4%BB%BB%E5%8A%A1%E9%98%9F%E5%88%97workqueue%E5%B8%B8%E8%A7%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、任务队列（workQueue）常见类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5rejectedexecutionhandler"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、拒绝策略（RejectedExecutionHandler）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-executors-%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E5%8F%8A%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、Executors 工厂方法及注意点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%85%B3%E9%97%ADshutdown-%E4%B8%8E-shutdownnow"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、关闭：shutdown 与 shutdownNow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB-%E6%89%A9%E5%B1%95%E7%82%B9%E4%B8%8E%E5%85%B6%E5%AE%83%E9%85%8D%E7%BD%AE"><span class="nav-number">1.8.</span> <span class="nav-text"> 八、扩展点与其它配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D-forkjoinpool-%E4%B8%8E-scheduledexecutorservice"><span class="nav-number">1.9.</span> <span class="nav-text"> 九、ForkJoinPool 与 ScheduledExecutorService</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#91-forkjoinpool"><span class="nav-number">1.9.1.</span> <span class="nav-text"> 9.1 ForkJoinPool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#92-scheduledexecutorservice"><span class="nav-number">1.9.2.</span> <span class="nav-text"> 9.2 ScheduledExecutorService</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81-completablefuture-%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="nav-number">1.10.</span> <span class="nav-text"> 十、CompletableFuture 与线程池</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E4%B8%80-java-9-%E5%8F%8A%E4%BB%A5%E5%90%8E%E5%AF%B9%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9B%B8%E5%85%B3-api-%E7%9A%84%E6%94%B9%E5%8A%A8"><span class="nav-number">1.11.</span> <span class="nav-text"> 十一、Java 9 及以后对线程池相关 API 的改动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#111-completablefuture-%E5%A2%9E%E5%BC%BAjava-9"><span class="nav-number">1.11.1.</span> <span class="nav-text"> 11.1 CompletableFuture 增强（Java 9）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#112-%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E4%B8%8E-executorjava-21"><span class="nav-number">1.11.2.</span> <span class="nav-text"> 11.2 虚拟线程与 Executor（Java 21）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#113-%E5%85%B6%E5%AE%83%E7%89%88%E6%9C%AC"><span class="nav-number">1.11.3.</span> <span class="nav-text"> 11.3 其它版本</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E4%BA%8C-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.12.</span> <span class="nav-text"> 十二、小结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartery</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">41</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Java 线程池知识点与 Java 9+ 改动 | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java 线程池知识点与 Java 9+ 改动
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-02 17:03:23" itemprop="dateModified" datetime="2026-03-02T17:03:23+08:00">2026-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">并发</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="java-线程池知识点与-java-9-改动"><a class="markdownIt-Anchor" href="#java-线程池知识点与-java-9-改动"></a> Java 线程池知识点与 Java 9+ 改动</h1>
+<p>本文梳理 <strong>Java 线程池</strong> 的完整知识点：体系结构、核心参数、任务流程、拒绝策略、Executors 工厂方法、ForkJoinPool 与定时任务，以及 <strong>Java 9 及以后版本</strong> 对线程池与相关 API 的改动（CompletableFuture 增强、虚拟线程 Executor 等）。</p>
+<hr>
+<h2 id="一-体系结构"><a class="markdownIt-Anchor" href="#一-体系结构"></a> 一、体系结构</h2>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Executor（接口）</span><br><span class="line">    └── ExecutorService（接口）</span><br><span class="line">            └── AbstractExecutorService（抽象类）</span><br><span class="line">                    ├── ThreadPoolExecutor（通用线程池）</span><br><span class="line">                    ├── ScheduledThreadPoolExecutor（定时/周期任务）</span><br><span class="line">                    └── ForkJoinPool（分治/工作窃取）</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>Executor</strong>：只定义 <code>void execute(Runnable command)</code>，表示 “执行任务”。</li>
+<li><strong>ExecutorService</strong>：扩展了提交任务（submit 返回 Future）、关闭（shutdown/shutdownNow）、批量执行（invokeAll/invokeAny）等。</li>
+<li><strong>ThreadPoolExecutor</strong>：最常用的实现，通过<strong>核心线程数、最大线程数、队列、拒绝策略</strong>等控制行为。</li>
+</ul>
+<hr>
+<h2 id="二-threadpoolexecutor-核心参数"><a class="markdownIt-Anchor" href="#二-threadpoolexecutor-核心参数"></a> 二、ThreadPoolExecutor 核心参数</h2>
+<p>构造方法（7 个参数）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ThreadPoolExecutor(</span><br><span class="line">    int corePoolSize,</span><br><span class="line">    int maximumPoolSize,</span><br><span class="line">    long keepAliveTime,</span><br><span class="line">    TimeUnit unit,</span><br><span class="line">    BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">    ThreadFactory threadFactory,</span><br><span class="line">    RejectedExecutionHandler handler</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>corePoolSize</strong></td>
+<td>核心线程数，常驻池中，空闲时默认不回收（除非开启 allowCoreThreadTimeOut）</td>
+</tr>
+<tr>
+<td><strong>maximumPoolSize</strong></td>
+<td>最大线程数，池中线程总数上限</td>
+</tr>
+<tr>
+<td><strong>keepAliveTime</strong></td>
+<td>非核心线程空闲超过该时间会被回收；单位由 unit 指定</td>
+</tr>
+<tr>
+<td><strong>unit</strong></td>
+<td>keepAliveTime 的时间单位</td>
+</tr>
+<tr>
+<td><strong>workQueue</strong></td>
+<td>任务队列，存放尚未被线程执行的任务</td>
+</tr>
+<tr>
+<td><strong>threadFactory</strong></td>
+<td>创建新线程的工厂，可自定义线程名、优先级等</td>
+</tr>
+<tr>
+<td><strong>handler</strong></td>
+<td>当 “线程数已达 maximum 且队列已满” 时的拒绝策略</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三-任务提交流程"><a class="markdownIt-Anchor" href="#三-任务提交流程"></a> 三、任务提交流程</h2>
+<p><code>execute(Runnable command)</code> 的大致逻辑：</p>
+<ol>
+<li><strong>当前线程数 &lt; corePoolSize</strong>：创建新<strong>核心线程</strong>执行该任务。</li>
+<li><strong>当前线程数 ≥ corePoolSize</strong>：尝试将任务<strong>放入 workQueue</strong>。</li>
+<li><strong>队列已满</strong>：尝试创建<strong>非核心线程</strong>（不超过 maximumPoolSize）执行该任务。</li>
+<li><strong>无法创建新线程</strong>（已达 maximum 且队列满）：执行 <strong>RejectedExecutionHandler</strong>（拒绝策略）。</li>
+</ol>
+<p>因此：<strong>先占满核心线程 → 再填队列 → 再开非核心线程 → 再拒绝</strong>。<br>
+使用<strong>无界队列</strong>时，不会走到 “队列满”，也就不会创建非核心线程，maximumPoolSize 形同虚设。</p>
+<hr>
+<h2 id="四-任务队列workqueue常见类型"><a class="markdownIt-Anchor" href="#四-任务队列workqueue常见类型"></a> 四、任务队列（workQueue）常见类型</h2>
+<table>
+<thead>
+<tr>
+<th>队列类型</th>
+<th>特点</th>
+<th>典型用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LinkedBlockingQueue</strong>（无界）</td>
+<td>容量可视为无限，不触发拒绝</td>
+<td>任务量可控、希望 “削峰” 时</td>
+</tr>
+<tr>
+<td><strong>ArrayBlockingQueue</strong>（有界）</td>
+<td>固定容量，满则走非核心 / 拒绝</td>
+<td>需要限制排队数量时</td>
+</tr>
+<tr>
+<td><strong>SynchronousQueue</strong></td>
+<td>不存元素，移交即被取走</td>
+<td>配合 “大 maximumPoolSize” 做直接交接</td>
+</tr>
+<tr>
+<td><strong>DelayQueue</strong></td>
+<td>按延迟时间取出</td>
+<td>延迟任务（也可用 ScheduledExecutorService）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-拒绝策略rejectedexecutionhandler"><a class="markdownIt-Anchor" href="#五-拒绝策略rejectedexecutionhandler"></a> 五、拒绝策略（RejectedExecutionHandler）</h2>
+<p>当 “线程数 = maximumPoolSize 且 workQueue 满” 时触发。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AbortPolicy</strong>（默认）</td>
+<td>抛出 <strong>RejectedExecutionException</strong></td>
+</tr>
+<tr>
+<td><strong>CallerRunsPolicy</strong></td>
+<td>由<strong>提交任务的线程</strong>直接执行该任务，相当于 “调用者自己跑”</td>
+</tr>
+<tr>
+<td><strong>DiscardPolicy</strong></td>
+<td>静默丢弃任务，不抛异常</td>
+</tr>
+<tr>
+<td><strong>DiscardOldestPolicy</strong></td>
+<td>丢弃队列中<strong>最早</strong>的一个任务，再把当前任务入队</td>
+</tr>
+</tbody>
+</table>
+<p>可自定义实现 <strong>RejectedExecutionHandler</strong>，做打日志、入库、转存等。</p>
+<hr>
+<h2 id="六-executors-工厂方法及注意点"><a class="markdownIt-Anchor" href="#六-executors-工厂方法及注意点"></a> 六、Executors 工厂方法及注意点</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>内部实现要点</th>
+<th>常见问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>newFixedThreadPool(n)</strong></td>
+<td>核心 = 最大 = n，<strong>无界</strong> LinkedBlockingQueue</td>
+<td>任务过多时队列无限增长，易 OOM</td>
+</tr>
+<tr>
+<td><strong>newCachedThreadPool()</strong></td>
+<td>核心 = 0，最大 = Integer.MAX_VALUE，<strong>SynchronousQueue</strong></td>
+<td>任务多时线程数暴增，易耗尽资源</td>
+</tr>
+<tr>
+<td><strong>newSingleThreadExecutor()</strong></td>
+<td>核心 = 最大 = 1，无界队列</td>
+<td>同上，队列无界</td>
+</tr>
+<tr>
+<td><strong>newScheduledThreadPool(n)</strong></td>
+<td>定时任务线程池，DelayedWorkQueue</td>
+<td>核心线程数可设为 0 或较小，需结合业务</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议</strong>：生产环境尽量用 <strong>ThreadPoolExecutor 构造器</strong> 显式指定有界队列、合理 maximum、自定义 ThreadFactory 和拒绝策略，避免直接用上述 “无界” 工厂。</p>
+<hr>
+<h2 id="七-关闭shutdown-与-shutdownnow"><a class="markdownIt-Anchor" href="#七-关闭shutdown-与-shutdownnow"></a> 七、关闭：shutdown 与 shutdownNow</h2>
+<ul>
+<li><strong>shutdown()</strong>：不再接受新任务，已提交的任务会继续执行完；池不会立刻退出。</li>
+<li><strong>shutdownNow()</strong>：不再接受新任务，并<strong>尝试中断</strong>正在执行的任务，返回<strong>尚未执行的任务列表</strong>；对不响应中断的任务无法强制停止。</li>
+<li><strong>awaitTermination(long timeout, TimeUnit unit)</strong>：阻塞当前线程，直到池关闭或超时；常与 shutdown 配合使用，先 shutdown 再 awaitTermination 等待一段时间。</li>
+</ul>
+<p>典型用法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">executor.shutdown();</span><br><span class="line"><span class="keyword">if</span> (!executor.awaitTermination(<span class="number">60</span>, TimeUnit.SECONDS)) {</span><br><span class="line">    executor.shutdownNow();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="八-扩展点与其它配置"><a class="markdownIt-Anchor" href="#八-扩展点与其它配置"></a> 八、扩展点与其它配置</h2>
+<ul>
+<li><strong>allowCoreThreadTimeOut(boolean)</strong>：为 true 时，核心线程在空闲 keepAliveTime 后也会被回收；默认 false。</li>
+<li><strong>beforeExecute(Thread t, Runnable r)</strong> / <strong>afterExecute(Runnable r, Throwable t)</strong>：子类可重写，在任务执行前后打日志、统计等。</li>
+<li><strong>setCorePoolSize</strong> / <strong>setMaximumPoolSize</strong>：运行时可动态调整（需注意与当前队列、线程数的关系）。</li>
+</ul>
+<hr>
+<h2 id="九-forkjoinpool-与-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#九-forkjoinpool-与-scheduledexecutorservice"></a> 九、ForkJoinPool 与 ScheduledExecutorService</h2>
+<h3 id="91-forkjoinpool"><a class="markdownIt-Anchor" href="#91-forkjoinpool"></a> 9.1 ForkJoinPool</h3>
+<ul>
+<li>面向<strong>分治、可递归拆分的任务</strong>（如大数组并行计算），使用 <strong>work-stealing</strong>：空闲线程从其它线程的队列尾部 “偷” 任务。</li>
+<li><strong>ForkJoinPool.commonPool()</strong>：JVM 内共享的通用池，默认线程数约 CPU 核数 - 1；<strong>CompletableFuture</strong> 默认使用该池，不适合大量 I / O 或阻塞任务，建议显式传入自定义 Executor。</li>
+</ul>
+<h3 id="92-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#92-scheduledexecutorservice"></a> 9.2 ScheduledExecutorService</h3>
+<ul>
+<li><strong>schedule(command, delay, unit)</strong>：延迟一次执行。</li>
+<li><strong>scheduleAtFixedRate</strong> / <strong>scheduleWithFixedDelay</strong>：周期执行。</li>
+<li>实现类 <strong>ScheduledThreadPoolExecutor</strong> 继承 ThreadPoolExecutor，使用 <strong>DelayedWorkQueue</strong>；核心线程数可设为 0 或较小，一般不建议对调度池开启 allowCoreThreadTimeOut，以免无线程可用。</li>
+</ul>
+<hr>
+<h2 id="十-completablefuture-与线程池"><a class="markdownIt-Anchor" href="#十-completablefuture-与线程池"></a> 十、CompletableFuture 与线程池</h2>
+<ul>
+<li><strong>CompletableFuture.supplyAsync(supplier)</strong> / <strong>runAsync(runnable)</strong> 等<strong>不传 Executor</strong> 时，使用 <strong>ForkJoinPool.commonPool()</strong>。</li>
+<li>commonPool 线程数少，且针对 CPU 密集型设计；<strong>I / O 多或阻塞多</strong>时易成为瓶颈，甚至低核数机器上退化为 “每任务一线程”。</li>
+<li><strong>建议</strong>：<strong>始终传入业务专用线程池</strong>，例如 <code>CompletableFuture.supplyAsync(supplier, customExecutor)</code>，且 thenApplyAsync 等也尽量传同一 Executor，避免混用 commonPool。</li>
+</ul>
+<hr>
+<h2 id="十一-java-9-及以后对线程池相关-api-的改动"><a class="markdownIt-Anchor" href="#十一-java-9-及以后对线程池相关-api-的改动"></a> 十一、Java 9 及以后对线程池相关 API 的改动</h2>
+<h3 id="111-completablefuture-增强java-9"><a class="markdownIt-Anchor" href="#111-completablefuture-增强java-9"></a> 11.1 CompletableFuture 增强（Java 9）</h3>
+<ul>
+<li><strong>completeOnTimeout(value, timeout, unit)</strong>：超时未完成则用给定值完成。</li>
+<li><strong>orTimeout(timeout, unit)</strong>：超时未完成则以 <strong>TimeoutException</strong> 异常完成。</li>
+<li><strong>defaultExecutor()</strong>：子类可重写，自定义默认执行器，不必每次传 Executor。</li>
+<li><strong>newIncompleteFuture()</strong>：工厂方法，便于子类扩展。</li>
+<li><strong>completedStage()</strong> / <strong>failedStage()</strong> / <strong>failedFuture()</strong> 等：创建已完成或已失败的 CompletableFuture / CompletionStage。</li>
+</ul>
+<p>这些改动不改变 “线程池” 本身，但让异步任务与超时、默认 Executor 的配合更灵活。</p>
+<h3 id="112-虚拟线程与-executorjava-21"><a class="markdownIt-Anchor" href="#112-虚拟线程与-executorjava-21"></a> 11.2 虚拟线程与 Executor（Java 21）</h3>
+<ul>
+<li><strong>Executors.newVirtualThreadPerTaskExecutor()</strong>：为<strong>每个任务</strong>创建一个<strong>虚拟线程</strong>，任务结束后虚拟线程可被回收；适合 “一任务一线程” 的模型，无需再维护传统线程池的队列与最大线程数上限。</li>
+<li><strong>Executors.newThreadPerTaskExecutor(ThreadFactory)</strong>：按给定 <strong>ThreadFactory</strong> 为每个任务创建新线程；若传入 <strong>Thread.ofVirtual().factory()</strong>，效果与上面类似（虚拟线程）。</li>
+<li>虚拟线程由 JVM 调度，可创建大量虚拟线程而只占少量平台线程，适合高并发 I / O；<strong>现有 ExecutorService 接口不变</strong>，只是实现从 “固定线程 + 队列” 变为 “每任务一虚拟线程”。</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()) {</span><br><span class="line">    IntStream.range(<span class="number">0</span>, <span class="number">10_000</span>).forEach(i -&gt;</span><br><span class="line">        executor.submit(() -&gt; {</span><br><span class="line">            Thread.sleep(Duration.ofSeconds(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        })</span><br><span class="line">    );</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="113-其它版本"><a class="markdownIt-Anchor" href="#113-其它版本"></a> 11.3 其它版本</h3>
+<ul>
+<li><strong>Java 8</strong>：Lambda、CompletableFuture 的引入使 “异步 + 线程池” 成为标配。</li>
+<li><strong>Java 9+</strong>：模块化后 <code>java.util.concurrent</code> 仍在 java.base，无 API 破坏性变更；线程池本身行为稳定，改动主要集中在 CompletableFuture（9）和虚拟线程 Executor（21）。</li>
+</ul>
+<hr>
+<h2 id="十二-小结"><a class="markdownIt-Anchor" href="#十二-小结"></a> 十二、小结</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>体系</strong></td>
+<td>Executor → ExecutorService → ThreadPoolExecutor / ScheduledThreadPoolExecutor / ForkJoinPool</td>
+</tr>
+<tr>
+<td><strong>核心参数</strong></td>
+<td>corePoolSize、maximumPoolSize、keepAliveTime、workQueue、threadFactory、handler</td>
+</tr>
+<tr>
+<td><strong>流程</strong></td>
+<td>先占满核心线程 → 再入队 → 再开非核心线程 → 再拒绝</td>
+</tr>
+<tr>
+<td><strong>队列</strong></td>
+<td>无界队列易 OOM；有界队列 + 合理 maximum + 拒绝策略更稳妥</td>
+</tr>
+<tr>
+<td><strong>拒绝策略</strong></td>
+<td>AbortPolicy、CallerRunsPolicy、DiscardPolicy、DiscardOldestPolicy 及自定义</td>
+</tr>
+<tr>
+<td><strong>关闭</strong></td>
+<td>shutdown + awaitTermination，必要时 shutdownNow</td>
+</tr>
+<tr>
+<td><strong>CompletableFuture</strong></td>
+<td>务必传自定义 Executor，避免 commonPool；Java 9 增加超时与默认 Executor 扩展</td>
+</tr>
+<tr>
+<td><strong>Java 21</strong></td>
+<td>newVirtualThreadPerTaskExecutor、newThreadPerTaskExecutor (ThreadFactory) 支持虚拟线程，适合高并发 I / O 场景</td>
+</tr>
+</tbody>
+</table>
+<p>掌握以上内容即可覆盖日常开发与面试中对 Java 线程池的要求，并在 Java 9+ 中正确使用 CompletableFuture 与虚拟线程 Executor。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag"># 线程池</a>
+              <a href="/tags/ThreadPoolExecutor/" rel="tag"># ThreadPoolExecutor</a>
+              <a href="/tags/Executor/" rel="tag"># Executor</a>
+              <a href="/tags/%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B/" rel="tag"># 虚拟线程</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java17-features-summary/" rel="prev" title="Java 17 新特性总结与示例">
+                  <i class="fa fa-angle-left"></i> Java 17 新特性总结与示例
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-serialization-compare-scenarios/" rel="next" title="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景">
+                  Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cartery</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">56k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">51 分钟</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

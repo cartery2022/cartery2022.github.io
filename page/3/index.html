@@ -185,18 +185,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-count">37</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-count">71</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -280,7 +280,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.9k</span>
+      <span>1.8k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -361,280 +361,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-22-template-method/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-22-template-method/" class="post-title-link" itemprop="url">设计模式（二十二）模板方法模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="模板方法模式template-method"><a class="markdownIt-Anchor" href="#模板方法模式template-method"></a> 模板方法模式（Template Method）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>模板方法模式</strong>在抽象类中定义算法的骨架，将某些步骤延迟到子类；子类在不改变算法结构的前提下可重写特定步骤。</p>
-<p><strong>解决的问题</strong>：多个类有相同流程（如 “打开连接 → 执行 → 关闭连接”），只有少数步骤不同；把相同流程放在父类模板方法中，不同步骤抽象为钩子方法由子类实现，避免重复代码。</p>
-<p><strong>定义</strong>：在方法中定义算法的骨架，而将一些步骤延迟到子类；模板方法使子类可以在不改变算法结构的情况下重新定义算法的某些步骤。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>AbstractClass</strong>：抽象类，定义模板方法（如 templateMethod ()），内部按顺序调用抽象方法或钩子方法；部分步骤可有默认实现。</li>
-<li><strong>ConcreteClass</strong>：具体子类，实现抽象方法或覆盖钩子方法，完成特定步骤的具体逻辑。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractClass</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">templateMethod</span><span class="params">()</span> {</span><br><span class="line">        step1();</span><br><span class="line">        step2();  <span class="comment">// 子类实现</span></span><br><span class="line">        step3();</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">step1</span><span class="params">()</span> { System.out.println(<span class="string">"step1"</span>); }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">step2</span><span class="params">()</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">step3</span><span class="params">()</span> { System.out.println(<span class="string">"step3"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteClass</span> <span class="keyword">extends</span> <span class="title class_">AbstractClass</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">step2</span><span class="params">()</span> { System.out.println(<span class="string">"custom step2"</span>); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>JdbcTemplate</strong>：<code>query/update</code> 等方法是模板方法，内部固定 “获取连接、创建语句、执行、处理结果集、关闭资源”，把 “如何设置参数、如何映射结果” 通过回调（RowMapper、PreparedStatementCreator 等）交给调用方，是典型的 “模板 + 回调” 结合。</li>
-<li><strong>RestTemplate</strong>：请求流程固定（构建请求、发送、处理响应），具体 URL、头、解析方式由调用方传入，模板方法思想。</li>
-<li>*<em>AbstractController / 各类 <em>Template</em></em>：许多抽象基类定义 doGet / doPost 或 execute 模板，子类或回调填充具体步骤。</li>
-<li><strong>Bean 的初始化 / 销毁</strong>：InitializingBean.afterPropertiesSet()、DisposableBean.destroy() 可视为 “生命周期模板” 中的钩子，子类实现以插入自定义逻辑。</li>
-<li><strong>JpaDaoSupport / HibernateDaoSupport</strong>（传统用法）：父类提供 getSessionFactory、getHibernateTemplate 等模板式封装，子类专注业务方法。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>固定流程、可变步骤</strong>：如 “校验 → 查库 → 计算 → 落库 → 发消息”，其中 “计算”“发消息” 等由业务子类或策略实现，其余流程统一在模板中。</li>
-<li><strong>复用公共骨架</strong>：如 “打开资源 → 处理 → 关闭资源”“开启事务 → 执行业务 → 提交 / 回滚”，骨架在基类，差异在子类。</li>
-<li><strong>框架 / 基类设计</strong>：框架定义 “请求处理流程”“任务执行流程”，用户通过重写钩子或实现回调插入逻辑，而不改流程顺序。</li>
-<li><strong>测试</strong>：模板方法便于用子类或匿名类只重写待测步骤，其余用默认实现，方便单测。</li>
-</ul>
-<p><strong>不适用</strong>：流程中每步都差异很大、几乎没有公共骨架时，用组合 + 策略更合适。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>模板方法模式通过 “抽象类定义模板方法 + 子类实现钩子” 复用算法骨架；Spring 中 <strong>JdbcTemplate</strong>、<strong>RestTemplate</strong>、<em><em>各类 <em>Template 与抽象基类</em></em>、<strong>生命周期钩子</strong> 是典型应用。业务上适用于</em><em>固定流程可变步骤、资源 / 事务骨架、框架扩展点</em> * 等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-21-strategy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-21-strategy/" class="post-title-link" itemprop="url">设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="策略模式strategy"><a class="markdownIt-Anchor" href="#策略模式strategy"></a> 策略模式（Strategy）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>策略模式</strong>定义一系列算法，将每个算法封装起来并使它们可互换；策略使算法独立于使用它的客户而变化。</p>
-<p><strong>解决的问题</strong>：同一类问题有多种解法（如多种排序、多种支付、多种校验），若用 if-else 堆砌会难以扩展；把每种解法抽成独立策略类，客户依赖策略接口，运行时注入不同实现即可切换。</p>
-<p><strong>定义</strong>：定义一系列算法，把它们一个个封装起来，并且使它们可以相互替换；策略模式使算法独立于使用它的客户。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Strategy</strong>：策略接口，定义算法方法（如 execute (data)）。</li>
-<li><strong>ConcreteStrategy</strong>：具体策略，实现不同算法。</li>
-<li><strong>Context</strong>：上下文，持有 Strategy，将客户请求委托给当前策略；可在构造或 setter 中注入策略。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Strategy</span> { <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a + b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Multiply</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a * b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> Strategy strategy;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrategy</span><span class="params">(Strategy s)</span> { <span class="built_in">this</span>.strategy = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">execute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> strategy.compute(a, b); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>ResourceLoader / 资源加载策略</strong>：根据 URL 前缀（file:、classpath:、http:）选择不同 Resource 实现，可视为 “按前缀选择加载策略”；Spring 内置多种 Resource 实现，由 ResourceLoader 路由。</li>
-<li><strong>AOP 代理策略</strong>：JdkDynamicAopProxy 与 Cglib2AopProxy 是两种 “生成代理” 的策略，根据目标是否实现接口选择其一。</li>
-<li><strong>PlatformTransactionManager 与具体实现</strong>：事务管理是抽象，DataSourceTransactionManager、HibernateTransactionManager 等是不同策略，由配置或自动装配决定使用哪种。</li>
-<li><strong>MessageConverter</strong>：HTTP 消息的序列化 / 反序列化有多种策略（JSON、XML 等），根据 Content-Type 或配置选择不同 Converter。</li>
-<li><strong>CacheManager</strong>：缓存抽象，Redis、Caffeine、Simple 等是不同策略，通过配置切换。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>多种算法 / 规则可替换</strong>：如支付（微信/支付宝/银联）、运费计算（按重量/按体积/固定）、折扣（满减/会员价/券），每种一种策略，便于新增与测试。</li>
-<li><strong>多数据源 / 多协议</strong>：根据配置或路由键选择不同数据源、不同 RPC 协议，客户只依赖 “获取连接 / 发请求” 的接口。</li>
-<li><strong>多格式解析 / 序列化</strong>：同一业务数据支持 JSON/XML/二进制等多种格式，每种格式一个策略。</li>
-<li><strong>多验证规则</strong>：校验逻辑有多种（格式、黑名单、风控），可组合或按场景选不同策略。</li>
-<li><strong>多通知渠道</strong>：发送通知支持短信/邮件/站内信/推送，每种渠道一个策略，由配置或业务选择。</li>
-</ul>
-<p><strong>不适用</strong>：算法唯一或很少变化时，直接实现即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>策略模式通过 “策略接口 + 多种实现 + 上下文委托” 使算法可替换、易扩展；Spring 中 <strong>ResourceLoader</strong>、<strong>AOP 代理选择</strong>、<strong>事务管理器</strong>、<strong>MessageConverter</strong>、<strong>CacheManager</strong> 都是策略思想的体现。业务上适用于<strong>多种支付/计算/校验、多数据源/多协议、多格式、多通知渠道</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -671,7 +397,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -693,7 +419,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>4k</span>
+      <span>3.9k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -887,250 +613,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-serializable-implementation/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java-serializable-implementation/" class="post-title-link" itemprop="url">Java 标准库 Serializable 整体实现流程（源码与示例）</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>9.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>9 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="java-标准库-serializable-整体实现流程源码与示例"><a class="markdownIt-Anchor" href="#java-标准库-serializable-整体实现流程源码与示例"></a> Java 标准库 Serializable 整体实现流程（源码与示例）</h1>
-<p>本文用 JDK 标准库（<code>java.io</code>）里的关键类 / 方法名 + 伪源码结构（接近 OpenJDK 源码组织方式），配合可运行示例，把 <strong>Serializable 从对象写出到读回</strong> 的整体实现流程讲清楚。</p>
-<hr>
-<h2 id="一-serializable-是标记接口真正干活的是-oosois"><a class="markdownIt-Anchor" href="#一-serializable-是标记接口真正干活的是-oosois"></a> 一、Serializable 是 “标记接口”，真正干活的是 OOS / OIS</h2>
-<p><code>Serializable</code> 本身几乎没有代码：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> java.io;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Serializable</span> { }</span><br></pre></td></tr></tbody></table></figure>
-<p>它的意义：告诉序列化框架 ——<strong> 这个类允许被 Java 默认序列化机制处理</strong>。</p>
-<p>真正的入口在：</p>
-<ul>
-<li><strong>写出</strong>：<code>java.io.ObjectOutputStream</code></li>
-<li><strong>读回</strong>：<code>java.io.ObjectInputStream</code></li>
-</ul>
-<hr>
-<h2 id="二-写出流程objectoutputstream从-writeobject-到字节流"><a class="markdownIt-Anchor" href="#二-写出流程objectoutputstream从-writeobject-到字节流"></a> 二、写出流程（ObjectOutputStream）：从 writeObject 到字节流</h2>
-<h3 id="21-入口writeobjectobject-obj"><a class="markdownIt-Anchor" href="#21-入口writeobjectobject-obj"></a> 2.1 入口：writeObject (Object obj)</h3>
-<p>典型调用：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(out)) {</span><br><span class="line">    oos.writeObject(obj);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>核心流程（接近源码结构的伪源码）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    writeObject0(obj, <span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject0</span><span class="params">(Object obj, <span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">null</span>) { writeNull(); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1) 处理循环引用/重复引用：句柄表（HandleTable）</span></span><br><span class="line">    <span class="keyword">if</span> (handles.contains(obj)) { writeHandle(handles.lookup(obj)); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2) 写类描述（class descriptor）</span></span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> ObjectStreamClass.lookup(obj.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3) 根据对象类型分派</span></span><br><span class="line">    <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> String) writeString((String)obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj.getClass().isArray()) writeArray(obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> Enum) writeEnum((Enum)obj);</span><br><span class="line">    <span class="keyword">else</span> writeOrdinaryObject(obj, desc);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="22-关键objectstreamclass类的序列化描述"><a class="markdownIt-Anchor" href="#22-关键objectstreamclass类的序列化描述"></a> 2.2 关键：ObjectStreamClass（类的 “序列化描述”）</h3>
-<p><code>ObjectStreamClass</code> 负责：</p>
-<ul>
-<li>判断类是否 <code>Serializable</code></li>
-<li>计算 / 读取 <code>serialVersionUID</code></li>
-<li>收集可序列化字段（排除 <code>static</code>、排除 <code>transient</code>）</li>
-<li>解析是否存在私有钩子方法：<code>writeObject</code> / <code>readObject</code> / <code>readResolve</code> / <code>writeReplace</code></li>
-</ul>
-<p>伪源码：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> ObjectStreamClass <span class="title function_">lookup</span><span class="params">(Class&lt;?&gt; cl)</span> {</span><br><span class="line">    <span class="comment">// cache</span></span><br><span class="line">    <span class="comment">// if implements Serializable =&gt; build descriptor:</span></span><br><span class="line">    <span class="comment">//   - serialVersionUID</span></span><br><span class="line">    <span class="comment">//   - fields (ObjectStreamField[])</span></span><br><span class="line">    <span class="comment">//   - hasWriteObjectMethod?</span></span><br><span class="line">    <span class="comment">//   - hasReadObjectMethod?</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="23-写普通对象writeordinaryobject"><a class="markdownIt-Anchor" href="#23-写普通对象writeordinaryobject"></a> 2.3 写普通对象：writeOrdinaryObject</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeOrdinaryObject</span><span class="params">(Object obj, ObjectStreamClass desc)</span> {</span><br><span class="line">    writeClassDesc(desc);</span><br><span class="line">    handles.assign(obj);           <span class="comment">// 先登记，解决循环引用</span></span><br><span class="line">    desc.writeObject(obj, <span class="built_in">this</span>);   <span class="comment">// 默认字段 or 自定义 writeObject</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="24-两条路线默认字段序列化-vs-自定义-writeobject"><a class="markdownIt-Anchor" href="#24-两条路线默认字段序列化-vs-自定义-writeobject"></a> 2.4 两条路线：默认字段序列化 vs 自定义 writeObject</h3>
-<ul>
-<li><strong>默认序列化</strong>（没有定义 <code>private void writeObject</code>）：<code>defaultWriteFields(obj, desc)</code>，按收集到的字段顺序写出。</li>
-<li><strong>自定义序列化</strong>（类里定义了 <code>private void writeObject(ObjectOutputStream out)</code>）：JDK 用反射调用你的私有方法，你通常会先 <code>out.defaultWriteObject()</code>，再写自定义数据。</li>
-</ul>
-<hr>
-<h2 id="三-读回流程objectinputstream从-readobject-到对象还原"><a class="markdownIt-Anchor" href="#三-读回流程objectinputstream从-readobject-到对象还原"></a> 三、读回流程（ObjectInputStream）：从 readObject 到对象还原</h2>
-<h3 id="31-入口readobject"><a class="markdownIt-Anchor" href="#31-入口readobject"></a> 3.1 入口：readObject ()</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(in)) {</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>伪源码结构：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title function_">readObject</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> readObject0(<span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Object <span class="title function_">readObject0</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">byte</span> <span class="variable">tc</span> <span class="operator">=</span> readTC();</span><br><span class="line">    <span class="keyword">switch</span> (tc) {</span><br><span class="line">        <span class="keyword">case</span> TC_NULL: <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">case</span> TC_REFERENCE: <span class="keyword">return</span> handles.lookup(readHandle());</span><br><span class="line">        <span class="keyword">case</span> TC_STRING: <span class="keyword">return</span> readString();</span><br><span class="line">        <span class="keyword">case</span> TC_ARRAY: <span class="keyword">return</span> readArray();</span><br><span class="line">        <span class="keyword">case</span> TC_ENUM: <span class="keyword">return</span> readEnum();</span><br><span class="line">        <span class="keyword">case</span> TC_OBJECT: <span class="keyword">return</span> readOrdinaryObject(unshared);</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="32-读普通对象readordinaryobject"><a class="markdownIt-Anchor" href="#32-读普通对象readordinaryobject"></a> 3.2 读普通对象：readOrdinaryObject</h3>
-<p>关键步骤：读 classDesc → 创建实例（通常不调用你的构造方法）→ 先塞进 handle 表 → 读字段 → 若有 <code>readObject</code> 则回调 → 若有 <code>readResolve</code> 则替换返回对象。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readOrdinaryObject</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> readClassDesc();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> desc.newInstance();</span><br><span class="line">    handles.assign(obj);</span><br><span class="line">    desc.readObject(obj, <span class="built_in">this</span>);</span><br><span class="line">    obj = desc.invokeReadResolve(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="33-serialversionuid-校验"><a class="markdownIt-Anchor" href="#33-serialversionuid-校验"></a> 3.3 serialVersionUID 校验</h3>
-<p>在读 classDesc、把流中的描述映射到本地类时，会比较流里写入的 <code>serialVersionUID</code> 与本地类的 <code>serialVersionUID</code>，不一致就抛 <code>InvalidClassException</code>。</p>
-<hr>
-<h2 id="四-句柄表handletable循环引用与重复引用"><a class="markdownIt-Anchor" href="#四-句柄表handletable循环引用与重复引用"></a> 四、句柄表（HandleTable）：循环引用与重复引用</h2>
-<h3 id="41-为什么需要句柄"><a class="markdownIt-Anchor" href="#41-为什么需要句柄"></a> 4.1 为什么需要句柄？</h3>
-<ul>
-<li><strong>重复引用</strong>要保持同一性：<code>a.x == a.y</code> 指向同一对象时，反序列化后也必须 <code>==</code>。</li>
-<li><strong>对象图可能有环</strong>：若每次遇到对象都 “深拷贝写一遍”，有环会无限递归、栈溢出。</li>
-</ul>
-<p>所以需要 “已见对象登记表”<strong>HandleTable</strong>：给每个<strong>第一次出现</strong>的对象分配递增的整数 id（handle），之后再遇到同一对象就写 <strong>TC_REFERENCE + handle</strong>。</p>
-<h3 id="42-handletable-数据结构源码风格"><a class="markdownIt-Anchor" href="#42-handletable-数据结构源码风格"></a> 4.2 HandleTable 数据结构（源码风格）</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">HandleTable</span> {</span><br><span class="line">    <span class="type">int</span>[] spine;       <span class="comment">// 哈希桶头结点</span></span><br><span class="line">    <span class="type">int</span>[] next;        <span class="comment">// 链表 next</span></span><br><span class="line">    Object[] objs;     <span class="comment">// 对象引用</span></span><br><span class="line">    <span class="type">int</span> size;          <span class="comment">// 已分配句柄数</span></span><br><span class="line">    <span class="type">int</span> threshold;</span><br><span class="line">    <span class="type">float</span> loadFactor;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 登记并返回 handle</span></span><br><span class="line">    <span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 查 handle，找不到返回 -1</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>按<strong>对象 identity</strong> 追踪：用 <code>System.identityHashCode(obj)</code> 做 hash，用 <code>==</code> 做相等判断（不是 <code>equals()</code>）。</li>
-<li>哈希桶 + 链式冲突：<code>spine[bucket]</code> 存该桶链表第一个 entry 的下标，<code>next[i]</code> 连接链表。</li>
-</ul>
-<h3 id="43-lookup判断这个对象以前写过没"><a class="markdownIt-Anchor" href="#43-lookup判断这个对象以前写过没"></a> 4.3 lookup：判断 “这个对象以前写过没？”</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> spine[bucket]; i &gt;= <span class="number">0</span>; i = next[i]) {</span><br><span class="line">        <span class="keyword">if</span> (objs[i] == obj)   <span class="comment">// identity 比较</span></span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="44-assign第一次见到对象时登记"><a class="markdownIt-Anchor" href="#44-assign第一次见到对象时登记"></a> 4.4 assign：第一次见到对象时登记</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= next.length) growEntries();</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= threshold) growSpine();</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    objs[size] = obj;</span><br><span class="line">    next[size] = spine[bucket];</span><br><span class="line">    spine[bucket] = size;</span><br><span class="line">    <span class="keyword">return</span> size++;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="45-写入时何时写-tc_reference何时-assign"><a class="markdownIt-Anchor" href="#45-写入时何时写-tc_reference何时-assign"></a> 4.5 写入时：何时写 TC_REFERENCE？何时 assign？</h3>
-<ul>
-<li><strong>重复引用</strong>：<code>lookup(obj) != -1</code> 时，写 <code>TC_REFERENCE + (baseWireHandle + handle)</code>。</li>
-<li><strong>写对象本体前必须先 assign</strong>：这样在写字段时若再次遇到自己（如 <code>n.next = n</code>），<code>lookup</code> 会命中，直接写引用，不会无限递归。</li>
-</ul>
-<h3 id="46-identityhashcode-会冲突吗"><a class="markdownIt-Anchor" href="#46-identityhashcode-会冲突吗"></a> 4.6 identityHashCode 会冲突吗？</h3>
-<p>会。<code>System.identityHashCode(obj)</code> 是 32 位 int，不同对象可能得到相同值。HandleTable <strong>不依赖 hash 唯一性</strong>：用 hash 选桶，用 <strong><code>==</code></strong> 做最终确认；冲突只会让同一桶内链表变长，不会误判。</p>
-<hr>
-<h2 id="五-descwriteobjectobj-this-源码与输出内容"><a class="markdownIt-Anchor" href="#五-descwriteobjectobj-this-源码与输出内容"></a> 五、desc.writeObject(obj, this) 源码与输出内容</h2>
-<p>在 <code>ObjectStreamClass</code> 里：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj, ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    <span class="keyword">if</span> (writeObjectMethod != <span class="literal">null</span>) {</span><br><span class="line">        invokeWriteObject(obj, out);   <span class="comment">// 反射调用 private writeObject</span></span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        defaultWriteFields(obj, out);   <span class="comment">// 按字段类型逐个写出</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li><strong>defaultWriteFields</strong>：遍历 <code>ObjectStreamField[]</code>，用反射取字段值，按类型调用 <code>out.writeInt()</code> / <code>out.writeLong()</code> / <code>out.writeObject()</code> 等。</li>
-<li><strong>invokeWriteObject</strong>：<code>writeObjectMethod.invoke(obj, new Object[]{out})</code>，你在方法里可以 <code>out.defaultWriteObject()</code> 再写额外数据。</li>
-</ul>
-<h3 id="简单示例默认序列化输出什么"><a class="markdownIt-Anchor" href="#简单示例默认序列化输出什么"></a> 简单示例：默认序列化输出什么？</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Person</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">        <span class="type">int</span> age;</span><br><span class="line">        String name;</span><br><span class="line">        Person(<span class="type">int</span> age, String name) { <span class="built_in">this</span>.age = age; <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="number">18</span>, <span class="string">"Alice"</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos);</span><br><span class="line">        oos.writeObject(p);</span><br><span class="line">        oos.close();</span><br><span class="line">        <span class="type">byte</span>[] data = bos.toByteArray();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : data) System.out.printf(<span class="string">"%02X "</span>, b);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>典型输出（节选）：</p>
-<ul>
-<li><code>AC ED 00 05</code>：STREAM_MAGIC + 版本</li>
-<li><code>73</code>：TC_OBJECT</li>
-<li><code>72</code>：TC_CLASSDESC，后跟类名、serialVersionUID、flags、字段元数据（如 <code>I age</code>、<code>L name</code>）、TC_ENDBLOCKDATA、父类描述</li>
-<li>接着是字段数据：<code>00 00 00 12</code>（age = 18），以及表示 “Alice” 的 TC_STRING 等</li>
-</ul>
-<p>若有自定义 <code>writeObject</code> 里多写了 <code>out.writeInt(999)</code>，流里会多出 <code>00 00 03 E7</code>。</p>
-<hr>
-<h2 id="六-完整示例默认字段-transient-自定义-writeobjectreadobject"><a class="markdownIt-Anchor" href="#六-完整示例默认字段-transient-自定义-writeobjectreadobject"></a> 六、完整示例：默认字段 + transient + 自定义 writeObject / readObject</h2>
-<p>下面可直接运行，体现 “默认字段块 + 额外数据 + transient 手动处理”：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializableDemo</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">User</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> age;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> String password;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> <span class="type">int</span> checksum;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">User</span><span class="params">(String name, <span class="type">int</span> age, String password)</span> {</span><br><span class="line">            <span class="built_in">this</span>.name = name;</span><br><span class="line">            <span class="built_in">this</span>.age = age;</span><br><span class="line">            <span class="built_in">this</span>.password = password;</span><br><span class="line">            <span class="built_in">this</span>.checksum = calcChecksum();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">calcChecksum</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> (name == <span class="literal">null</span> ? <span class="number">0</span> : name.hashCode()) ^ age;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">            out.defaultWriteObject();</span><br><span class="line">            out.writeObject(password);</span><br><span class="line">            out.writeInt(calcChecksum());</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">readObject</span><span class="params">(ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException {</span><br><span class="line">            in.defaultReadObject();</span><br><span class="line">            <span class="built_in">this</span>.password = (String) in.readObject();</span><br><span class="line">            <span class="type">int</span> <span class="variable">cs</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">            <span class="built_in">this</span>.checksum = cs;</span><br><span class="line">            <span class="keyword">if</span> (cs != calcChecksum()) {</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InvalidObjectException</span>(<span class="string">"checksum mismatch!"</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> <span class="string">"User{name='"</span> + name + <span class="string">"', age="</span> + age + <span class="string">", password='"</span> + password + <span class="string">"', checksum="</span> + checksum + <span class="string">"}"</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">User</span> <span class="variable">u1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>(<span class="string">"Alice"</span>, <span class="number">20</span>, <span class="string">"p@ss"</span>);</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(u1);</span><br><span class="line">            oos.flush();</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"serialized bytes len="</span> + data.length);</span><br><span class="line"></span><br><span class="line">        User u2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            u2 = (User) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"u1="</span> + u1);</span><br><span class="line">        System.out.println(<span class="string">"u2="</span> + u2);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>可看到：transient 的 <code>password</code> 通过自定义 write / read 补回；校验失败在 <code>readObject</code> 里抛 <code>InvalidObjectException</code>。</p>
-<hr>
-<h2 id="七-验证句柄表重复引用与循环引用"><a class="markdownIt-Anchor" href="#七-验证句柄表重复引用与循环引用"></a> 七、验证句柄表：重复引用与循环引用</h2>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HandleTableProof</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Node</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        String name;</span><br><span class="line">        Node next;</span><br><span class="line">        Node(String name) { <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"A"</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"B"</span>);</span><br><span class="line">        a.next = b;</span><br><span class="line">        b.next = a;   <span class="comment">// A &lt;-&gt; B 形成环</span></span><br><span class="line"></span><br><span class="line">        <span class="type">Node</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"ROOT"</span>);</span><br><span class="line">        root.next = a;</span><br><span class="line"></span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(root);</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        Node root2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            root2 = (Node) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a2</span> <span class="operator">=</span> root2.next;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b2</span> <span class="operator">=</span> a2.next;</span><br><span class="line">        System.out.println(<span class="string">"b2.next == a2 ? "</span> + (b2.next == a2));  <span class="comment">// true，环被还原</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>没有 “先 assign 再写 / 读字段” 的策略，写时会无限递归，或读回来环断掉（<code>b2.next != a2</code>）。</p>
-<hr>
-<h2 id="八-四个钩子点serializable-的威力"><a class="markdownIt-Anchor" href="#八-四个钩子点serializable-的威力"></a> 八、四个钩子点（Serializable 的威力）</h2>
-<table>
-<thead>
-<tr>
-<th>钩子</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>private void writeObject(ObjectOutputStream out)</code></td>
-<td>自定义写出流程</td>
-</tr>
-<tr>
-<td><code>private void readObject(ObjectInputStream in)</code></td>
-<td>自定义读回流程</td>
-</tr>
-<tr>
-<td><code>private Object writeReplace()</code></td>
-<td>写出前用另一对象替代（代理、单例、版本迁移）</td>
-</tr>
-<tr>
-<td><code>private Object readResolve()</code></td>
-<td>读回后用另一对象替代（单例常用）</td>
-</tr>
-</tbody>
-</table>
-<p>单例防反序列化破坏示例：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readResolve</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> INSTANCE;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>另外，<strong>serialVersionUID</strong> 建议显式声明，避免改字段后 JDK 自动计算的 UID 变化导致旧数据读不回。</p>
-<hr>
-<h2 id="九-serializable-vs-externalizable简要"><a class="markdownIt-Anchor" href="#九-serializable-vs-externalizable简要"></a> 九、Serializable vs Externalizable（简要）</h2>
-<ul>
-<li><strong>Serializable</strong>：默认字段序列化 + 可选钩子（更常用）。</li>
-<li><strong>Externalizable</strong>：必须实现 <code>writeExternal</code>/<code>readExternal</code>，完全自己控制格式；反序列化时会调用<strong>无参构造</strong>。</li>
-</ul>
-<p>若需要跨版本稳定、可控二进制格式，实践中常用自定义协议（Kryo/Protobuf/JSON）或 Externalizable / 手写 DataOutput/DataInput。</p>
-<hr>
-<h2 id="十-调用链小结"><a class="markdownIt-Anchor" href="#十-调用链小结"></a> 十、调用链小结</h2>
-<p><strong>写出</strong>：<code>writeObject(obj)</code> → <code>writeObject0</code> → <code>writeOrdinaryObject</code> → <code>writeClassDesc</code> → <code>handles.assign(obj)</code> → <code>desc.writeObject(obj, this)</code> → <code>defaultWriteFields</code> 或 <code>invokeWriteObject</code>。</p>
-<p><strong>读回</strong>：<code>readObject()</code> → <code>readObject0</code> → 根据 TC 分派 → <code>readOrdinaryObject</code> → <code>readClassDesc</code> → <code>desc.newInstance()</code> → <code>handles.assign(obj)</code> → <code>desc.readObject(obj, this)</code> → <code>invokeReadResolve</code>。</p>
-<p>读 OpenJDK 时可重点看：<code>writeObject0</code> 的重复引用分支、<code>writeOrdinaryObject</code> 里 assign 的时机、HandleTable 的 lookup / assign、以及 OIS 里 TC_REFERENCE 与 readOrdinaryObject 的顺序。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-cglib-dynamic-proxy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1167,7 +649,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1189,7 +671,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.7k</span>
+      <span>3.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1400,7 +882,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1983,6 +1465,275 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-spi-spring-cross-project/" class="post-title-link" itemprop="url">SPI 机制与跨项目实现（含 Spring 与完整示例）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="spi-机制与跨项目实现含-spring-与完整示例"><a class="markdownIt-Anchor" href="#spi-机制与跨项目实现含-spring-与完整示例"></a> SPI 机制与跨项目实现（含 Spring 与完整示例）</h1>
+<p>本文说明 <strong>SPI（Service Provider Interface）</strong> 是什么、如何在<strong>跨项目 / 多模块</strong>下实现，以及如何与 <strong>Spring</strong> 结合使用，并给出可运行的示例（含目录结构）。</p>
+<hr>
+<h2 id="一-什么是-spi"><a class="markdownIt-Anchor" href="#一-什么是-spi"></a> 一、什么是 SPI</h2>
+<p><strong>SPI（Service Provider Interface）</strong> 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与加载” 的机制。</p>
+<ul>
+<li><strong>接口方</strong>：定义标准接口（如 <code>javax.sql.Driver</code>、日志门面 API），不绑定具体实现。</li>
+<li><strong>实现方</strong>：提供具体实现类，并按约定在 <code>META-INF/services/</code> 下声明 “接口全限定名 → 实现类全限定名”。</li>
+<li><strong>使用方</strong>：通过 <strong>ServiceLoader</strong> 或 <strong>SpringFactoriesLoader</strong> 加载当前 classpath 下所有实现，无需硬编码实现类名。</li>
+</ul>
+<p><strong>典型用途</strong>：驱动加载（JDBC、日志）、插件化、多实现可替换（如多种加密、多种序列化）。</p>
+<hr>
+<h2 id="二-java-原生-spiserviceloader"><a class="markdownIt-Anchor" href="#二-java-原生-spiserviceloader"></a> 二、Java 原生 SPI：ServiceLoader</h2>
+<h3 id="21-约定"><a class="markdownIt-Anchor" href="#21-约定"></a> 2.1 约定</h3>
+<ul>
+<li>在 <strong>META-INF/services/</strong> 下新建文件，<strong>文件名为接口的全限定类名</strong>。</li>
+<li>文件内容为<strong>实现类的全限定类名</strong>，一行一个；<code>#</code> 开头为注释。</li>
+<li>实现类必须有<strong>无参构造器</strong>（ServiceLoader 通过反射实例化）。</li>
+</ul>
+<h3 id="22-使用方式"><a class="markdownIt-Anchor" href="#22-使用方式"></a> 2.2 使用方式</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;MyService&gt; loader = ServiceLoader.load(MyService.class);</span><br><span class="line"><span class="keyword">for</span> (MyService impl : loader) {</span><br><span class="line">    impl.doSomething();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>或：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Iterator&lt;MyService&gt; it = ServiceLoader.load(MyService.class).iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) {</span><br><span class="line">    <span class="type">MyService</span> <span class="variable">impl</span> <span class="operator">=</span> it.next();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>注意</strong>：<code>ServiceLoader.load(Class, ClassLoader)</code> 使用传入的 ClassLoader（通常为当前线程上下文类加载器）加载实现类；跨项目时需保证接口与实现都在同一 classpath 或可被同一 ClassLoader 看到。</p>
+<hr>
+<h2 id="三-跨项目-多模块实现-spi"><a class="markdownIt-Anchor" href="#三-跨项目-多模块实现-spi"></a> 三、跨项目 / 多模块实现 SPI</h2>
+<h3 id="31-模块划分"><a class="markdownIt-Anchor" href="#31-模块划分"></a> 3.1 模块划分</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>api</strong></td>
+<td>定义 SPI 接口（及可选常量、异常），供 “使用方” 和 “实现方” 依赖</td>
+</tr>
+<tr>
+<td><strong>impl-a / impl-b</strong></td>
+<td>实现接口，并在本模块 resources 下提供 <code>META-INF/services/接口全限定名</code></td>
+</tr>
+<tr>
+<td><strong>app</strong></td>
+<td>业务应用，依赖 api + 若干 impl 模块（或通过依赖传递 / 插件包引入），通过 ServiceLoader 加载实现</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-目录与文件示例"><a class="markdownIt-Anchor" href="#32-目录与文件示例"></a> 3.2 目录与文件示例</h3>
+<p>假设接口为 <code>com.example.spi.Greeter</code>，两个实现为 <code>com.example.impl.HelloGreeter</code> 和 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>api 模块</strong>（只含接口）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">api/</span><br><span class="line">  src/main/java/com/example/spi/Greeter.java</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-a 模块</strong>（实现 + 声明）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">impl-a/</span><br><span class="line">  src/main/java/com/example/impl/HelloGreeter.java</span><br><span class="line">  src/main/resources/META-INF/services/com.example.spi.Greeter</span><br></pre></td></tr></tbody></table></figure>
+<p><code>HelloGreeter.java</code>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloGreeter</span> <span class="keyword">implements</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">greet</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>META-INF/services/com.example.spi.Greeter</code> 文件内容（仅一行）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.impl.HelloGreeter</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-b 模块</strong>：同理，实现类如 <code>HiGreeter</code>，并在 <code>META-INF/services/com.example.spi.Greeter</code> 中写 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>app 模块</strong>：依赖 api 以及需要启用的 impl-a / impl-b，主类中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;Greeter&gt; loader = ServiceLoader.load(Greeter.class);</span><br><span class="line">loader.forEach(g -&gt; System.out.println(g.greet(<span class="string">"World"</span>)));</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>依赖关系</strong>：app 依赖 api + impl-a（或 impl-a、impl-b 都依赖）；<strong>谁在 classpath 谁就会被 ServiceLoader 发现</strong>。因此 “跨项目” 只需：接口在 api 工程，实现在各自工程并带好 <code>META-INF/services</code>，使用方工程通过 Maven / Gradle 依赖需要的实现模块即可。</p>
+<hr>
+<h2 id="四-spring-中的-spi-形态"><a class="markdownIt-Anchor" href="#四-spring-中的-spi-形态"></a> 四、Spring 中的 SPI 形态</h2>
+<h3 id="41-springfactoriesloaderspringfactories"><a class="markdownIt-Anchor" href="#41-springfactoriesloaderspringfactories"></a> 4.1 SpringFactoriesLoader（spring.factories）</h3>
+<p>Spring 在 <code>spring-core</code> 中提供 <strong>SpringFactoriesLoader</strong>，约定从 <strong>META-INF/spring.factories</strong> 读取配置，格式为：</p>
+<figure class="highlight properties"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key 为接口或抽象类全限定名，value 为实现类全限定名列表（逗号/换行分隔）</span></span><br><span class="line"><span class="attr">com.example.MyFactory</span>=<span class="string">\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl1,\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl2</span></span><br></pre></td></tr></tbody></table></figure>
+<p><strong>加载方式</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;MyFactory&gt; list = SpringFactoriesLoader.loadFactories(MyFactory.class, classLoader);</span><br></pre></td></tr></tbody></table></figure>
+<p>常用于 <strong>Spring Boot 自动配置</strong>：key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code>，value 为各 <code>@Configuration</code> / <code>@AutoConfiguration</code> 类。</p>
+<h3 id="42-spring-boot-2x-与-3x-的差异"><a class="markdownIt-Anchor" href="#42-spring-boot-2x-与-3x-的差异"></a> 4.2 Spring Boot 2.x 与 3.x 的差异</h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>自动配置声明位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spring Boot 2.x</strong></td>
+<td><code>META-INF/spring.factories</code>，key：<code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code></td>
+</tr>
+<tr>
+<td><strong>Spring Boot 3.x</strong></td>
+<td><strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong>，每行一个配置类全限定名</td>
+</tr>
+</tbody>
+</table>
+<p>Boot 3 仍支持在 <code>spring.factories</code> 里写其他 key（如自定义 Factory），但 <strong>EnableAutoConfiguration</strong> 已改为从 <code>.imports</code> 读取。</p>
+<p><strong>Boot 3 示例</strong>（<code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.mystarter.MyAutoConfiguration</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-在-spring-中集成-java-spi-实现"><a class="markdownIt-Anchor" href="#五-在-spring-中集成-java-spi-实现"></a> 五、在 Spring 中集成 Java SPI 实现</h2>
+<p>若实现是通过 <strong>Java SPI</strong>（META - INF / services）提供的，可以在 Spring 里统一加载并注册为 Bean，供注入使用。</p>
+<h3 id="51-将-serviceloader-结果注册为-bean"><a class="markdownIt-Anchor" href="#51-将-serviceloader-结果注册为-bean"></a> 5.1 将 ServiceLoader 结果注册为 Bean</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>业务代码中直接 <code>@Autowired List&lt;Greeter&gt; greeters</code> 使用即可。</p>
+<h3 id="52-按类型注入单个实现当只有一个时"><a class="markdownIt-Anchor" href="#52-按类型注入单个实现当只有一个时"></a> 5.2 按类型注入单个实现（当只有一个时）</h3>
+<p>若 classpath 下仅有一个 SPI 实现，可封装为单 Bean：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConditionalOnSingleCandidate(Greeter.class)</span></span><br><span class="line">    <span class="keyword">public</span> Greeter <span class="title function_">greeter</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(Greeter.class).findFirst()</span><br><span class="line">            .orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"No Greeter implementation found"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="53-与-spring-boot-starter-结合"><a class="markdownIt-Anchor" href="#53-与-spring-boot-starter-结合"></a> 5.3 与 Spring Boot Starter 结合</h3>
+<p>自定义 Starter 时，通常用 <strong>Spring 的 SPI</strong>（spring.factories 或 Boot 3 的 .imports）声明自动配置类；在自动配置类里再按需使用 <strong>Java ServiceLoader</strong> 加载你的 SPI 实现并注册为 Bean。例如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AutoConfiguration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAutoConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>并在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 中写上该类全限定名，这样引入你的 Starter 即可自动注册这些 Bean。</p>
+<hr>
+<h2 id="六-完整示例三模块-spring-boot"><a class="markdownIt-Anchor" href="#六-完整示例三模块-spring-boot"></a> 六、完整示例：三模块 + Spring Boot</h2>
+<h3 id="61-项目结构maven"><a class="markdownIt-Anchor" href="#61-项目结构maven"></a> 6.1 项目结构（Maven）</h3>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">spi-demo/</span><br><span class="line">  api/           # 接口</span><br><span class="line">  impl-hello/   # 实现 Hello</span><br><span class="line">  impl-hi/      # 实现 Hi</span><br><span class="line">  app/          # Spring Boot 主应用，依赖 api + impl-hello + impl-hi</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="62-api-模块"><a class="markdownIt-Anchor" href="#62-api-模块"></a> 6.2 api 模块</h3>
+<p><strong>pom.xml</strong>：仅需 <code>junit</code> 等（或无依赖）。</p>
+<p><strong>Greeter.java</strong>（同上）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="63-impl-hello-模块"><a class="markdownIt-Anchor" href="#63-impl-hello-模块"></a> 6.3 impl-hello 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HelloGreeter.java</strong> 实现 <code>Greeter</code>（同上）。</li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HelloGreeter</code>（注意 impl-hello 里包名可为 <code>com.example.impl</code>，与 impl-hi 若同包则类名不可重复，如改为 <code>com.example.impl.hello.HelloGreeter</code> 更稳妥）。</li>
+</ul>
+<h3 id="64-impl-hi-模块"><a class="markdownIt-Anchor" href="#64-impl-hi-模块"></a> 6.4 impl-hi 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HiGreeter.java</strong>：<code>return "Hi, " + name;</code></li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HiGreeter</code>（或 <code>com.example.impl.hi.HiGreeter</code>）。</li>
+</ul>
+<h3 id="65-app-模块spring-boot"><a class="markdownIt-Anchor" href="#65-app-模块spring-boot"></a> 6.5 app 模块（Spring Boot）</h3>
+<p><strong>pom.xml</strong>：依赖 <code>api</code>、<code>impl-hello</code>、<code>impl-hi</code> 以及 <code>spring-boot-starter</code>。</p>
+<p><strong>SpiConfiguration.java</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ServiceLoader;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>AppRunner.java</strong>（或 Controller）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppRunner</span> <span class="keyword">implements</span> <span class="title class_">CommandLineRunner</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Greeter&gt; greeters;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AppRunner</span><span class="params">(List&lt;Greeter&gt; greeters)</span> {</span><br><span class="line">        <span class="built_in">this</span>.greeters = greeters;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(String... args)</span> {</span><br><span class="line">        greeters.forEach(g -&gt; System.out.println(g.greet(<span class="string">"SPI"</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>运行后控制台会输出两类问候（来自 HelloGreeter 与 HiGreeter），说明跨模块 SPI 已被 Spring 加载并注入。</p>
+<hr>
+<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
+<table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Java SPI</strong></td>
+<td>接口 + META - INF/services/接口全限定名 文件（内容为实现类全限定名），通过 <strong>ServiceLoader</strong> 加载</td>
+</tr>
+<tr>
+<td><strong>跨项目</strong></td>
+<td>接口放在 api 模块，各实现放在不同模块并各自提供 META - INF / services；使用方依赖 api 与需要的实现模块，classpath 中有谁就加载谁</td>
+</tr>
+<tr>
+<td><strong>Spring 的 SPI</strong></td>
+<td><strong>SpringFactoriesLoader</strong> + <code>spring.factories</code>；Boot 3 自动配置改用 <strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong></td>
+</tr>
+<tr>
+<td><strong>Spring 中用 Java SPI</strong></td>
+<td>在 <code>@Configuration</code> 里用 <strong>ServiceLoader.load(接口)</strong> 得到实现列表，注册为 List Bean 或单 Bean，即可 <code>@Autowired</code> 使用</td>
+</tr>
+<tr>
+<td><strong>Starter</strong></td>
+<td>自动配置类中可同时使用 Spring 的 SPI（声明配置类）和 Java SPI（加载业务实现并注册 Bean）</td>
+</tr>
+</tbody>
+</table>
+<p>按上述方式即可在跨项目场景下实现 SPI，并在 Spring / Spring Boot 中统一使用这些实现。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2019,7 +1770,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2041,7 +1792,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>5.2k</span>
+      <span>5.1k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -2289,6 +2040,250 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-serializable-implementation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-serializable-implementation/" class="post-title-link" itemprop="url">Java 标准库 Serializable 整体实现流程（源码与示例）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>8.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-标准库-serializable-整体实现流程源码与示例"><a class="markdownIt-Anchor" href="#java-标准库-serializable-整体实现流程源码与示例"></a> Java 标准库 Serializable 整体实现流程（源码与示例）</h1>
+<p>本文用 JDK 标准库（<code>java.io</code>）里的关键类 / 方法名 + 伪源码结构（接近 OpenJDK 源码组织方式），配合可运行示例，把 <strong>Serializable 从对象写出到读回</strong> 的整体实现流程讲清楚。</p>
+<hr>
+<h2 id="一-serializable-是标记接口真正干活的是-oosois"><a class="markdownIt-Anchor" href="#一-serializable-是标记接口真正干活的是-oosois"></a> 一、Serializable 是 “标记接口”，真正干活的是 OOS / OIS</h2>
+<p><code>Serializable</code> 本身几乎没有代码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> java.io;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Serializable</span> { }</span><br></pre></td></tr></tbody></table></figure>
+<p>它的意义：告诉序列化框架 ——<strong> 这个类允许被 Java 默认序列化机制处理</strong>。</p>
+<p>真正的入口在：</p>
+<ul>
+<li><strong>写出</strong>：<code>java.io.ObjectOutputStream</code></li>
+<li><strong>读回</strong>：<code>java.io.ObjectInputStream</code></li>
+</ul>
+<hr>
+<h2 id="二-写出流程objectoutputstream从-writeobject-到字节流"><a class="markdownIt-Anchor" href="#二-写出流程objectoutputstream从-writeobject-到字节流"></a> 二、写出流程（ObjectOutputStream）：从 writeObject 到字节流</h2>
+<h3 id="21-入口writeobjectobject-obj"><a class="markdownIt-Anchor" href="#21-入口writeobjectobject-obj"></a> 2.1 入口：writeObject (Object obj)</h3>
+<p>典型调用：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(out)) {</span><br><span class="line">    oos.writeObject(obj);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>核心流程（接近源码结构的伪源码）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    writeObject0(obj, <span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject0</span><span class="params">(Object obj, <span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">null</span>) { writeNull(); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1) 处理循环引用/重复引用：句柄表（HandleTable）</span></span><br><span class="line">    <span class="keyword">if</span> (handles.contains(obj)) { writeHandle(handles.lookup(obj)); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2) 写类描述（class descriptor）</span></span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> ObjectStreamClass.lookup(obj.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3) 根据对象类型分派</span></span><br><span class="line">    <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> String) writeString((String)obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj.getClass().isArray()) writeArray(obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> Enum) writeEnum((Enum)obj);</span><br><span class="line">    <span class="keyword">else</span> writeOrdinaryObject(obj, desc);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="22-关键objectstreamclass类的序列化描述"><a class="markdownIt-Anchor" href="#22-关键objectstreamclass类的序列化描述"></a> 2.2 关键：ObjectStreamClass（类的 “序列化描述”）</h3>
+<p><code>ObjectStreamClass</code> 负责：</p>
+<ul>
+<li>判断类是否 <code>Serializable</code></li>
+<li>计算 / 读取 <code>serialVersionUID</code></li>
+<li>收集可序列化字段（排除 <code>static</code>、排除 <code>transient</code>）</li>
+<li>解析是否存在私有钩子方法：<code>writeObject</code> / <code>readObject</code> / <code>readResolve</code> / <code>writeReplace</code></li>
+</ul>
+<p>伪源码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> ObjectStreamClass <span class="title function_">lookup</span><span class="params">(Class&lt;?&gt; cl)</span> {</span><br><span class="line">    <span class="comment">// cache</span></span><br><span class="line">    <span class="comment">// if implements Serializable =&gt; build descriptor:</span></span><br><span class="line">    <span class="comment">//   - serialVersionUID</span></span><br><span class="line">    <span class="comment">//   - fields (ObjectStreamField[])</span></span><br><span class="line">    <span class="comment">//   - hasWriteObjectMethod?</span></span><br><span class="line">    <span class="comment">//   - hasReadObjectMethod?</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="23-写普通对象writeordinaryobject"><a class="markdownIt-Anchor" href="#23-写普通对象writeordinaryobject"></a> 2.3 写普通对象：writeOrdinaryObject</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeOrdinaryObject</span><span class="params">(Object obj, ObjectStreamClass desc)</span> {</span><br><span class="line">    writeClassDesc(desc);</span><br><span class="line">    handles.assign(obj);           <span class="comment">// 先登记，解决循环引用</span></span><br><span class="line">    desc.writeObject(obj, <span class="built_in">this</span>);   <span class="comment">// 默认字段 or 自定义 writeObject</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="24-两条路线默认字段序列化-vs-自定义-writeobject"><a class="markdownIt-Anchor" href="#24-两条路线默认字段序列化-vs-自定义-writeobject"></a> 2.4 两条路线：默认字段序列化 vs 自定义 writeObject</h3>
+<ul>
+<li><strong>默认序列化</strong>（没有定义 <code>private void writeObject</code>）：<code>defaultWriteFields(obj, desc)</code>，按收集到的字段顺序写出。</li>
+<li><strong>自定义序列化</strong>（类里定义了 <code>private void writeObject(ObjectOutputStream out)</code>）：JDK 用反射调用你的私有方法，你通常会先 <code>out.defaultWriteObject()</code>，再写自定义数据。</li>
+</ul>
+<hr>
+<h2 id="三-读回流程objectinputstream从-readobject-到对象还原"><a class="markdownIt-Anchor" href="#三-读回流程objectinputstream从-readobject-到对象还原"></a> 三、读回流程（ObjectInputStream）：从 readObject 到对象还原</h2>
+<h3 id="31-入口readobject"><a class="markdownIt-Anchor" href="#31-入口readobject"></a> 3.1 入口：readObject ()</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(in)) {</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>伪源码结构：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title function_">readObject</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> readObject0(<span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Object <span class="title function_">readObject0</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">byte</span> <span class="variable">tc</span> <span class="operator">=</span> readTC();</span><br><span class="line">    <span class="keyword">switch</span> (tc) {</span><br><span class="line">        <span class="keyword">case</span> TC_NULL: <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">case</span> TC_REFERENCE: <span class="keyword">return</span> handles.lookup(readHandle());</span><br><span class="line">        <span class="keyword">case</span> TC_STRING: <span class="keyword">return</span> readString();</span><br><span class="line">        <span class="keyword">case</span> TC_ARRAY: <span class="keyword">return</span> readArray();</span><br><span class="line">        <span class="keyword">case</span> TC_ENUM: <span class="keyword">return</span> readEnum();</span><br><span class="line">        <span class="keyword">case</span> TC_OBJECT: <span class="keyword">return</span> readOrdinaryObject(unshared);</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="32-读普通对象readordinaryobject"><a class="markdownIt-Anchor" href="#32-读普通对象readordinaryobject"></a> 3.2 读普通对象：readOrdinaryObject</h3>
+<p>关键步骤：读 classDesc → 创建实例（通常不调用你的构造方法）→ 先塞进 handle 表 → 读字段 → 若有 <code>readObject</code> 则回调 → 若有 <code>readResolve</code> 则替换返回对象。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readOrdinaryObject</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> readClassDesc();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> desc.newInstance();</span><br><span class="line">    handles.assign(obj);</span><br><span class="line">    desc.readObject(obj, <span class="built_in">this</span>);</span><br><span class="line">    obj = desc.invokeReadResolve(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="33-serialversionuid-校验"><a class="markdownIt-Anchor" href="#33-serialversionuid-校验"></a> 3.3 serialVersionUID 校验</h3>
+<p>在读 classDesc、把流中的描述映射到本地类时，会比较流里写入的 <code>serialVersionUID</code> 与本地类的 <code>serialVersionUID</code>，不一致就抛 <code>InvalidClassException</code>。</p>
+<hr>
+<h2 id="四-句柄表handletable循环引用与重复引用"><a class="markdownIt-Anchor" href="#四-句柄表handletable循环引用与重复引用"></a> 四、句柄表（HandleTable）：循环引用与重复引用</h2>
+<h3 id="41-为什么需要句柄"><a class="markdownIt-Anchor" href="#41-为什么需要句柄"></a> 4.1 为什么需要句柄？</h3>
+<ul>
+<li><strong>重复引用</strong>要保持同一性：<code>a.x == a.y</code> 指向同一对象时，反序列化后也必须 <code>==</code>。</li>
+<li><strong>对象图可能有环</strong>：若每次遇到对象都 “深拷贝写一遍”，有环会无限递归、栈溢出。</li>
+</ul>
+<p>所以需要 “已见对象登记表”<strong>HandleTable</strong>：给每个<strong>第一次出现</strong>的对象分配递增的整数 id（handle），之后再遇到同一对象就写 <strong>TC_REFERENCE + handle</strong>。</p>
+<h3 id="42-handletable-数据结构源码风格"><a class="markdownIt-Anchor" href="#42-handletable-数据结构源码风格"></a> 4.2 HandleTable 数据结构（源码风格）</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">HandleTable</span> {</span><br><span class="line">    <span class="type">int</span>[] spine;       <span class="comment">// 哈希桶头结点</span></span><br><span class="line">    <span class="type">int</span>[] next;        <span class="comment">// 链表 next</span></span><br><span class="line">    Object[] objs;     <span class="comment">// 对象引用</span></span><br><span class="line">    <span class="type">int</span> size;          <span class="comment">// 已分配句柄数</span></span><br><span class="line">    <span class="type">int</span> threshold;</span><br><span class="line">    <span class="type">float</span> loadFactor;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 登记并返回 handle</span></span><br><span class="line">    <span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 查 handle，找不到返回 -1</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>按<strong>对象 identity</strong> 追踪：用 <code>System.identityHashCode(obj)</code> 做 hash，用 <code>==</code> 做相等判断（不是 <code>equals()</code>）。</li>
+<li>哈希桶 + 链式冲突：<code>spine[bucket]</code> 存该桶链表第一个 entry 的下标，<code>next[i]</code> 连接链表。</li>
+</ul>
+<h3 id="43-lookup判断这个对象以前写过没"><a class="markdownIt-Anchor" href="#43-lookup判断这个对象以前写过没"></a> 4.3 lookup：判断 “这个对象以前写过没？”</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> spine[bucket]; i &gt;= <span class="number">0</span>; i = next[i]) {</span><br><span class="line">        <span class="keyword">if</span> (objs[i] == obj)   <span class="comment">// identity 比较</span></span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="44-assign第一次见到对象时登记"><a class="markdownIt-Anchor" href="#44-assign第一次见到对象时登记"></a> 4.4 assign：第一次见到对象时登记</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= next.length) growEntries();</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= threshold) growSpine();</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    objs[size] = obj;</span><br><span class="line">    next[size] = spine[bucket];</span><br><span class="line">    spine[bucket] = size;</span><br><span class="line">    <span class="keyword">return</span> size++;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="45-写入时何时写-tc_reference何时-assign"><a class="markdownIt-Anchor" href="#45-写入时何时写-tc_reference何时-assign"></a> 4.5 写入时：何时写 TC_REFERENCE？何时 assign？</h3>
+<ul>
+<li><strong>重复引用</strong>：<code>lookup(obj) != -1</code> 时，写 <code>TC_REFERENCE + (baseWireHandle + handle)</code>。</li>
+<li><strong>写对象本体前必须先 assign</strong>：这样在写字段时若再次遇到自己（如 <code>n.next = n</code>），<code>lookup</code> 会命中，直接写引用，不会无限递归。</li>
+</ul>
+<h3 id="46-identityhashcode-会冲突吗"><a class="markdownIt-Anchor" href="#46-identityhashcode-会冲突吗"></a> 4.6 identityHashCode 会冲突吗？</h3>
+<p>会。<code>System.identityHashCode(obj)</code> 是 32 位 int，不同对象可能得到相同值。HandleTable <strong>不依赖 hash 唯一性</strong>：用 hash 选桶，用 <strong><code>==</code></strong> 做最终确认；冲突只会让同一桶内链表变长，不会误判。</p>
+<hr>
+<h2 id="五-descwriteobjectobj-this-源码与输出内容"><a class="markdownIt-Anchor" href="#五-descwriteobjectobj-this-源码与输出内容"></a> 五、desc.writeObject(obj, this) 源码与输出内容</h2>
+<p>在 <code>ObjectStreamClass</code> 里：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj, ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    <span class="keyword">if</span> (writeObjectMethod != <span class="literal">null</span>) {</span><br><span class="line">        invokeWriteObject(obj, out);   <span class="comment">// 反射调用 private writeObject</span></span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        defaultWriteFields(obj, out);   <span class="comment">// 按字段类型逐个写出</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>defaultWriteFields</strong>：遍历 <code>ObjectStreamField[]</code>，用反射取字段值，按类型调用 <code>out.writeInt()</code> / <code>out.writeLong()</code> / <code>out.writeObject()</code> 等。</li>
+<li><strong>invokeWriteObject</strong>：<code>writeObjectMethod.invoke(obj, new Object[]{out})</code>，你在方法里可以 <code>out.defaultWriteObject()</code> 再写额外数据。</li>
+</ul>
+<h3 id="简单示例默认序列化输出什么"><a class="markdownIt-Anchor" href="#简单示例默认序列化输出什么"></a> 简单示例：默认序列化输出什么？</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Person</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">        <span class="type">int</span> age;</span><br><span class="line">        String name;</span><br><span class="line">        Person(<span class="type">int</span> age, String name) { <span class="built_in">this</span>.age = age; <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="number">18</span>, <span class="string">"Alice"</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos);</span><br><span class="line">        oos.writeObject(p);</span><br><span class="line">        oos.close();</span><br><span class="line">        <span class="type">byte</span>[] data = bos.toByteArray();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : data) System.out.printf(<span class="string">"%02X "</span>, b);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>典型输出（节选）：</p>
+<ul>
+<li><code>AC ED 00 05</code>：STREAM_MAGIC + 版本</li>
+<li><code>73</code>：TC_OBJECT</li>
+<li><code>72</code>：TC_CLASSDESC，后跟类名、serialVersionUID、flags、字段元数据（如 <code>I age</code>、<code>L name</code>）、TC_ENDBLOCKDATA、父类描述</li>
+<li>接着是字段数据：<code>00 00 00 12</code>（age = 18），以及表示 “Alice” 的 TC_STRING 等</li>
+</ul>
+<p>若有自定义 <code>writeObject</code> 里多写了 <code>out.writeInt(999)</code>，流里会多出 <code>00 00 03 E7</code>。</p>
+<hr>
+<h2 id="六-完整示例默认字段-transient-自定义-writeobjectreadobject"><a class="markdownIt-Anchor" href="#六-完整示例默认字段-transient-自定义-writeobjectreadobject"></a> 六、完整示例：默认字段 + transient + 自定义 writeObject / readObject</h2>
+<p>下面可直接运行，体现 “默认字段块 + 额外数据 + transient 手动处理”：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializableDemo</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">User</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> age;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> String password;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> <span class="type">int</span> checksum;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">User</span><span class="params">(String name, <span class="type">int</span> age, String password)</span> {</span><br><span class="line">            <span class="built_in">this</span>.name = name;</span><br><span class="line">            <span class="built_in">this</span>.age = age;</span><br><span class="line">            <span class="built_in">this</span>.password = password;</span><br><span class="line">            <span class="built_in">this</span>.checksum = calcChecksum();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">calcChecksum</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> (name == <span class="literal">null</span> ? <span class="number">0</span> : name.hashCode()) ^ age;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">            out.defaultWriteObject();</span><br><span class="line">            out.writeObject(password);</span><br><span class="line">            out.writeInt(calcChecksum());</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">readObject</span><span class="params">(ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException {</span><br><span class="line">            in.defaultReadObject();</span><br><span class="line">            <span class="built_in">this</span>.password = (String) in.readObject();</span><br><span class="line">            <span class="type">int</span> <span class="variable">cs</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">            <span class="built_in">this</span>.checksum = cs;</span><br><span class="line">            <span class="keyword">if</span> (cs != calcChecksum()) {</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InvalidObjectException</span>(<span class="string">"checksum mismatch!"</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> <span class="string">"User{name='"</span> + name + <span class="string">"', age="</span> + age + <span class="string">", password='"</span> + password + <span class="string">"', checksum="</span> + checksum + <span class="string">"}"</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">User</span> <span class="variable">u1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>(<span class="string">"Alice"</span>, <span class="number">20</span>, <span class="string">"p@ss"</span>);</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(u1);</span><br><span class="line">            oos.flush();</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"serialized bytes len="</span> + data.length);</span><br><span class="line"></span><br><span class="line">        User u2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            u2 = (User) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"u1="</span> + u1);</span><br><span class="line">        System.out.println(<span class="string">"u2="</span> + u2);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>可看到：transient 的 <code>password</code> 通过自定义 write / read 补回；校验失败在 <code>readObject</code> 里抛 <code>InvalidObjectException</code>。</p>
+<hr>
+<h2 id="七-验证句柄表重复引用与循环引用"><a class="markdownIt-Anchor" href="#七-验证句柄表重复引用与循环引用"></a> 七、验证句柄表：重复引用与循环引用</h2>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HandleTableProof</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Node</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        String name;</span><br><span class="line">        Node next;</span><br><span class="line">        Node(String name) { <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"A"</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"B"</span>);</span><br><span class="line">        a.next = b;</span><br><span class="line">        b.next = a;   <span class="comment">// A &lt;-&gt; B 形成环</span></span><br><span class="line"></span><br><span class="line">        <span class="type">Node</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"ROOT"</span>);</span><br><span class="line">        root.next = a;</span><br><span class="line"></span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(root);</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        Node root2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            root2 = (Node) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a2</span> <span class="operator">=</span> root2.next;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b2</span> <span class="operator">=</span> a2.next;</span><br><span class="line">        System.out.println(<span class="string">"b2.next == a2 ? "</span> + (b2.next == a2));  <span class="comment">// true，环被还原</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>没有 “先 assign 再写 / 读字段” 的策略，写时会无限递归，或读回来环断掉（<code>b2.next != a2</code>）。</p>
+<hr>
+<h2 id="八-四个钩子点serializable-的威力"><a class="markdownIt-Anchor" href="#八-四个钩子点serializable-的威力"></a> 八、四个钩子点（Serializable 的威力）</h2>
+<table>
+<thead>
+<tr>
+<th>钩子</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>private void writeObject(ObjectOutputStream out)</code></td>
+<td>自定义写出流程</td>
+</tr>
+<tr>
+<td><code>private void readObject(ObjectInputStream in)</code></td>
+<td>自定义读回流程</td>
+</tr>
+<tr>
+<td><code>private Object writeReplace()</code></td>
+<td>写出前用另一对象替代（代理、单例、版本迁移）</td>
+</tr>
+<tr>
+<td><code>private Object readResolve()</code></td>
+<td>读回后用另一对象替代（单例常用）</td>
+</tr>
+</tbody>
+</table>
+<p>单例防反序列化破坏示例：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readResolve</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> INSTANCE;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>另外，<strong>serialVersionUID</strong> 建议显式声明，避免改字段后 JDK 自动计算的 UID 变化导致旧数据读不回。</p>
+<hr>
+<h2 id="九-serializable-vs-externalizable简要"><a class="markdownIt-Anchor" href="#九-serializable-vs-externalizable简要"></a> 九、Serializable vs Externalizable（简要）</h2>
+<ul>
+<li><strong>Serializable</strong>：默认字段序列化 + 可选钩子（更常用）。</li>
+<li><strong>Externalizable</strong>：必须实现 <code>writeExternal</code>/<code>readExternal</code>，完全自己控制格式；反序列化时会调用<strong>无参构造</strong>。</li>
+</ul>
+<p>若需要跨版本稳定、可控二进制格式，实践中常用自定义协议（Kryo/Protobuf/JSON）或 Externalizable / 手写 DataOutput/DataInput。</p>
+<hr>
+<h2 id="十-调用链小结"><a class="markdownIt-Anchor" href="#十-调用链小结"></a> 十、调用链小结</h2>
+<p><strong>写出</strong>：<code>writeObject(obj)</code> → <code>writeObject0</code> → <code>writeOrdinaryObject</code> → <code>writeClassDesc</code> → <code>handles.assign(obj)</code> → <code>desc.writeObject(obj, this)</code> → <code>defaultWriteFields</code> 或 <code>invokeWriteObject</code>。</p>
+<p><strong>读回</strong>：<code>readObject()</code> → <code>readObject0</code> → 根据 TC 分派 → <code>readOrdinaryObject</code> → <code>readClassDesc</code> → <code>desc.newInstance()</code> → <code>handles.assign(obj)</code> → <code>desc.readObject(obj, this)</code> → <code>invokeReadResolve</code>。</p>
+<p>读 OpenJDK 时可重点看：<code>writeObject0</code> 的重复引用分支、<code>writeOrdinaryObject</code> 里 assign 的时机、HandleTable 的 lookup / assign、以及 OIS 里 TC_REFERENCE 与 readOrdinaryObject 的顺序。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2325,7 +2320,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2692,7 +2687,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-02 17:48:18" itemprop="dateModified" datetime="2026-03-02T17:48:18+08:00">2026-03-02</time>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2710,14 +2705,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>4k</span>
+      <span>3.7k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>4 分钟</span>
+      <span>3 分钟</span>
     </span>
 </div>
 
@@ -2872,6 +2867,218 @@
 
 
 
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java17-features-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java17-features-summary/" class="post-title-link" itemprop="url">Java 17 新特性总结与示例</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-17-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-17-新特性总结与示例"></a> Java 17 新特性总结与示例</h1>
+<p>Java 17 于 <strong>2021 年 9 月 14 日</strong> 正式发布，是 <strong>继 Java 8 以来重要的长期支持（LTS）版本</strong>，支持至 2029 年 9 月。Spring 6.x / Spring Boot 3.x 的最低支持版本即为 Java 17。本文按语言、API、平台等分类梳理主要新特性，并配有示例（基于 JDK 17）。</p>
+<hr>
+<h2 id="一-密封类sealed-classesjep-409"><a class="markdownIt-Anchor" href="#一-密封类sealed-classesjep-409"></a> 一、密封类（Sealed Classes，JEP 409）</h2>
+<p><strong>作用</strong>：用 <code>sealed</code> + <code>permits</code> 限制 “谁可以继承 / 实现” 当前类或接口，编译器可做穷尽性检查，提高类型安全。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 密封接口：只允许 Circle、Square、Rectangle 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">Shape</span> <span class="keyword">permits</span> Circle, Square, Rectangle {</span><br><span class="line">    <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Circle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> r;</span><br><span class="line">    Circle(<span class="type">double</span> r) { <span class="built_in">this</span>.r = r; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> Math.PI * r * r; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Square</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> side;</span><br><span class="line">    Square(<span class="type">double</span> side) { <span class="built_in">this</span>.side = side; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> side * side; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Rectangle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> w, h;</span><br><span class="line">    Rectangle(<span class="type">double</span> w, <span class="type">double</span> h) { <span class="built_in">this</span>.w = w; <span class="built_in">this</span>.h = h; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> w * h; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>子类必须为 <code>final</code>、<code>sealed</code> 或 <code>non-sealed</code> 之一。与 switch 模式匹配结合时，编译器可检查是否覆盖所有 permitted 类型，无需 default。</p>
+<hr>
+<h2 id="二-switch-模式匹配jep-406预览-后续版本转正"><a class="markdownIt-Anchor" href="#二-switch-模式匹配jep-406预览-后续版本转正"></a> 二、Switch 模式匹配（JEP 406，预览 → 后续版本转正）</h2>
+<p><strong>作用</strong>：在 switch 的 case 中使用类型模式，并可直接绑定变量，简化 “按类型分派” 的代码。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> Long l    -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> Double d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> String s  -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span>      -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span>        -&gt; obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(formatter(<span class="number">1</span>));       <span class="comment">// int: 1</span></span><br><span class="line">        System.out.println(formatter(<span class="string">"hi"</span>));    <span class="comment">// string: hi</span></span><br><span class="line">        System.out.println(formatter(<span class="literal">null</span>));   <span class="comment">// null</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>与密封类结合时，对密封类型的 switch 可做穷尽性检查，无需 default。</p>
+<hr>
+<h2 id="三-强封装-jdk-内部-apijep-403"><a class="markdownIt-Anchor" href="#三-强封装-jdk-内部-apijep-403"></a> 三、强封装 JDK 内部 API（JEP 403）</h2>
+<p>默认不再允许反射访问 JDK 内部 API（如 <code>sun.*</code>），除非使用 <code>--add-opens</code> 等打开模块。目的是提高稳定性和安全性，避免依赖未承诺的内部实现。</p>
+<hr>
+<h2 id="四-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#四-其它重要-jep-概览"></a> 四、其它重要 JEP 概览</h2>
+<table>
+<thead>
+<tr>
+<th>JEP</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>410</strong></td>
+<td>移除实验性 AOT / JIT 编译器</td>
+</tr>
+<tr>
+<td><strong>411</strong></td>
+<td>弃用安全管理器（计划删除）</td>
+</tr>
+<tr>
+<td><strong>407</strong></td>
+<td>移除 RMI 激活机制</td>
+</tr>
+<tr>
+<td><strong>398</strong></td>
+<td>弃用 Applet API</td>
+</tr>
+<tr>
+<td><strong>382</strong></td>
+<td>新 macOS 渲染管道</td>
+</tr>
+<tr>
+<td><strong>391</strong></td>
+<td>macOS / AArch64（Apple Silicon）支持</td>
+</tr>
+<tr>
+<td><strong>306</strong></td>
+<td>恢复 “始终严格” 的浮点语义</td>
+</tr>
+<tr>
+<td><strong>415</strong></td>
+<td>上下文反序列化过滤器（安全）</td>
+</tr>
+<tr>
+<td><strong>412</strong></td>
+<td>外部函数与内存 API（孵化）</td>
+</tr>
+<tr>
+<td><strong>414</strong></td>
+<td>向量 API（第二轮孵化）</td>
+</tr>
+<tr>
+<td><strong>356</strong></td>
+<td>增强的伪随机数生成器</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-伪随机数生成器jep-356"><a class="markdownIt-Anchor" href="#五-伪随机数生成器jep-356"></a> 五、伪随机数生成器（JEP 356）</h2>
+<p>新 API 位于 <code>java.util.random</code>，提供 <code>RandomGenerator</code> 接口及多种算法实现（如 <code>L32X64MixRandom</code>），便于在测试与生产中选择可复现或高性能的随机源。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.random.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RandomDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">RandomGenerator</span> <span class="variable">gen</span> <span class="operator">=</span> RandomGenerator.of(<span class="string">"L32X64MixRandom"</span>);</span><br><span class="line">        System.out.println(gen.nextInt(<span class="number">100</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="六-小结"><a class="markdownIt-Anchor" href="#六-小结"></a> 六、小结</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>特性</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言</td>
+<td>密封类</td>
+<td>限制子类型，便于穷尽 switch</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>Switch 模式匹配</td>
+<td>case 中类型模式 + 绑定变量</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>强封装、移除 / 弃用</td>
+<td>内部 API 不可随意反射，RMI 激活 / Applet 等移除或弃用</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>macOS / AArch64、新渲染</td>
+<td>支持 Apple Silicon 等</td>
+</tr>
+<tr>
+<td>API / 孵化</td>
+<td>新随机数、FFM、向量 API</td>
+<td>随机数增强，本地 / 向量为孵化</td>
+</tr>
+</tbody>
+</table>
+<p>以上示例在 JDK 17 下可运行。Java 17 是当前主流 LTS 之一，适合作为新项目或从 8 / 11 升级的目标版本。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
   <nav class="pagination">
     <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
@@ -2895,13 +3102,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">94k</span>
+    <span title="站点总字数">96k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:26</span>
+    <span title="站点阅读时长">1:27</span>
   </span>
 </div>
 <div class="busuanzi-count">

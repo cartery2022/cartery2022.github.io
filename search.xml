@@ -1,6 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>LangChain4j TextSplitter 实现说明</title>
+    <url>/2025/01/29/2025-01-30-langchain4j-text-splitter/</url>
+    <content><![CDATA[<h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
+<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
+<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
+<ul>
+<li>包文档：<a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+</ul>
+<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
+<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>输入：<code>Document</code></li>
+<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
+</ul>
+<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>分隔符 / 行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentByParagraphSplitter</code></td>
+<td><code>"\n\n"</code></td>
+<td>按段落</td>
+</tr>
+<tr>
+<td><code>DocumentByLineSplitter</code></td>
+<td><code>"\n"</code></td>
+<td>按行</td>
+</tr>
+<tr>
+<td><code>DocumentBySentenceSplitter</code></td>
+<td>句子边界</td>
+<td>按句子</td>
+</tr>
+<tr>
+<td><code>DocumentByWordSplitter</code></td>
+<td><code>" "</code></td>
+<td>按词</td>
+</tr>
+<tr>
+<td><code>DocumentByCharacterSplitter</code></td>
+<td>字符</td>
+<td>按字符</td>
+</tr>
+<tr>
+<td><code>DocumentByRegexSplitter</code></td>
+<td>正则</td>
+<td>按正则</td>
+</tr>
+<tr>
+<td><code>HierarchicalDocumentSplitter</code></td>
+<td>-</td>
+<td>层级分割基类</td>
+</tr>
+</tbody>
+</table>
+<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
+<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
+<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
+<ol>
+<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
+<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
+<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
+</ol>
+<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
+<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
+<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
+<p><strong>私有字段（6 个）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maxSegmentSize</code></td>
+<td><code>int</code></td>
+<td>单段最大长度（字符或 token）</td>
+</tr>
+<tr>
+<td><code>sizeFunction</code></td>
+<td><code>Function&lt;String, Integer&gt;</code></td>
+<td>计算文本长度的函数</td>
+</tr>
+<tr>
+<td><code>joinSeparator</code></td>
+<td><code>String</code></td>
+<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
+</tr>
+<tr>
+<td><code>joinSeparatorSize</code></td>
+<td><code>int</code></td>
+<td>分隔符自身长度</td>
+</tr>
+<tr>
+<td><code>segment</code></td>
+<td><code>String</code></td>
+<td>当前正在拼的段内容</td>
+</tr>
+<tr>
+<td><code>segmentSize</code></td>
+<td><code>int</code></td>
+<td>当前段长度（由 sizeFunction 得到）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对外 API（均为 public 方法）</strong></p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>getSize()</code></td>
+<td>当前段长度</td>
+</tr>
+<tr>
+<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
+<td>再拼一段是否仍 ≤ maxSegmentSize</td>
+</tr>
+<tr>
+<td><code>sizeOf(String text)</code></td>
+<td>用 sizeFunction 计算 text 长度</td>
+</tr>
+<tr>
+<td><code>append(String text)</code></td>
+<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
+</tr>
+<tr>
+<td><code>prepend(String text)</code></td>
+<td>开头拼接（overlap 时从段尾逆序填）</td>
+</tr>
+<tr>
+<td><code>isNotEmpty()</code></td>
+<td>当前段是否非空</td>
+</tr>
+<tr>
+<td><code>toString()</code></td>
+<td>返回 <code>segment.trim()</code></td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>清空当前段，开始拼下一段</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
+<ul>
+<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
+<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
+</ul>
+<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
+<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
+<p>支持按字符数或按 token 数控制大小。</p>
+<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
+<ul>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
+<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>agent</category>
+        <category>源码解读</category>
+        <category>textSplitter</category>
+      </categories>
+      <tags>
+        <tag>agent</tag>
+        <tag>java</tag>
+        <tag>langchain4j</tag>
+        <tag>源码解读</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python RecursiveCharacterTextSplitter 源码解读</title>
     <url>/2025/01/29/2025-01-30-python-recursive-character-text-splitter/</url>
     <content><![CDATA[<h1 id="python-recursivecharactertextsplitter-源码解读"><a class="markdownIt-Anchor" href="#python-recursivecharactertextsplitter-源码解读"></a> Python RecursiveCharacterTextSplitter 源码解读</h1>
@@ -204,196 +391,9 @@
       </categories>
       <tags>
         <tag>agent</tag>
+        <tag>源码解读</tag>
         <tag>python</tag>
         <tag>longchain</tag>
-        <tag>源码解读</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LangChain4j TextSplitter 实现说明</title>
-    <url>/2025/01/29/2025-01-30-langchain4j-text-splitter/</url>
-    <content><![CDATA[<h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
-<ul>
-<li>包文档：<a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
-</ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
-</ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>按段落</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>按行</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>按词</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>层级分割基类</td>
-</tr>
-</tbody>
-</table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
-<ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
-</ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>分隔符自身长度</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>当前正在拼的段内容</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>当前段长度</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
-<ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
-</ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
-<ul>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>agent</category>
-        <category>源码解读</category>
-        <category>textSplitter</category>
-      </categories>
-      <tags>
-        <tag>agent</tag>
-        <tag>源码解读</tag>
-        <tag>java</tag>
-        <tag>langchain4j</tag>
       </tags>
   </entry>
   <entry>
@@ -622,6 +622,101 @@
       </tags>
   </entry>
   <entry>
+    <title>设计模式（五）原型模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-05-prototype/</url>
+    <content><![CDATA[<h1 id="原型模式prototype"><a class="markdownIt-Anchor" href="#原型模式prototype"></a> 原型模式（Prototype）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>原型模式</strong>用原型实例指定创建对象的种类，并通过复制该原型创建新对象。</p>
+<p><strong>解决的问题</strong>：当直接 new 成本高（如构造需大量计算或 I / O），或希望基于已有对象 “复制一份再改” 时，通过克隆避免重复初始化。</p>
+<p><strong>定义</strong>：用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
+<hr>
+<h2 id="二-结构与实现"><a class="markdownIt-Anchor" href="#二-结构与实现"></a> 二、结构与实现</h2>
+<ul>
+<li><strong>Prototype</strong>：声明克隆方法的接口（Java 中常用 <code>Cloneable</code> + <code>clone()</code>）。</li>
+<li><strong>ConcretePrototype</strong>：实现克隆逻辑；浅拷贝直接复制字段，深拷贝需递归复制引用类型。</li>
+</ul>
+<p><strong>示例（浅拷贝）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Document</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> {</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; paragraphs;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Document <span class="title function_">clone</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            <span class="keyword">return</span> (Document) <span class="built_in">super</span>.clone(); <span class="comment">// 浅拷贝，paragraphs 仍共享引用</span></span><br><span class="line">        } <span class="keyword">catch</span> (CloneNotSupportedException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>深拷贝可重写 <code>clone()</code> 中对 <code>paragraphs</code> 等集合做 new 并复制元素，或使用序列化 / 拷贝构造器等方式。</p>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Bean 的 scope=“prototype”</strong>：每次 <code>getBean()</code> 或注入时，容器都会<strong>新建一个实例</strong>，相当于 “根据 Bean 定义这一‘原型’复制出新对象”；与单例的 “只一份” 相对。</li>
+<li><strong>ObjectFactory / Provider 注入</strong>：获取 prototype Bean 时，通过 <code>ObjectFactory&lt;T&gt;</code> 或 <code>Provider&lt;T&gt;</code> 延迟获取，每次 <code>getObject()</code> 得到新实例，避免单例 Bean 持有 prototype 导致只拿到同一实例的问题。</li>
+<li><strong>Bean 的创建过程</strong>：容器内部根据 BeanDefinition 创建实例，可视为 “按定义原型创建”，但一般不直接实现 <code>Cloneable</code>，而是反射 / 构造器创建。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>创建成本高、状态可复制</strong>：如大对象初始化慢，或从模板复制后只改少量字段（如合同、工单从模板生成）。</li>
+<li><strong>需要隔离实例状态</strong>：如每次请求 / 会话需要独立对象，避免线程或请求间共享导致并发问题，Spring 中对应 <strong>prototype 作用域</strong>。</li>
+<li><strong>撤销 / 重做、快照</strong>：保存当前状态的一份拷贝，后续可恢复或对比（需深拷贝以保证一致性）。</li>
+<li><strong>缓存与模板</strong>：从缓存中的 “模板对象” 克隆出一份再填充数据，避免污染模板。</li>
+</ul>
+<p><strong>不适用</strong>：对象无状态或创建成本很低时，用 new 或工厂即可；深拷贝成本高或引用关系复杂时需权衡。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>原型模式通过 “克隆已有对象” 创建新对象，避免重复昂贵初始化；Spring 中 <strong>prototype 作用域</strong> 与 <strong>ObjectFactory/Provider</strong> 体现了 “按需创建新实例” 的思想。业务上适用于<strong>高创建成本、需实例隔离、模板复制、快照 / 撤销</strong>等场景。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+        <category>创建型</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+        <tag>Spring</tag>
+        <tag>原型</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>设计模式（八）组合模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-08-composite/</url>
+    <content><![CDATA[<h1 id="组合模式composite"><a class="markdownIt-Anchor" href="#组合模式composite"></a> 组合模式（Composite）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>组合模式</strong>将对象组合成树形结构以表示 “部分 - 整体” 的层次结构，使客户对单个对象和组合对象的使用具有一致性。</p>
+<p><strong>解决的问题</strong>：树形结构中的节点有的是 “叶子” 有的是 “容器”，希望客户代码不用区分，统一用同一接口（如 <code>operation()</code>）处理。</p>
+<p><strong>定义</strong>：将对象组合成树形结构表示 “部分 - 整体” 层次，使得客户对单个对象和组合对象的使用具有一致性。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Component</strong>：抽象组件，定义叶子与组合的公共接口（如 <code>operation()</code>），可选地定义管理子节点的接口（add/remove/getChild）。</li>
+<li><strong>Leaf</strong>：叶子节点，无子节点。</li>
+<li><strong>Composite</strong>：组合节点，持有子 Component 集合，实现 <code>operation()</code> 时通常遍历子节点并调用其 <code>operation()</code>。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Leaf</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span> { System.out.println(<span class="string">"Leaf"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Composite</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Component&gt; children = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">add</span><span class="params">(Component c)</span> { children.add(c); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">for</span> (Component c : children) c.operation();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>CompositeCacheManager</strong>：将多个 <code>CacheManager</code> 组合成一个，按名称路由到不同 CacheManager，对外表现为一个 CacheManager，是典型的 “组合对象”。</li>
+<li><strong>Bean 定义中的嵌套</strong>：如父子 Bean 定义、嵌套的 <code>&lt;list&gt;</code>/<code>&lt;map&gt;</code> 配置，结构上是树形，解析时用组合思想处理。</li>
+<li><strong>MyBatis 动态 SQL</strong>：<code>&lt;if&gt;/&lt;choose&gt;/&lt;foreach&gt;</code> 等组合成一棵 SQL 节点树，统一通过 <code>apply()</code> 或类似方法求值，可视为组合模式。</li>
+<li><strong>组织架构、菜单树</strong>：若在业务中建模 “部门 - 子部门”“菜单 - 子菜单”，用组合模式可统一对单节点和子树的操作。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>树形结构且需统一操作</strong>：如菜单、权限树、组织架构、目录 - 文件，对 “节点” 和 “子树” 执行同一类操作（渲染、权限检查、汇总）。</li>
+<li><strong>多级配置 / 规则</strong>：如配置有 “全局 → 应用 → 模块” 的覆盖关系，用组合表示层级，统一按层级解析。</li>
+<li><strong>表达式或 AST</strong>：如简单表达式解析成树，叶子是常量 / 变量，组合节点是运算符，统一 <code>evaluate()</code>。</li>
+<li><strong>多 CacheManager / 多数据源的路由</strong>：对外一个入口，内部按 key 或规则分发到多个子组件，对外表现为一个整体。</li>
+</ul>
+<p><strong>不适用</strong>：结构不是树形、或叶子与容器行为差异很大无需统一接口时。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>组合模式通过 “叶子与组合实现同一接口 + 组合内部委托子节点” 统一处理树形结构；Spring 中 <strong>CompositeCacheManager</strong>、<strong>Bean 定义嵌套</strong>、<strong>动态 SQL 节点树</strong> 有体现。业务上适用于<strong>菜单/权限/组织树、多级配置、表达式/AST、多子组件路由</strong>等场景。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+        <category>结构型</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+        <tag>Spring</tag>
+        <tag>组合</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>设计模式（六）适配器模式 — 详解、Spring 运用与业务场景</title>
     <url>/2025/03/01/2025-03-02-design-pattern-06-adapter/</url>
     <content><![CDATA[<h1 id="适配器模式adapter"><a class="markdownIt-Anchor" href="#适配器模式adapter"></a> 适配器模式（Adapter）</h1>
@@ -765,42 +860,43 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式（八）组合模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-08-composite/</url>
-    <content><![CDATA[<h1 id="组合模式composite"><a class="markdownIt-Anchor" href="#组合模式composite"></a> 组合模式（Composite）</h1>
+    <title>设计模式（十一）享元模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-11-flyweight/</url>
+    <content><![CDATA[<h1 id="享元模式flyweight"><a class="markdownIt-Anchor" href="#享元模式flyweight"></a> 享元模式（Flyweight）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>组合模式</strong>将对象组合成树形结构以表示 “部分 - 整体” 的层次结构，使客户对单个对象和组合对象的使用具有一致性。</p>
-<p><strong>解决的问题</strong>：树形结构中的节点有的是 “叶子” 有的是 “容器”，希望客户代码不用区分，统一用同一接口（如 <code>operation()</code>）处理。</p>
-<p><strong>定义</strong>：将对象组合成树形结构表示 “部分 - 整体” 层次，使得客户对单个对象和组合对象的使用具有一致性。</p>
+<p><strong>享元模式</strong>运用共享技术有效支持大量细粒度对象的复用，减少内存与对象数量。</p>
+<p><strong>解决的问题</strong>：存在大量相似对象（如相同字符、相同图标、相同配置），若每个都单独实例会占用大量内存；把 “可共享的内在状态” 与 “不可共享的外在状态” 分离，共享内在状态，外在状态由调用方传入。</p>
+<p><strong>定义</strong>：运用共享技术有效地支持大量细粒度的对象。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Component</strong>：抽象组件，定义叶子与组合的公共接口（如 <code>operation()</code>），可选地定义管理子节点的接口（add/remove/getChild）。</li>
-<li><strong>Leaf</strong>：叶子节点，无子节点。</li>
-<li><strong>Composite</strong>：组合节点，持有子 Component 集合，实现 <code>operation()</code> 时通常遍历子节点并调用其 <code>operation()</code>。</li>
+<li><strong>Flyweight</strong>：享元接口，定义对外方法，方法参数中常包含 “外在状态”。</li>
+<li><strong>ConcreteFlyweight</strong>：具体享元，存储内在状态（可共享），方法中结合传入的外在状态完成行为。</li>
+<li><strong>FlyweightFactory</strong>：享元工厂，维护享元池，根据 key 返回共享实例；无则创建并缓存。</li>
+<li><strong>Client</strong>：使用享元时传入外在状态。</li>
 </ul>
 <p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Leaf</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span> { System.out.println(<span class="string">"Leaf"</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Composite</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Component&gt; children = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">add</span><span class="params">(Component c)</span> { children.add(c); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">for</span> (Component c : children) c.operation();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Flyweight</span> { <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteFlyweight</span> <span class="keyword">implements</span> <span class="title class_">Flyweight</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String intrinsicState;</span><br><span class="line">    ConcreteFlyweight(String intrinsicState) { <span class="built_in">this</span>.intrinsicState = intrinsicState; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span> {</span><br><span class="line">        System.out.println(intrinsicState + <span class="string">", "</span> + extrinsicState);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyweightFactory</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Flyweight&gt; pool = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    Flyweight <span class="title function_">get</span><span class="params">(String key)</span> {</span><br><span class="line">        <span class="keyword">return</span> pool.computeIfAbsent(key, ConcreteFlyweight::<span class="keyword">new</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>CompositeCacheManager</strong>：将多个 <code>CacheManager</code> 组合成一个，按名称路由到不同 CacheManager，对外表现为一个 CacheManager，是典型的 “组合对象”。</li>
-<li><strong>Bean 定义中的嵌套</strong>：如父子 Bean 定义、嵌套的 <code>&lt;list&gt;</code>/<code>&lt;map&gt;</code> 配置，结构上是树形，解析时用组合思想处理。</li>
-<li><strong>MyBatis 动态 SQL</strong>：<code>&lt;if&gt;/&lt;choose&gt;/&lt;foreach&gt;</code> 等组合成一棵 SQL 节点树，统一通过 <code>apply()</code> 或类似方法求值，可视为组合模式。</li>
-<li><strong>组织架构、菜单树</strong>：若在业务中建模 “部门 - 子部门”“菜单 - 子菜单”，用组合模式可统一对单节点和子树的操作。</li>
+<li><strong>String 常量池、Integer 缓存</strong>：JVM / JDK 层面的 “享元”，相同内容的 String、小范围 Integer 共享实例；Spring 未单独实现，但业务中大量用 String 作为 key、缓存 key 时天然受益。</li>
+<li><strong>Bean 单例</strong>：单例 Bean 在容器内共享，可视为 “按 Bean 定义共享的实例”，与享元 “按 key 共享” 思想一致。</li>
+<li><strong>元数据、配置的缓存</strong>：如反射得到的 Method、Annotation 等元数据，Spring 会缓存复用，避免重复解析；可视为 “按类 / 方法等 key 的享元”。</li>
+<li><strong>线程池、连接池</strong>：池中的线程、连接是 “可复用对象”，与享元 “复用对象” 的目标一致，只是通常不叫 Flyweight 名字。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>树形结构且需统一操作</strong>：如菜单、权限树、组织架构、目录 - 文件，对 “节点” 和 “子树” 执行同一类操作（渲染、权限检查、汇总）。</li>
-<li><strong>多级配置 / 规则</strong>：如配置有 “全局 → 应用 → 模块” 的覆盖关系，用组合表示层级，统一按层级解析。</li>
-<li><strong>表达式或 AST</strong>：如简单表达式解析成树，叶子是常量 / 变量，组合节点是运算符，统一 <code>evaluate()</code>。</li>
-<li><strong>多 CacheManager / 多数据源的路由</strong>：对外一个入口，内部按 key 或规则分发到多个子组件，对外表现为一个整体。</li>
+<li><strong>大量相似对象且可区分内在 / 外在</strong>：如棋牌游戏中 “牌面” 可共享（内在），每张牌的 “位置、归属” 由外部传入（外在）；文档编辑器中 “字符样式” 共享，“位置” 外在。</li>
+<li><strong>缓存、池化</strong>：按 key 缓存对象（如按配置 key 缓存解析结果），无则创建并放入池，有则直接返回，本质是享元工厂。</li>
+<li><strong>减少重复解析 / 编译</strong>：如模板引擎中相同模板只编译一次；规则引擎中相同规则只编译一次，运行时只传不同参数。</li>
+<li><strong>枚举、常量类</strong>：有限个实例对应有限个 “内在状态”，全应用共享，是享元的简化形式。</li>
 </ul>
-<p><strong>不适用</strong>：结构不是树形、或叶子与容器行为差异很大无需统一接口时。</p>
+<p><strong>不适用</strong>：对象之间几乎没有可共享状态、或对象数量很少时，享元收益不大。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>组合模式通过 “叶子与组合实现同一接口 + 组合内部委托子节点” 统一处理树形结构；Spring 中 <strong>CompositeCacheManager</strong>、<strong>Bean 定义嵌套</strong>、<strong>动态 SQL 节点树</strong> 有体现。业务上适用于<strong>菜单/权限/组织树、多级配置、表达式/AST、多子组件路由</strong>等场景。</p>
+<p>享元模式通过 “内在状态共享 + 外在状态参数化” 减少对象数量与内存；Spring 中 <strong>单例 Bean</strong>、<strong>元数据缓存</strong>、<strong>池化</strong> 体现了共享复用思想。业务上适用于<strong>大量相似对象、缓存/池化、减少重复解析/编译、枚举/常量</strong>等场景。</p>
 ]]></content>
       <categories>
         <category>设计模式</category>
@@ -809,7 +905,7 @@
       <tags>
         <tag>设计模式</tag>
         <tag>Spring</tag>
-        <tag>组合</tag>
+        <tag>享元</tag>
       </tags>
   </entry>
   <entry>
@@ -859,55 +955,6 @@
         <tag>设计模式</tag>
         <tag>Spring</tag>
         <tag>装饰器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式（十一）享元模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-11-flyweight/</url>
-    <content><![CDATA[<h1 id="享元模式flyweight"><a class="markdownIt-Anchor" href="#享元模式flyweight"></a> 享元模式（Flyweight）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>享元模式</strong>运用共享技术有效支持大量细粒度对象的复用，减少内存与对象数量。</p>
-<p><strong>解决的问题</strong>：存在大量相似对象（如相同字符、相同图标、相同配置），若每个都单独实例会占用大量内存；把 “可共享的内在状态” 与 “不可共享的外在状态” 分离，共享内在状态，外在状态由调用方传入。</p>
-<p><strong>定义</strong>：运用共享技术有效地支持大量细粒度的对象。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Flyweight</strong>：享元接口，定义对外方法，方法参数中常包含 “外在状态”。</li>
-<li><strong>ConcreteFlyweight</strong>：具体享元，存储内在状态（可共享），方法中结合传入的外在状态完成行为。</li>
-<li><strong>FlyweightFactory</strong>：享元工厂，维护享元池，根据 key 返回共享实例；无则创建并缓存。</li>
-<li><strong>Client</strong>：使用享元时传入外在状态。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Flyweight</span> { <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteFlyweight</span> <span class="keyword">implements</span> <span class="title class_">Flyweight</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String intrinsicState;</span><br><span class="line">    ConcreteFlyweight(String intrinsicState) { <span class="built_in">this</span>.intrinsicState = intrinsicState; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span> {</span><br><span class="line">        System.out.println(intrinsicState + <span class="string">", "</span> + extrinsicState);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyweightFactory</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Flyweight&gt; pool = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    Flyweight <span class="title function_">get</span><span class="params">(String key)</span> {</span><br><span class="line">        <span class="keyword">return</span> pool.computeIfAbsent(key, ConcreteFlyweight::<span class="keyword">new</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>String 常量池、Integer 缓存</strong>：JVM / JDK 层面的 “享元”，相同内容的 String、小范围 Integer 共享实例；Spring 未单独实现，但业务中大量用 String 作为 key、缓存 key 时天然受益。</li>
-<li><strong>Bean 单例</strong>：单例 Bean 在容器内共享，可视为 “按 Bean 定义共享的实例”，与享元 “按 key 共享” 思想一致。</li>
-<li><strong>元数据、配置的缓存</strong>：如反射得到的 Method、Annotation 等元数据，Spring 会缓存复用，避免重复解析；可视为 “按类 / 方法等 key 的享元”。</li>
-<li><strong>线程池、连接池</strong>：池中的线程、连接是 “可复用对象”，与享元 “复用对象” 的目标一致，只是通常不叫 Flyweight 名字。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>大量相似对象且可区分内在 / 外在</strong>：如棋牌游戏中 “牌面” 可共享（内在），每张牌的 “位置、归属” 由外部传入（外在）；文档编辑器中 “字符样式” 共享，“位置” 外在。</li>
-<li><strong>缓存、池化</strong>：按 key 缓存对象（如按配置 key 缓存解析结果），无则创建并放入池，有则直接返回，本质是享元工厂。</li>
-<li><strong>减少重复解析 / 编译</strong>：如模板引擎中相同模板只编译一次；规则引擎中相同规则只编译一次，运行时只传不同参数。</li>
-<li><strong>枚举、常量类</strong>：有限个实例对应有限个 “内在状态”，全应用共享，是享元的简化形式。</li>
-</ul>
-<p><strong>不适用</strong>：对象之间几乎没有可共享状态、或对象数量很少时，享元收益不大。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>享元模式通过 “内在状态共享 + 外在状态参数化” 减少对象数量与内存；Spring 中 <strong>单例 Bean</strong>、<strong>元数据缓存</strong>、<strong>池化</strong> 体现了共享复用思想。业务上适用于<strong>大量相似对象、缓存/池化、减少重复解析/编译、枚举/常量</strong>等场景。</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-        <category>结构型</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-        <tag>Spring</tag>
-        <tag>享元</tag>
       </tags>
   </entry>
   <entry>
@@ -1059,6 +1106,55 @@
       </tags>
   </entry>
   <entry>
+    <title>设计模式（十五）解释器模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-15-interpreter/</url>
+    <content><![CDATA[<h1 id="解释器模式interpreter"><a class="markdownIt-Anchor" href="#解释器模式interpreter"></a> 解释器模式（Interpreter）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>解释器模式</strong>给定一门语言（或表达式）的表示与解释方式，用解释器解释句子（或表达式）并执行。</p>
+<p><strong>解决的问题</strong>：当存在一种 “小语言”（如表达式、简单脚本、规则描述），需要解析并执行时，用解释器把语法拆成若干类，每类负责一种语法单元的解析与求值。</p>
+<p><strong>定义</strong>：给定一个语言，定义它的文法的一种表示，并定义一个解释器，用该解释器解释语言中的句子。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>AbstractExpression</strong>：抽象表达式，声明 interpret (Context) 接口。</li>
+<li><strong>TerminalExpression</strong>：终结符表达式，对应文法中的终结符（如常量、变量）。</li>
+<li><strong>NonterminalExpression</strong>：非终结符表达式，对应文法中的规则，内部包含多个子表达式并组合求值。</li>
+<li><strong>Context</strong>：上下文，存放变量、输入等，供解释过程使用。</li>
+</ul>
+<p><strong>示例</strong>（简单加减法）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Number</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line">    Number(<span class="type">int</span> value) { <span class="built_in">this</span>.value = value; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> { <span class="keyword">return</span> value; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Expr left, right;</span><br><span class="line">    Add(Expr l, Expr r) { left = l; right = r; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> {</span><br><span class="line">        <span class="keyword">return</span> left.interpret(ctx) + right.interpret(ctx);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>SpEL（Spring Expression Language）</strong>：Spring 的表达式语言，用于 @Value、@ConditionalOnExpression、缓存 key、安全表达式等；内部将表达式解析成 AST 并解释执行，是典型的解释器模式。</li>
+<li><strong>ExpressionParser 与 Expression</strong>：<code>ExpressionParser.parseExpression(expr)</code> 得到 <code>Expression</code>，再 <code>getValue(context)</code> 求值，对应 “解析 + 解释”。</li>
+<li><strong>条件注解中的表达式</strong>：如 <code>@ConditionalOnExpression("...")</code>，字符串被解析并求值，决定是否加载 Bean。</li>
+<li><strong>简单规则引擎</strong>：若业务中用 “规则字符串” 描述条件（如 “age &gt; 18 &amp;&amp; city == ‘Beijing’”），可用解释器或 SpEL 解析并求值。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>配置 / 脚本中的表达式</strong>：如配置里写 <code>"${env}-${version}"</code>、简单运算或条件，需要解析并求值。</li>
+<li><strong>规则 / 策略的文本描述</strong>：如风控规则 “金额 &gt; 10000 且 次数 &gt; 5”，用小型 DSL 描述并由解释器执行。</li>
+<li><strong>查询 / 过滤条件</strong>：用户输入简单条件表达式，解析后生成过滤逻辑或 SQL 条件（需防注入）。</li>
+<li><strong>公式计算</strong>：如报表中的单元格公式、定价公式，用表达式描述并由解释器求值。</li>
+</ul>
+<p><strong>不适用</strong>：语法复杂、性能要求高时，应使用 parser generator 或预编译；简单固定格式用正则或手写解析即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>解释器模式通过 “为语法中的每种符号定义解释类 + 组合求值” 实现小语言的解析与执行；Spring 中 <strong>SpEL</strong>、<strong>ExpressionParser/Expression</strong>、<strong>条件表达式</strong> 是典型应用。业务上适用于<strong>配置表达式、规则描述、简单公式 / 条件</strong>等场景。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+        <category>行为型</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+        <tag>Spring</tag>
+        <tag>解释器</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>设计模式（十六）迭代器模式 — 详解、Spring 运用与业务场景</title>
     <url>/2025/03/01/2025-03-02-design-pattern-16-iterator/</url>
     <content><![CDATA[<h1 id="迭代器模式iterator"><a class="markdownIt-Anchor" href="#迭代器模式iterator"></a> 迭代器模式（Iterator）</h1>
@@ -1157,151 +1253,6 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式（十八）备忘录模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-18-memento/</url>
-    <content><![CDATA[<h1 id="备忘录模式memento"><a class="markdownIt-Anchor" href="#备忘录模式memento"></a> 备忘录模式（Memento）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>备忘录模式</strong>在不破坏封装的前提下捕获对象的内部状态，并在对象之外保存该状态，以便之后恢复。</p>
-<p><strong>解决的问题</strong>：需要保存 / 恢复对象某一时刻的状态（如撤销、快照、回放），又不希望把内部状态直接暴露给外部；通过 “备忘录” 对象保存状态，由原发者自己写入与读出。</p>
-<p><strong>定义</strong>：在不破坏封装性的前提下捕获对象的内部状态，并在对象之外保存这个状态，以便之后恢复。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Originator</strong>：原发者，产生需要保存的状态，可 createMemento () 生成备忘录，也可 restore (memento) 从备忘录恢复。</li>
-<li><strong>Memento</strong>：备忘录，存放 Originator 的内部状态；通常只由 Originator 读写，对外可只暴露给 Caretaker 存储而不暴露内容。</li>
-<li><strong>Caretaker</strong>：负责人，持有 Memento，不操作其内容，只负责 “保存” 和 “交给 Originator 恢复”。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Memento</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    Memento(String state) { <span class="built_in">this</span>.state = state; }</span><br><span class="line">    String <span class="title function_">getState</span><span class="params">()</span> { <span class="keyword">return</span> state; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Originator</span> {</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">save</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Memento</span>(state); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">restore</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.state = m.getState(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Caretaker</span> {</span><br><span class="line">    <span class="keyword">private</span> Memento memento;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">save</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.memento = m; }</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">get</span><span class="params">()</span> { <span class="keyword">return</span> memento; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>Spring Web Flow 状态管理</strong>：流程状态（如 conversation、flow 的 snapshot）被保存以便恢复、回退，可视为 “流程的备忘录”；状态存储在 session 或存储中，由框架管理。</li>
-<li><strong>会话 / 请求级状态</strong>：如 “草稿”“多步表单的已填数据”，保存为某种 Memento 结构（如 Map、DTO），在提交前可恢复或重填。</li>
-<li><strong>事务的 savepoint</strong>：数据库 savepoint 相当于 “事务状态的备忘录”，可回滚到某一点。</li>
-<li><strong>快照 / 版本</strong>：实体保存历史版本（如文档版本、配置版本），需要时恢复到某一版本，本质是 “状态的备忘录 + 恢复”。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>撤销 / 重做</strong>：编辑器中每步操作前保存 Memento，撤销时 restore；命令模式常与备忘录结合（命令里保存执行前状态以便 undo）。</li>
-<li><strong>草稿 / 自动保存</strong>：表单或文档定期把当前状态保存为 Memento，崩溃或关闭后可恢复。</li>
-<li><strong>多步 wizard 的回退</strong>：每步完成后保存当前步骤与数据，用户可回到上一步并恢复当时状态。</li>
-<li><strong>快照与回滚</strong>：配置、脚本、虚拟机等做快照，出问题后回滚到某快照。</li>
-<li><strong>游戏存档</strong>：把角色 / 场景状态序列化为 Memento 存盘，读档时 restore。</li>
-</ul>
-<p><strong>不适用</strong>：状态简单、无需恢复或只需简单 “重算” 即可得到历史状态时，不必引入 Memento。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>备忘录模式通过 “原发者生成 / 恢复 Memento + Caretaker 只负责存储” 实现状态保存与恢复且不破坏封装；Spring 中 <strong>Web Flow 状态</strong>、<strong>会话 / 草稿</strong>、<strong>savepoint</strong> 有体现。业务上适用于<strong>撤销重做、草稿/自动保存、wizard 回退、快照/回滚、存档</strong>等场景。</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-        <category>行为型</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-        <tag>Spring</tag>
-        <tag>备忘录</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式（十五）解释器模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-15-interpreter/</url>
-    <content><![CDATA[<h1 id="解释器模式interpreter"><a class="markdownIt-Anchor" href="#解释器模式interpreter"></a> 解释器模式（Interpreter）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>解释器模式</strong>给定一门语言（或表达式）的表示与解释方式，用解释器解释句子（或表达式）并执行。</p>
-<p><strong>解决的问题</strong>：当存在一种 “小语言”（如表达式、简单脚本、规则描述），需要解析并执行时，用解释器把语法拆成若干类，每类负责一种语法单元的解析与求值。</p>
-<p><strong>定义</strong>：给定一个语言，定义它的文法的一种表示，并定义一个解释器，用该解释器解释语言中的句子。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>AbstractExpression</strong>：抽象表达式，声明 interpret (Context) 接口。</li>
-<li><strong>TerminalExpression</strong>：终结符表达式，对应文法中的终结符（如常量、变量）。</li>
-<li><strong>NonterminalExpression</strong>：非终结符表达式，对应文法中的规则，内部包含多个子表达式并组合求值。</li>
-<li><strong>Context</strong>：上下文，存放变量、输入等，供解释过程使用。</li>
-</ul>
-<p><strong>示例</strong>（简单加减法）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Number</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line">    Number(<span class="type">int</span> value) { <span class="built_in">this</span>.value = value; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> { <span class="keyword">return</span> value; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Expr</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Expr left, right;</span><br><span class="line">    Add(Expr l, Expr r) { left = l; right = r; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">interpret</span><span class="params">(Map&lt;String, Integer&gt; ctx)</span> {</span><br><span class="line">        <span class="keyword">return</span> left.interpret(ctx) + right.interpret(ctx);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>SpEL（Spring Expression Language）</strong>：Spring 的表达式语言，用于 @Value、@ConditionalOnExpression、缓存 key、安全表达式等；内部将表达式解析成 AST 并解释执行，是典型的解释器模式。</li>
-<li><strong>ExpressionParser 与 Expression</strong>：<code>ExpressionParser.parseExpression(expr)</code> 得到 <code>Expression</code>，再 <code>getValue(context)</code> 求值，对应 “解析 + 解释”。</li>
-<li><strong>条件注解中的表达式</strong>：如 <code>@ConditionalOnExpression("...")</code>，字符串被解析并求值，决定是否加载 Bean。</li>
-<li><strong>简单规则引擎</strong>：若业务中用 “规则字符串” 描述条件（如 “age &gt; 18 &amp;&amp; city == ‘Beijing’”），可用解释器或 SpEL 解析并求值。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>配置 / 脚本中的表达式</strong>：如配置里写 <code>"${env}-${version}"</code>、简单运算或条件，需要解析并求值。</li>
-<li><strong>规则 / 策略的文本描述</strong>：如风控规则 “金额 &gt; 10000 且 次数 &gt; 5”，用小型 DSL 描述并由解释器执行。</li>
-<li><strong>查询 / 过滤条件</strong>：用户输入简单条件表达式，解析后生成过滤逻辑或 SQL 条件（需防注入）。</li>
-<li><strong>公式计算</strong>：如报表中的单元格公式、定价公式，用表达式描述并由解释器求值。</li>
-</ul>
-<p><strong>不适用</strong>：语法复杂、性能要求高时，应使用 parser generator 或预编译；简单固定格式用正则或手写解析即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>解释器模式通过 “为语法中的每种符号定义解释类 + 组合求值” 实现小语言的解析与执行；Spring 中 <strong>SpEL</strong>、<strong>ExpressionParser/Expression</strong>、<strong>条件表达式</strong> 是典型应用。业务上适用于<strong>配置表达式、规则描述、简单公式 / 条件</strong>等场景。</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-        <category>行为型</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-        <tag>Spring</tag>
-        <tag>解释器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式（五）原型模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-05-prototype/</url>
-    <content><![CDATA[<h1 id="原型模式prototype"><a class="markdownIt-Anchor" href="#原型模式prototype"></a> 原型模式（Prototype）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>原型模式</strong>用原型实例指定创建对象的种类，并通过复制该原型创建新对象。</p>
-<p><strong>解决的问题</strong>：当直接 new 成本高（如构造需大量计算或 I / O），或希望基于已有对象 “复制一份再改” 时，通过克隆避免重复初始化。</p>
-<p><strong>定义</strong>：用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
-<hr>
-<h2 id="二-结构与实现"><a class="markdownIt-Anchor" href="#二-结构与实现"></a> 二、结构与实现</h2>
-<ul>
-<li><strong>Prototype</strong>：声明克隆方法的接口（Java 中常用 <code>Cloneable</code> + <code>clone()</code>）。</li>
-<li><strong>ConcretePrototype</strong>：实现克隆逻辑；浅拷贝直接复制字段，深拷贝需递归复制引用类型。</li>
-</ul>
-<p><strong>示例（浅拷贝）</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Document</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> {</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; paragraphs;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Document <span class="title function_">clone</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            <span class="keyword">return</span> (Document) <span class="built_in">super</span>.clone(); <span class="comment">// 浅拷贝，paragraphs 仍共享引用</span></span><br><span class="line">        } <span class="keyword">catch</span> (CloneNotSupportedException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>深拷贝可重写 <code>clone()</code> 中对 <code>paragraphs</code> 等集合做 new 并复制元素，或使用序列化 / 拷贝构造器等方式。</p>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>Bean 的 scope=“prototype”</strong>：每次 <code>getBean()</code> 或注入时，容器都会<strong>新建一个实例</strong>，相当于 “根据 Bean 定义这一‘原型’复制出新对象”；与单例的 “只一份” 相对。</li>
-<li><strong>ObjectFactory / Provider 注入</strong>：获取 prototype Bean 时，通过 <code>ObjectFactory&lt;T&gt;</code> 或 <code>Provider&lt;T&gt;</code> 延迟获取，每次 <code>getObject()</code> 得到新实例，避免单例 Bean 持有 prototype 导致只拿到同一实例的问题。</li>
-<li><strong>Bean 的创建过程</strong>：容器内部根据 BeanDefinition 创建实例，可视为 “按定义原型创建”，但一般不直接实现 <code>Cloneable</code>，而是反射 / 构造器创建。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>创建成本高、状态可复制</strong>：如大对象初始化慢，或从模板复制后只改少量字段（如合同、工单从模板生成）。</li>
-<li><strong>需要隔离实例状态</strong>：如每次请求 / 会话需要独立对象，避免线程或请求间共享导致并发问题，Spring 中对应 <strong>prototype 作用域</strong>。</li>
-<li><strong>撤销 / 重做、快照</strong>：保存当前状态的一份拷贝，后续可恢复或对比（需深拷贝以保证一致性）。</li>
-<li><strong>缓存与模板</strong>：从缓存中的 “模板对象” 克隆出一份再填充数据，避免污染模板。</li>
-</ul>
-<p><strong>不适用</strong>：对象无状态或创建成本很低时，用 new 或工厂即可；深拷贝成本高或引用关系复杂时需权衡。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>原型模式通过 “克隆已有对象” 创建新对象，避免重复昂贵初始化；Spring 中 <strong>prototype 作用域</strong> 与 <strong>ObjectFactory/Provider</strong> 体现了 “按需创建新实例” 的思想。业务上适用于<strong>高创建成本、需实例隔离、模板复制、快照 / 撤销</strong>等场景。</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-        <category>创建型</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-        <tag>Spring</tag>
-        <tag>原型</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>设计模式（十九）观察者模式 — 详解、Spring 运用与业务场景</title>
     <url>/2025/03/01/2025-03-02-design-pattern-19-observer/</url>
     <content><![CDATA[<h1 id="观察者模式observer"><a class="markdownIt-Anchor" href="#观察者模式observer"></a> 观察者模式（Observer）</h1>
@@ -1353,43 +1304,43 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式（二十）状态模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-20-state/</url>
-    <content><![CDATA[<h1 id="状态模式state"><a class="markdownIt-Anchor" href="#状态模式state"></a> 状态模式（State）</h1>
+    <title>设计模式（十八）备忘录模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-18-memento/</url>
+    <content><![CDATA[<h1 id="备忘录模式memento"><a class="markdownIt-Anchor" href="#备忘录模式memento"></a> 备忘录模式（Memento）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>状态模式</strong>允许对象在内部状态改变时改变其行为，对象看起来像是修改了类。</p>
-<p><strong>解决的问题</strong>：当对象行为依赖多种状态且不同状态下行为差异大时，若用大量 if-else/switch 会难以维护；把 “每种状态” 封装成独立类，状态转换时切换当前状态对象，行为随状态对象变化。</p>
-<p><strong>定义</strong>：允许一个对象在其内部状态改变时改变它的行为，对象看起来修改了它的类。</p>
+<p><strong>备忘录模式</strong>在不破坏封装的前提下捕获对象的内部状态，并在对象之外保存该状态，以便之后恢复。</p>
+<p><strong>解决的问题</strong>：需要保存 / 恢复对象某一时刻的状态（如撤销、快照、回放），又不希望把内部状态直接暴露给外部；通过 “备忘录” 对象保存状态，由原发者自己写入与读出。</p>
+<p><strong>定义</strong>：在不破坏封装性的前提下捕获对象的内部状态，并在对象之外保存这个状态，以便之后恢复。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Context</strong>：上下文，持有当前 State，客户请求委托给当前 state 处理；可提供 setState () 供状态类切换状态。</li>
-<li><strong>State</strong>：抽象状态，定义行为接口（如 handle ()）。</li>
-<li><strong>ConcreteState</strong>：具体状态，实现行为，并在适当时机调用 context.setState(nextState) 切换状态。</li>
+<li><strong>Originator</strong>：原发者，产生需要保存的状态，可 createMemento () 生成备忘录，也可 restore (memento) 从备忘录恢复。</li>
+<li><strong>Memento</strong>：备忘录，存放 Originator 的内部状态；通常只由 Originator 读写，对外可只暴露给 Caretaker 存储而不暴露内容。</li>
+<li><strong>Caretaker</strong>：负责人，持有 Memento，不操作其内容，只负责 “保存” 和 “交给 Originator 恢复”。</li>
 </ul>
 <p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">State</span> { <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> State state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(State s)</span> { <span class="built_in">this</span>.state = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> { state.handle(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteStateA</span> <span class="keyword">implements</span> <span class="title class_">State</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span> {</span><br><span class="line">        <span class="comment">// 处理并可能切换</span></span><br><span class="line">        ctx.setState(<span class="keyword">new</span> <span class="title class_">ConcreteStateB</span>());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Memento</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    Memento(String state) { <span class="built_in">this</span>.state = state; }</span><br><span class="line">    String <span class="title function_">getState</span><span class="params">()</span> { <span class="keyword">return</span> state; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Originator</span> {</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">save</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Memento</span>(state); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">restore</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.state = m.getState(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Caretaker</span> {</span><br><span class="line">    <span class="keyword">private</span> Memento memento;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">save</span><span class="params">(Memento m)</span> { <span class="built_in">this</span>.memento = m; }</span><br><span class="line">    <span class="keyword">public</span> Memento <span class="title function_">get</span><span class="params">()</span> { <span class="keyword">return</span> memento; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>Spring State Machine</strong>：spring-statemachine 库显式支持状态机建模，状态与迁移由配置或代码定义，事件驱动迁移，是状态模式的完整实现；适用于订单、工作流、审批等有明确状态与迁移的场景。</li>
-<li><strong>Bean 生命周期</strong>：Bean 的创建、初始化、运行、销毁等可视为不同 “状态”，容器在不同状态下执行不同逻辑（如 PostProcessor、InitializingBean），可抽象为状态思想。</li>
-<li><strong>连接 / 会话状态</strong>：如 TCP 连接、WebSocket 会话的 “未连接/已连接/关闭中/已关闭”，用状态对象封装各阶段行为与迁移条件。</li>
-<li><strong>事务状态</strong>：事务管理器内部有 “无事务/活跃/提交中/回滚中” 等状态，行为（提交、回滚、挂起）随状态变化。</li>
+<li><strong>Spring Web Flow 状态管理</strong>：流程状态（如 conversation、flow 的 snapshot）被保存以便恢复、回退，可视为 “流程的备忘录”；状态存储在 session 或存储中，由框架管理。</li>
+<li><strong>会话 / 请求级状态</strong>：如 “草稿”“多步表单的已填数据”，保存为某种 Memento 结构（如 Map、DTO），在提交前可恢复或重填。</li>
+<li><strong>事务的 savepoint</strong>：数据库 savepoint 相当于 “事务状态的备忘录”，可回滚到某一点。</li>
+<li><strong>快照 / 版本</strong>：实体保存历史版本（如文档版本、配置版本），需要时恢复到某一版本，本质是 “状态的备忘录 + 恢复”。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>订单/工单/审批流</strong>：待支付、已支付、发货中、已完成、已取消等，每状态下可执行的操作与下一状态不同，用状态模式（或状态机）清晰建模。</li>
-<li><strong>游戏 / 动画</strong>：角色 “待机/跑/攻击/受伤” 等，每状态对应不同动画与输入响应，切换状态即切换行为。</li>
-<li><strong>连接 / 会话管理</strong>：连接建立、认证、传输、关闭等阶段，每阶段允许的操作与错误处理不同。</li>
-<li><strong>UI 控件</strong>：按钮 “正常/禁用/加载中”，不同状态下点击行为、样式不同。</li>
-<li><strong>协议解析</strong>：解析器处于 “读头/读体/读尾” 等状态，收到数据时根据当前状态决定如何处理与迁移。</li>
+<li><strong>撤销 / 重做</strong>：编辑器中每步操作前保存 Memento，撤销时 restore；命令模式常与备忘录结合（命令里保存执行前状态以便 undo）。</li>
+<li><strong>草稿 / 自动保存</strong>：表单或文档定期把当前状态保存为 Memento，崩溃或关闭后可恢复。</li>
+<li><strong>多步 wizard 的回退</strong>：每步完成后保存当前步骤与数据，用户可回到上一步并恢复当时状态。</li>
+<li><strong>快照与回滚</strong>：配置、脚本、虚拟机等做快照，出问题后回滚到某快照。</li>
+<li><strong>游戏存档</strong>：把角色 / 场景状态序列化为 Memento 存盘，读档时 restore。</li>
 </ul>
-<p><strong>不适用</strong>：状态很少、行为差异不大时，简单分支即可。</p>
+<p><strong>不适用</strong>：状态简单、无需恢复或只需简单 “重算” 即可得到历史状态时，不必引入 Memento。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>状态模式通过 “状态即对象 + 行为委托给当前状态 + 状态间迁移” 消除复杂分支；Spring 中 <strong>Spring State Machine</strong>、<strong>Bean 生命周期</strong>、<strong>连接 / 事务状态</strong> 有体现。业务上适用于<strong>订单/工作流、游戏/动画、连接/会话、UI 状态、协议解析</strong>等场景。</p>
+<p>备忘录模式通过 “原发者生成 / 恢复 Memento + Caretaker 只负责存储” 实现状态保存与恢复且不破坏封装；Spring 中 <strong>Web Flow 状态</strong>、<strong>会话 / 草稿</strong>、<strong>savepoint</strong> 有体现。业务上适用于<strong>撤销重做、草稿/自动保存、wizard 回退、快照/回滚、存档</strong>等场景。</p>
 ]]></content>
       <categories>
         <category>设计模式</category>
@@ -1398,58 +1349,7 @@
       <tags>
         <tag>设计模式</tag>
         <tag>Spring</tag>
-        <tag>状态</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>设计模式（二十三）访问者模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-23-visitor/</url>
-    <content><![CDATA[<h1 id="访问者模式visitor"><a class="markdownIt-Anchor" href="#访问者模式visitor"></a> 访问者模式（Visitor）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>访问者模式</strong>将作用于某对象结构中的各元素的操作封装成访问者，可在不改变各元素类的前提下定义作用于这些元素的新操作。</p>
-<p><strong>解决的问题</strong>：对象结构（如 AST、组合结构）稳定，但需要经常增加 “对结构中元素的新操作”；若把操作写在每个元素里会导致元素类不断修改；访问者把 “操作” 从元素中抽离，每种操作一个 Visitor，元素只负责 accept (visitor) 并委托 visitor.visit(this)。</p>
-<p><strong>定义</strong>：表示一个作用于某对象结构中的各元素的操作；可以在不改变各元素类的前提下定义作用于这些元素的新操作。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Visitor</strong>：访问者接口，为结构中每个具体元素声明 visit (ConcreteElement) 方法。</li>
-<li><strong>ConcreteVisitor</strong>：具体访问者，实现每个 visit 方法，即 “对某类元素做某种操作” 的具体逻辑。</li>
-<li><strong>Element</strong>：元素接口，声明 accept (Visitor)。</li>
-<li><strong>ConcreteElement</strong>：具体元素，accept 中调用 visitor.visit(this)，把自身交给访问者处理。</li>
-<li><strong>ObjectStructure</strong>：对象结构，持有一组 Element，可提供 “遍历并 accept 某 visitor” 的入口。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Element</span> { <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span>; }</span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Visitor</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementA a)</span>;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementB b)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ElementA</span> <span class="keyword">implements</span> <span class="title class_">Element</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span> { v.visit(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ElementB</span> <span class="keyword">implements</span> <span class="title class_">Element</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span> { v.visit(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteVisitor</span> <span class="keyword">implements</span> <span class="title class_">Visitor</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementA a)</span> { <span class="comment">/* 对 A 的操作 */</span> }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementB b)</span> { <span class="comment">/* 对 B 的操作 */</span> }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>BeanDefinitionVisitor</strong>：遍历 BeanDefinition 中的属性、构造参数等 “元素”，对其中引用的字符串、值做访问（如解析占位符、计算），可视为 “对 BeanDefinition 结构的访问者”。</li>
-<li><strong>元数据访问</strong>：对类、方法、字段上的注解做 “扫描”“校验”“生成配置” 等不同操作时，每种操作可对应一个访问者，遍历元数据并 accept。</li>
-<li><strong>AST / 表达式树</strong>：若用树表示表达式或 DSL，对树的 “求值”“打印”“优化” 等不同操作可用不同 Visitor 实现，Spring 的 SpEL 等内部有类似结构。</li>
-<li><strong>序列化 / 反序列化</strong>：对对象图的 “遍历并序列化” 可抽象为访问者，不同格式（JSON / XML）对应不同 Visitor。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>稳定结构 + 多变操作</strong>：如语法树、DOM、组合树，结构稳定，但需要 “类型检查”“格式化”“求值”“翻译” 等多种操作，每种操作一个 Visitor，便于新增操作而不改节点类。</li>
-<li><strong>报表 / 统计</strong>：对同一批数据做 “汇总”“导出 Excel”“导出 PDF” 等，数据视为元素，每种导出方式一个 Visitor。</li>
-<li><strong>编译器 / 解释器</strong>：AST 的语义分析、代码生成、优化等，各阶段可视为不同访问者遍历同一棵 AST。</li>
-<li><strong>差异 / 合并</strong>：比较两棵结构（如配置树、文档树），可对其中一棵用 “比较访问者”（另一棵作为参数）实现 diff / merge。</li>
-<li><strong>序列化 / 遍历对象图</strong>：按固定顺序遍历对象图并做不同处理（序列化、拷贝、校验），可用访问者封装 “处理逻辑”。</li>
-</ul>
-<p><strong>不适用</strong>：结构经常变化（增删节点类型）时，每增加节点类型就要改所有 Visitor，反而麻烦；此时考虑其他方式（如策略 + 类型分发）。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>访问者模式通过 “元素 accept (visitor) + visitor.visit(具体元素)” 把 “对结构的操作” 从元素中分离；Spring 中 <strong>BeanDefinitionVisitor</strong>、<strong>元数据扫描 / 处理</strong>、<strong>AST / 表达式处理</strong> 有体现。业务上适用于<strong>稳定结构上的多种操作、报表/导出、编译器/解释器、diff/merge、对象图遍历</strong>等场景。</p>
-]]></content>
-      <categories>
-        <category>设计模式</category>
-        <category>行为型</category>
-      </categories>
-      <tags>
-        <tag>设计模式</tag>
-        <tag>Spring</tag>
-        <tag>访问者</tag>
+        <tag>备忘录</tag>
       </tags>
   </entry>
   <entry>
@@ -1501,44 +1401,45 @@
       </tags>
   </entry>
   <entry>
-    <title>设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景</title>
-    <url>/2025/03/01/2025-03-02-design-pattern-21-strategy/</url>
-    <content><![CDATA[<h1 id="策略模式strategy"><a class="markdownIt-Anchor" href="#策略模式strategy"></a> 策略模式（Strategy）</h1>
+    <title>设计模式（二十三）访问者模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-23-visitor/</url>
+    <content><![CDATA[<h1 id="访问者模式visitor"><a class="markdownIt-Anchor" href="#访问者模式visitor"></a> 访问者模式（Visitor）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>策略模式</strong>定义一系列算法，将每个算法封装起来并使它们可互换；策略使算法独立于使用它的客户而变化。</p>
-<p><strong>解决的问题</strong>：同一类问题有多种解法（如多种排序、多种支付、多种校验），若用 if-else 堆砌会难以扩展；把每种解法抽成独立策略类，客户依赖策略接口，运行时注入不同实现即可切换。</p>
-<p><strong>定义</strong>：定义一系列算法，把它们一个个封装起来，并且使它们可以相互替换；策略模式使算法独立于使用它的客户。</p>
+<p><strong>访问者模式</strong>将作用于某对象结构中的各元素的操作封装成访问者，可在不改变各元素类的前提下定义作用于这些元素的新操作。</p>
+<p><strong>解决的问题</strong>：对象结构（如 AST、组合结构）稳定，但需要经常增加 “对结构中元素的新操作”；若把操作写在每个元素里会导致元素类不断修改；访问者把 “操作” 从元素中抽离，每种操作一个 Visitor，元素只负责 accept (visitor) 并委托 visitor.visit(this)。</p>
+<p><strong>定义</strong>：表示一个作用于某对象结构中的各元素的操作；可以在不改变各元素类的前提下定义作用于这些元素的新操作。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Strategy</strong>：策略接口，定义算法方法（如 execute (data)）。</li>
-<li><strong>ConcreteStrategy</strong>：具体策略，实现不同算法。</li>
-<li><strong>Context</strong>：上下文，持有 Strategy，将客户请求委托给当前策略；可在构造或 setter 中注入策略。</li>
+<li><strong>Visitor</strong>：访问者接口，为结构中每个具体元素声明 visit (ConcreteElement) 方法。</li>
+<li><strong>ConcreteVisitor</strong>：具体访问者，实现每个 visit 方法，即 “对某类元素做某种操作” 的具体逻辑。</li>
+<li><strong>Element</strong>：元素接口，声明 accept (Visitor)。</li>
+<li><strong>ConcreteElement</strong>：具体元素，accept 中调用 visitor.visit(this)，把自身交给访问者处理。</li>
+<li><strong>ObjectStructure</strong>：对象结构，持有一组 Element，可提供 “遍历并 accept 某 visitor” 的入口。</li>
 </ul>
 <p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Strategy</span> { <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a + b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Multiply</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a * b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> Strategy strategy;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrategy</span><span class="params">(Strategy s)</span> { <span class="built_in">this</span>.strategy = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">execute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> strategy.compute(a, b); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Element</span> { <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span>; }</span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Visitor</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementA a)</span>;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementB b)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ElementA</span> <span class="keyword">implements</span> <span class="title class_">Element</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span> { v.visit(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ElementB</span> <span class="keyword">implements</span> <span class="title class_">Element</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Visitor v)</span> { v.visit(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteVisitor</span> <span class="keyword">implements</span> <span class="title class_">Visitor</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementA a)</span> { <span class="comment">/* 对 A 的操作 */</span> }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(ElementB b)</span> { <span class="comment">/* 对 B 的操作 */</span> }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>ResourceLoader / 资源加载策略</strong>：根据 URL 前缀（file:、classpath:、http:）选择不同 Resource 实现，可视为 “按前缀选择加载策略”；Spring 内置多种 Resource 实现，由 ResourceLoader 路由。</li>
-<li><strong>AOP 代理策略</strong>：JdkDynamicAopProxy 与 Cglib2AopProxy 是两种 “生成代理” 的策略，根据目标是否实现接口选择其一。</li>
-<li><strong>PlatformTransactionManager 与具体实现</strong>：事务管理是抽象，DataSourceTransactionManager、HibernateTransactionManager 等是不同策略，由配置或自动装配决定使用哪种。</li>
-<li><strong>MessageConverter</strong>：HTTP 消息的序列化 / 反序列化有多种策略（JSON、XML 等），根据 Content-Type 或配置选择不同 Converter。</li>
-<li><strong>CacheManager</strong>：缓存抽象，Redis、Caffeine、Simple 等是不同策略，通过配置切换。</li>
+<li><strong>BeanDefinitionVisitor</strong>：遍历 BeanDefinition 中的属性、构造参数等 “元素”，对其中引用的字符串、值做访问（如解析占位符、计算），可视为 “对 BeanDefinition 结构的访问者”。</li>
+<li><strong>元数据访问</strong>：对类、方法、字段上的注解做 “扫描”“校验”“生成配置” 等不同操作时，每种操作可对应一个访问者，遍历元数据并 accept。</li>
+<li><strong>AST / 表达式树</strong>：若用树表示表达式或 DSL，对树的 “求值”“打印”“优化” 等不同操作可用不同 Visitor 实现，Spring 的 SpEL 等内部有类似结构。</li>
+<li><strong>序列化 / 反序列化</strong>：对对象图的 “遍历并序列化” 可抽象为访问者，不同格式（JSON / XML）对应不同 Visitor。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>多种算法 / 规则可替换</strong>：如支付（微信/支付宝/银联）、运费计算（按重量/按体积/固定）、折扣（满减/会员价/券），每种一种策略，便于新增与测试。</li>
-<li><strong>多数据源 / 多协议</strong>：根据配置或路由键选择不同数据源、不同 RPC 协议，客户只依赖 “获取连接 / 发请求” 的接口。</li>
-<li><strong>多格式解析 / 序列化</strong>：同一业务数据支持 JSON/XML/二进制等多种格式，每种格式一个策略。</li>
-<li><strong>多验证规则</strong>：校验逻辑有多种（格式、黑名单、风控），可组合或按场景选不同策略。</li>
-<li><strong>多通知渠道</strong>：发送通知支持短信/邮件/站内信/推送，每种渠道一个策略，由配置或业务选择。</li>
+<li><strong>稳定结构 + 多变操作</strong>：如语法树、DOM、组合树，结构稳定，但需要 “类型检查”“格式化”“求值”“翻译” 等多种操作，每种操作一个 Visitor，便于新增操作而不改节点类。</li>
+<li><strong>报表 / 统计</strong>：对同一批数据做 “汇总”“导出 Excel”“导出 PDF” 等，数据视为元素，每种导出方式一个 Visitor。</li>
+<li><strong>编译器 / 解释器</strong>：AST 的语义分析、代码生成、优化等，各阶段可视为不同访问者遍历同一棵 AST。</li>
+<li><strong>差异 / 合并</strong>：比较两棵结构（如配置树、文档树），可对其中一棵用 “比较访问者”（另一棵作为参数）实现 diff / merge。</li>
+<li><strong>序列化 / 遍历对象图</strong>：按固定顺序遍历对象图并做不同处理（序列化、拷贝、校验），可用访问者封装 “处理逻辑”。</li>
 </ul>
-<p><strong>不适用</strong>：算法唯一或很少变化时，直接实现即可。</p>
+<p><strong>不适用</strong>：结构经常变化（增删节点类型）时，每增加节点类型就要改所有 Visitor，反而麻烦；此时考虑其他方式（如策略 + 类型分发）。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>策略模式通过 “策略接口 + 多种实现 + 上下文委托” 使算法可替换、易扩展；Spring 中 <strong>ResourceLoader</strong>、<strong>AOP 代理选择</strong>、<strong>事务管理器</strong>、<strong>MessageConverter</strong>、<strong>CacheManager</strong> 都是策略思想的体现。业务上适用于<strong>多种支付/计算/校验、多数据源/多协议、多格式、多通知渠道</strong>等场景。</p>
+<p>访问者模式通过 “元素 accept (visitor) + visitor.visit(具体元素)” 把 “对结构的操作” 从元素中分离；Spring 中 <strong>BeanDefinitionVisitor</strong>、<strong>元数据扫描 / 处理</strong>、<strong>AST / 表达式处理</strong> 有体现。业务上适用于<strong>稳定结构上的多种操作、报表/导出、编译器/解释器、diff/merge、对象图遍历</strong>等场景。</p>
 ]]></content>
       <categories>
         <category>设计模式</category>
@@ -1547,7 +1448,7 @@
       <tags>
         <tag>设计模式</tag>
         <tag>Spring</tag>
-        <tag>策略</tag>
+        <tag>访问者</tag>
       </tags>
   </entry>
   <entry>
@@ -1709,169 +1610,11 @@
         <category>源码解读</category>
       </categories>
       <tags>
-        <tag>源码解读</tag>
         <tag>java</tag>
+        <tag>源码解读</tag>
         <tag>动态代理</tag>
         <tag>Proxy</tag>
         <tag>InvocationHandler</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java 标准库 Serializable 整体实现流程（源码与示例）</title>
-    <url>/2025/03/01/2025-03-02-java-serializable-implementation/</url>
-    <content><![CDATA[<h1 id="java-标准库-serializable-整体实现流程源码与示例"><a class="markdownIt-Anchor" href="#java-标准库-serializable-整体实现流程源码与示例"></a> Java 标准库 Serializable 整体实现流程（源码与示例）</h1>
-<p>本文用 JDK 标准库（<code>java.io</code>）里的关键类 / 方法名 + 伪源码结构（接近 OpenJDK 源码组织方式），配合可运行示例，把 <strong>Serializable 从对象写出到读回</strong> 的整体实现流程讲清楚。</p>
-<hr>
-<h2 id="一-serializable-是标记接口真正干活的是-oosois"><a class="markdownIt-Anchor" href="#一-serializable-是标记接口真正干活的是-oosois"></a> 一、Serializable 是 “标记接口”，真正干活的是 OOS / OIS</h2>
-<p><code>Serializable</code> 本身几乎没有代码：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> java.io;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Serializable</span> { }</span><br></pre></td></tr></tbody></table></figure>
-<p>它的意义：告诉序列化框架 ——<strong> 这个类允许被 Java 默认序列化机制处理</strong>。</p>
-<p>真正的入口在：</p>
-<ul>
-<li><strong>写出</strong>：<code>java.io.ObjectOutputStream</code></li>
-<li><strong>读回</strong>：<code>java.io.ObjectInputStream</code></li>
-</ul>
-<hr>
-<h2 id="二-写出流程objectoutputstream从-writeobject-到字节流"><a class="markdownIt-Anchor" href="#二-写出流程objectoutputstream从-writeobject-到字节流"></a> 二、写出流程（ObjectOutputStream）：从 writeObject 到字节流</h2>
-<h3 id="21-入口writeobjectobject-obj"><a class="markdownIt-Anchor" href="#21-入口writeobjectobject-obj"></a> 2.1 入口：writeObject (Object obj)</h3>
-<p>典型调用：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(out)) {</span><br><span class="line">    oos.writeObject(obj);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>核心流程（接近源码结构的伪源码）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    writeObject0(obj, <span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject0</span><span class="params">(Object obj, <span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">null</span>) { writeNull(); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1) 处理循环引用/重复引用：句柄表（HandleTable）</span></span><br><span class="line">    <span class="keyword">if</span> (handles.contains(obj)) { writeHandle(handles.lookup(obj)); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2) 写类描述（class descriptor）</span></span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> ObjectStreamClass.lookup(obj.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3) 根据对象类型分派</span></span><br><span class="line">    <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> String) writeString((String)obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj.getClass().isArray()) writeArray(obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> Enum) writeEnum((Enum)obj);</span><br><span class="line">    <span class="keyword">else</span> writeOrdinaryObject(obj, desc);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="22-关键objectstreamclass类的序列化描述"><a class="markdownIt-Anchor" href="#22-关键objectstreamclass类的序列化描述"></a> 2.2 关键：ObjectStreamClass（类的 “序列化描述”）</h3>
-<p><code>ObjectStreamClass</code> 负责：</p>
-<ul>
-<li>判断类是否 <code>Serializable</code></li>
-<li>计算 / 读取 <code>serialVersionUID</code></li>
-<li>收集可序列化字段（排除 <code>static</code>、排除 <code>transient</code>）</li>
-<li>解析是否存在私有钩子方法：<code>writeObject</code> / <code>readObject</code> / <code>readResolve</code> / <code>writeReplace</code></li>
-</ul>
-<p>伪源码：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> ObjectStreamClass <span class="title function_">lookup</span><span class="params">(Class&lt;?&gt; cl)</span> {</span><br><span class="line">    <span class="comment">// cache</span></span><br><span class="line">    <span class="comment">// if implements Serializable =&gt; build descriptor:</span></span><br><span class="line">    <span class="comment">//   - serialVersionUID</span></span><br><span class="line">    <span class="comment">//   - fields (ObjectStreamField[])</span></span><br><span class="line">    <span class="comment">//   - hasWriteObjectMethod?</span></span><br><span class="line">    <span class="comment">//   - hasReadObjectMethod?</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="23-写普通对象writeordinaryobject"><a class="markdownIt-Anchor" href="#23-写普通对象writeordinaryobject"></a> 2.3 写普通对象：writeOrdinaryObject</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeOrdinaryObject</span><span class="params">(Object obj, ObjectStreamClass desc)</span> {</span><br><span class="line">    writeClassDesc(desc);</span><br><span class="line">    handles.assign(obj);           <span class="comment">// 先登记，解决循环引用</span></span><br><span class="line">    desc.writeObject(obj, <span class="built_in">this</span>);   <span class="comment">// 默认字段 or 自定义 writeObject</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="24-两条路线默认字段序列化-vs-自定义-writeobject"><a class="markdownIt-Anchor" href="#24-两条路线默认字段序列化-vs-自定义-writeobject"></a> 2.4 两条路线：默认字段序列化 vs 自定义 writeObject</h3>
-<ul>
-<li><strong>默认序列化</strong>（没有定义 <code>private void writeObject</code>）：<code>defaultWriteFields(obj, desc)</code>，按收集到的字段顺序写出。</li>
-<li><strong>自定义序列化</strong>（类里定义了 <code>private void writeObject(ObjectOutputStream out)</code>）：JDK 用反射调用你的私有方法，你通常会先 <code>out.defaultWriteObject()</code>，再写自定义数据。</li>
-</ul>
-<hr>
-<h2 id="三-读回流程objectinputstream从-readobject-到对象还原"><a class="markdownIt-Anchor" href="#三-读回流程objectinputstream从-readobject-到对象还原"></a> 三、读回流程（ObjectInputStream）：从 readObject 到对象还原</h2>
-<h3 id="31-入口readobject"><a class="markdownIt-Anchor" href="#31-入口readobject"></a> 3.1 入口：readObject ()</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(in)) {</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>伪源码结构：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title function_">readObject</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> readObject0(<span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Object <span class="title function_">readObject0</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">byte</span> <span class="variable">tc</span> <span class="operator">=</span> readTC();</span><br><span class="line">    <span class="keyword">switch</span> (tc) {</span><br><span class="line">        <span class="keyword">case</span> TC_NULL: <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">case</span> TC_REFERENCE: <span class="keyword">return</span> handles.lookup(readHandle());</span><br><span class="line">        <span class="keyword">case</span> TC_STRING: <span class="keyword">return</span> readString();</span><br><span class="line">        <span class="keyword">case</span> TC_ARRAY: <span class="keyword">return</span> readArray();</span><br><span class="line">        <span class="keyword">case</span> TC_ENUM: <span class="keyword">return</span> readEnum();</span><br><span class="line">        <span class="keyword">case</span> TC_OBJECT: <span class="keyword">return</span> readOrdinaryObject(unshared);</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="32-读普通对象readordinaryobject"><a class="markdownIt-Anchor" href="#32-读普通对象readordinaryobject"></a> 3.2 读普通对象：readOrdinaryObject</h3>
-<p>关键步骤：读 classDesc → 创建实例（通常不调用你的构造方法）→ 先塞进 handle 表 → 读字段 → 若有 <code>readObject</code> 则回调 → 若有 <code>readResolve</code> 则替换返回对象。</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readOrdinaryObject</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> readClassDesc();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> desc.newInstance();</span><br><span class="line">    handles.assign(obj);</span><br><span class="line">    desc.readObject(obj, <span class="built_in">this</span>);</span><br><span class="line">    obj = desc.invokeReadResolve(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="33-serialversionuid-校验"><a class="markdownIt-Anchor" href="#33-serialversionuid-校验"></a> 3.3 serialVersionUID 校验</h3>
-<p>在读 classDesc、把流中的描述映射到本地类时，会比较流里写入的 <code>serialVersionUID</code> 与本地类的 <code>serialVersionUID</code>，不一致就抛 <code>InvalidClassException</code>。</p>
-<hr>
-<h2 id="四-句柄表handletable循环引用与重复引用"><a class="markdownIt-Anchor" href="#四-句柄表handletable循环引用与重复引用"></a> 四、句柄表（HandleTable）：循环引用与重复引用</h2>
-<h3 id="41-为什么需要句柄"><a class="markdownIt-Anchor" href="#41-为什么需要句柄"></a> 4.1 为什么需要句柄？</h3>
-<ul>
-<li><strong>重复引用</strong>要保持同一性：<code>a.x == a.y</code> 指向同一对象时，反序列化后也必须 <code>==</code>。</li>
-<li><strong>对象图可能有环</strong>：若每次遇到对象都 “深拷贝写一遍”，有环会无限递归、栈溢出。</li>
-</ul>
-<p>所以需要 “已见对象登记表”<strong>HandleTable</strong>：给每个<strong>第一次出现</strong>的对象分配递增的整数 id（handle），之后再遇到同一对象就写 <strong>TC_REFERENCE + handle</strong>。</p>
-<h3 id="42-handletable-数据结构源码风格"><a class="markdownIt-Anchor" href="#42-handletable-数据结构源码风格"></a> 4.2 HandleTable 数据结构（源码风格）</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">HandleTable</span> {</span><br><span class="line">    <span class="type">int</span>[] spine;       <span class="comment">// 哈希桶头结点</span></span><br><span class="line">    <span class="type">int</span>[] next;        <span class="comment">// 链表 next</span></span><br><span class="line">    Object[] objs;     <span class="comment">// 对象引用</span></span><br><span class="line">    <span class="type">int</span> size;          <span class="comment">// 已分配句柄数</span></span><br><span class="line">    <span class="type">int</span> threshold;</span><br><span class="line">    <span class="type">float</span> loadFactor;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 登记并返回 handle</span></span><br><span class="line">    <span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 查 handle，找不到返回 -1</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>按<strong>对象 identity</strong> 追踪：用 <code>System.identityHashCode(obj)</code> 做 hash，用 <code>==</code> 做相等判断（不是 <code>equals()</code>）。</li>
-<li>哈希桶 + 链式冲突：<code>spine[bucket]</code> 存该桶链表第一个 entry 的下标，<code>next[i]</code> 连接链表。</li>
-</ul>
-<h3 id="43-lookup判断这个对象以前写过没"><a class="markdownIt-Anchor" href="#43-lookup判断这个对象以前写过没"></a> 4.3 lookup：判断 “这个对象以前写过没？”</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> spine[bucket]; i &gt;= <span class="number">0</span>; i = next[i]) {</span><br><span class="line">        <span class="keyword">if</span> (objs[i] == obj)   <span class="comment">// identity 比较</span></span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="44-assign第一次见到对象时登记"><a class="markdownIt-Anchor" href="#44-assign第一次见到对象时登记"></a> 4.4 assign：第一次见到对象时登记</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= next.length) growEntries();</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= threshold) growSpine();</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    objs[size] = obj;</span><br><span class="line">    next[size] = spine[bucket];</span><br><span class="line">    spine[bucket] = size;</span><br><span class="line">    <span class="keyword">return</span> size++;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="45-写入时何时写-tc_reference何时-assign"><a class="markdownIt-Anchor" href="#45-写入时何时写-tc_reference何时-assign"></a> 4.5 写入时：何时写 TC_REFERENCE？何时 assign？</h3>
-<ul>
-<li><strong>重复引用</strong>：<code>lookup(obj) != -1</code> 时，写 <code>TC_REFERENCE + (baseWireHandle + handle)</code>。</li>
-<li><strong>写对象本体前必须先 assign</strong>：这样在写字段时若再次遇到自己（如 <code>n.next = n</code>），<code>lookup</code> 会命中，直接写引用，不会无限递归。</li>
-</ul>
-<h3 id="46-identityhashcode-会冲突吗"><a class="markdownIt-Anchor" href="#46-identityhashcode-会冲突吗"></a> 4.6 identityHashCode 会冲突吗？</h3>
-<p>会。<code>System.identityHashCode(obj)</code> 是 32 位 int，不同对象可能得到相同值。HandleTable <strong>不依赖 hash 唯一性</strong>：用 hash 选桶，用 <strong><code>==</code></strong> 做最终确认；冲突只会让同一桶内链表变长，不会误判。</p>
-<hr>
-<h2 id="五-descwriteobjectobj-this-源码与输出内容"><a class="markdownIt-Anchor" href="#五-descwriteobjectobj-this-源码与输出内容"></a> 五、desc.writeObject(obj, this) 源码与输出内容</h2>
-<p>在 <code>ObjectStreamClass</code> 里：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj, ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    <span class="keyword">if</span> (writeObjectMethod != <span class="literal">null</span>) {</span><br><span class="line">        invokeWriteObject(obj, out);   <span class="comment">// 反射调用 private writeObject</span></span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        defaultWriteFields(obj, out);   <span class="comment">// 按字段类型逐个写出</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li><strong>defaultWriteFields</strong>：遍历 <code>ObjectStreamField[]</code>，用反射取字段值，按类型调用 <code>out.writeInt()</code> / <code>out.writeLong()</code> / <code>out.writeObject()</code> 等。</li>
-<li><strong>invokeWriteObject</strong>：<code>writeObjectMethod.invoke(obj, new Object[]{out})</code>，你在方法里可以 <code>out.defaultWriteObject()</code> 再写额外数据。</li>
-</ul>
-<h3 id="简单示例默认序列化输出什么"><a class="markdownIt-Anchor" href="#简单示例默认序列化输出什么"></a> 简单示例：默认序列化输出什么？</h3>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Person</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">        <span class="type">int</span> age;</span><br><span class="line">        String name;</span><br><span class="line">        Person(<span class="type">int</span> age, String name) { <span class="built_in">this</span>.age = age; <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="number">18</span>, <span class="string">"Alice"</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos);</span><br><span class="line">        oos.writeObject(p);</span><br><span class="line">        oos.close();</span><br><span class="line">        <span class="type">byte</span>[] data = bos.toByteArray();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : data) System.out.printf(<span class="string">"%02X "</span>, b);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>典型输出（节选）：</p>
-<ul>
-<li><code>AC ED 00 05</code>：STREAM_MAGIC + 版本</li>
-<li><code>73</code>：TC_OBJECT</li>
-<li><code>72</code>：TC_CLASSDESC，后跟类名、serialVersionUID、flags、字段元数据（如 <code>I age</code>、<code>L name</code>）、TC_ENDBLOCKDATA、父类描述</li>
-<li>接着是字段数据：<code>00 00 00 12</code>（age = 18），以及表示 “Alice” 的 TC_STRING 等</li>
-</ul>
-<p>若有自定义 <code>writeObject</code> 里多写了 <code>out.writeInt(999)</code>，流里会多出 <code>00 00 03 E7</code>。</p>
-<hr>
-<h2 id="六-完整示例默认字段-transient-自定义-writeobjectreadobject"><a class="markdownIt-Anchor" href="#六-完整示例默认字段-transient-自定义-writeobjectreadobject"></a> 六、完整示例：默认字段 + transient + 自定义 writeObject / readObject</h2>
-<p>下面可直接运行，体现 “默认字段块 + 额外数据 + transient 手动处理”：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializableDemo</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">User</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> age;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> String password;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> <span class="type">int</span> checksum;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">User</span><span class="params">(String name, <span class="type">int</span> age, String password)</span> {</span><br><span class="line">            <span class="built_in">this</span>.name = name;</span><br><span class="line">            <span class="built_in">this</span>.age = age;</span><br><span class="line">            <span class="built_in">this</span>.password = password;</span><br><span class="line">            <span class="built_in">this</span>.checksum = calcChecksum();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">calcChecksum</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> (name == <span class="literal">null</span> ? <span class="number">0</span> : name.hashCode()) ^ age;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">            out.defaultWriteObject();</span><br><span class="line">            out.writeObject(password);</span><br><span class="line">            out.writeInt(calcChecksum());</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">readObject</span><span class="params">(ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException {</span><br><span class="line">            in.defaultReadObject();</span><br><span class="line">            <span class="built_in">this</span>.password = (String) in.readObject();</span><br><span class="line">            <span class="type">int</span> <span class="variable">cs</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">            <span class="built_in">this</span>.checksum = cs;</span><br><span class="line">            <span class="keyword">if</span> (cs != calcChecksum()) {</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InvalidObjectException</span>(<span class="string">"checksum mismatch!"</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> <span class="string">"User{name='"</span> + name + <span class="string">"', age="</span> + age + <span class="string">", password='"</span> + password + <span class="string">"', checksum="</span> + checksum + <span class="string">"}"</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">User</span> <span class="variable">u1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>(<span class="string">"Alice"</span>, <span class="number">20</span>, <span class="string">"p@ss"</span>);</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(u1);</span><br><span class="line">            oos.flush();</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"serialized bytes len="</span> + data.length);</span><br><span class="line"></span><br><span class="line">        User u2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            u2 = (User) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"u1="</span> + u1);</span><br><span class="line">        System.out.println(<span class="string">"u2="</span> + u2);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>可看到：transient 的 <code>password</code> 通过自定义 write / read 补回；校验失败在 <code>readObject</code> 里抛 <code>InvalidObjectException</code>。</p>
-<hr>
-<h2 id="七-验证句柄表重复引用与循环引用"><a class="markdownIt-Anchor" href="#七-验证句柄表重复引用与循环引用"></a> 七、验证句柄表：重复引用与循环引用</h2>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HandleTableProof</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Node</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        String name;</span><br><span class="line">        Node next;</span><br><span class="line">        Node(String name) { <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"A"</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"B"</span>);</span><br><span class="line">        a.next = b;</span><br><span class="line">        b.next = a;   <span class="comment">// A &lt;-&gt; B 形成环</span></span><br><span class="line"></span><br><span class="line">        <span class="type">Node</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"ROOT"</span>);</span><br><span class="line">        root.next = a;</span><br><span class="line"></span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(root);</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        Node root2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            root2 = (Node) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a2</span> <span class="operator">=</span> root2.next;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b2</span> <span class="operator">=</span> a2.next;</span><br><span class="line">        System.out.println(<span class="string">"b2.next == a2 ? "</span> + (b2.next == a2));  <span class="comment">// true，环被还原</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>没有 “先 assign 再写 / 读字段” 的策略，写时会无限递归，或读回来环断掉（<code>b2.next != a2</code>）。</p>
-<hr>
-<h2 id="八-四个钩子点serializable-的威力"><a class="markdownIt-Anchor" href="#八-四个钩子点serializable-的威力"></a> 八、四个钩子点（Serializable 的威力）</h2>
-<table>
-<thead>
-<tr>
-<th>钩子</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>private void writeObject(ObjectOutputStream out)</code></td>
-<td>自定义写出流程</td>
-</tr>
-<tr>
-<td><code>private void readObject(ObjectInputStream in)</code></td>
-<td>自定义读回流程</td>
-</tr>
-<tr>
-<td><code>private Object writeReplace()</code></td>
-<td>写出前用另一对象替代（代理、单例、版本迁移）</td>
-</tr>
-<tr>
-<td><code>private Object readResolve()</code></td>
-<td>读回后用另一对象替代（单例常用）</td>
-</tr>
-</tbody>
-</table>
-<p>单例防反序列化破坏示例：</p>
-<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readResolve</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> INSTANCE;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>另外，<strong>serialVersionUID</strong> 建议显式声明，避免改字段后 JDK 自动计算的 UID 变化导致旧数据读不回。</p>
-<hr>
-<h2 id="九-serializable-vs-externalizable简要"><a class="markdownIt-Anchor" href="#九-serializable-vs-externalizable简要"></a> 九、Serializable vs Externalizable（简要）</h2>
-<ul>
-<li><strong>Serializable</strong>：默认字段序列化 + 可选钩子（更常用）。</li>
-<li><strong>Externalizable</strong>：必须实现 <code>writeExternal</code>/<code>readExternal</code>，完全自己控制格式；反序列化时会调用<strong>无参构造</strong>。</li>
-</ul>
-<p>若需要跨版本稳定、可控二进制格式，实践中常用自定义协议（Kryo/Protobuf/JSON）或 Externalizable / 手写 DataOutput/DataInput。</p>
-<hr>
-<h2 id="十-调用链小结"><a class="markdownIt-Anchor" href="#十-调用链小结"></a> 十、调用链小结</h2>
-<p><strong>写出</strong>：<code>writeObject(obj)</code> → <code>writeObject0</code> → <code>writeOrdinaryObject</code> → <code>writeClassDesc</code> → <code>handles.assign(obj)</code> → <code>desc.writeObject(obj, this)</code> → <code>defaultWriteFields</code> 或 <code>invokeWriteObject</code>。</p>
-<p><strong>读回</strong>：<code>readObject()</code> → <code>readObject0</code> → 根据 TC 分派 → <code>readOrdinaryObject</code> → <code>readClassDesc</code> → <code>desc.newInstance()</code> → <code>handles.assign(obj)</code> → <code>desc.readObject(obj, this)</code> → <code>invokeReadResolve</code>。</p>
-<p>读 OpenJDK 时可重点看：<code>writeObject0</code> 的重复引用分支、<code>writeOrdinaryObject</code> 里 assign 的时机、HandleTable 的 lookup / assign、以及 OIS 里 TC_REFERENCE 与 readOrdinaryObject 的顺序。</p>
-]]></content>
-      <categories>
-        <category>Java</category>
-        <category>源码解读</category>
-      </categories>
-      <tags>
-        <tag>源码解读</tag>
-        <tag>java</tag>
-        <tag>序列化</tag>
-        <tag>ObjectOutputStream</tag>
-        <tag>ObjectInputStream</tag>
       </tags>
   </entry>
   <entry>
@@ -2556,6 +2299,189 @@
       </tags>
   </entry>
   <entry>
+    <title>SPI 机制与跨项目实现（含 Spring 与完整示例）</title>
+    <url>/2025/03/01/2025-03-02-java-spi-spring-cross-project/</url>
+    <content><![CDATA[<h1 id="spi-机制与跨项目实现含-spring-与完整示例"><a class="markdownIt-Anchor" href="#spi-机制与跨项目实现含-spring-与完整示例"></a> SPI 机制与跨项目实现（含 Spring 与完整示例）</h1>
+<p>本文说明 <strong>SPI（Service Provider Interface）</strong> 是什么、如何在<strong>跨项目 / 多模块</strong>下实现，以及如何与 <strong>Spring</strong> 结合使用，并给出可运行的示例（含目录结构）。</p>
+<hr>
+<h2 id="一-什么是-spi"><a class="markdownIt-Anchor" href="#一-什么是-spi"></a> 一、什么是 SPI</h2>
+<p><strong>SPI（Service Provider Interface）</strong> 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与加载” 的机制。</p>
+<ul>
+<li><strong>接口方</strong>：定义标准接口（如 <code>javax.sql.Driver</code>、日志门面 API），不绑定具体实现。</li>
+<li><strong>实现方</strong>：提供具体实现类，并按约定在 <code>META-INF/services/</code> 下声明 “接口全限定名 → 实现类全限定名”。</li>
+<li><strong>使用方</strong>：通过 <strong>ServiceLoader</strong> 或 <strong>SpringFactoriesLoader</strong> 加载当前 classpath 下所有实现，无需硬编码实现类名。</li>
+</ul>
+<p><strong>典型用途</strong>：驱动加载（JDBC、日志）、插件化、多实现可替换（如多种加密、多种序列化）。</p>
+<hr>
+<h2 id="二-java-原生-spiserviceloader"><a class="markdownIt-Anchor" href="#二-java-原生-spiserviceloader"></a> 二、Java 原生 SPI：ServiceLoader</h2>
+<h3 id="21-约定"><a class="markdownIt-Anchor" href="#21-约定"></a> 2.1 约定</h3>
+<ul>
+<li>在 <strong>META-INF/services/</strong> 下新建文件，<strong>文件名为接口的全限定类名</strong>。</li>
+<li>文件内容为<strong>实现类的全限定类名</strong>，一行一个；<code>#</code> 开头为注释。</li>
+<li>实现类必须有<strong>无参构造器</strong>（ServiceLoader 通过反射实例化）。</li>
+</ul>
+<h3 id="22-使用方式"><a class="markdownIt-Anchor" href="#22-使用方式"></a> 2.2 使用方式</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">ServiceLoader&lt;MyService&gt; loader = ServiceLoader.load(MyService.class);</span><br><span class="line"><span class="keyword">for</span> (MyService impl : loader) {</span><br><span class="line">    impl.doSomething();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>或：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">Iterator&lt;MyService&gt; it = ServiceLoader.load(MyService.class).iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) {</span><br><span class="line">    <span class="type">MyService</span> <span class="variable">impl</span> <span class="operator">=</span> it.next();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>注意</strong>：<code>ServiceLoader.load(Class, ClassLoader)</code> 使用传入的 ClassLoader（通常为当前线程上下文类加载器）加载实现类；跨项目时需保证接口与实现都在同一 classpath 或可被同一 ClassLoader 看到。</p>
+<hr>
+<h2 id="三-跨项目-多模块实现-spi"><a class="markdownIt-Anchor" href="#三-跨项目-多模块实现-spi"></a> 三、跨项目 / 多模块实现 SPI</h2>
+<h3 id="31-模块划分"><a class="markdownIt-Anchor" href="#31-模块划分"></a> 3.1 模块划分</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>api</strong></td>
+<td>定义 SPI 接口（及可选常量、异常），供 “使用方” 和 “实现方” 依赖</td>
+</tr>
+<tr>
+<td><strong>impl-a / impl-b</strong></td>
+<td>实现接口，并在本模块 resources 下提供 <code>META-INF/services/接口全限定名</code></td>
+</tr>
+<tr>
+<td><strong>app</strong></td>
+<td>业务应用，依赖 api + 若干 impl 模块（或通过依赖传递 / 插件包引入），通过 ServiceLoader 加载实现</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-目录与文件示例"><a class="markdownIt-Anchor" href="#32-目录与文件示例"></a> 3.2 目录与文件示例</h3>
+<p>假设接口为 <code>com.example.spi.Greeter</code>，两个实现为 <code>com.example.impl.HelloGreeter</code> 和 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>api 模块</strong>（只含接口）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">api/</span><br><span class="line">  src/main/java/com/example/spi/Greeter.java</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-a 模块</strong>（实现 + 声明）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">impl-a/</span><br><span class="line">  src/main/java/com/example/impl/HelloGreeter.java</span><br><span class="line">  src/main/resources/META-INF/services/com.example.spi.Greeter</span><br></pre></td></tr></tbody></table></figure>
+<p><code>HelloGreeter.java</code>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloGreeter</span> <span class="keyword">implements</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">greet</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>META-INF/services/com.example.spi.Greeter</code> 文件内容（仅一行）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">com.example.impl.HelloGreeter</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-b 模块</strong>：同理，实现类如 <code>HiGreeter</code>，并在 <code>META-INF/services/com.example.spi.Greeter</code> 中写 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>app 模块</strong>：依赖 api 以及需要启用的 impl-a / impl-b，主类中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">ServiceLoader&lt;Greeter&gt; loader = ServiceLoader.load(Greeter.class);</span><br><span class="line">loader.forEach(g -&gt; System.out.println(g.greet(<span class="string">"World"</span>)));</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>依赖关系</strong>：app 依赖 api + impl-a（或 impl-a、impl-b 都依赖）；<strong>谁在 classpath 谁就会被 ServiceLoader 发现</strong>。因此 “跨项目” 只需：接口在 api 工程，实现在各自工程并带好 <code>META-INF/services</code>，使用方工程通过 Maven / Gradle 依赖需要的实现模块即可。</p>
+<hr>
+<h2 id="四-spring-中的-spi-形态"><a class="markdownIt-Anchor" href="#四-spring-中的-spi-形态"></a> 四、Spring 中的 SPI 形态</h2>
+<h3 id="41-springfactoriesloaderspringfactories"><a class="markdownIt-Anchor" href="#41-springfactoriesloaderspringfactories"></a> 4.1 SpringFactoriesLoader（spring.factories）</h3>
+<p>Spring 在 <code>spring-core</code> 中提供 <strong>SpringFactoriesLoader</strong>，约定从 <strong>META-INF/spring.factories</strong> 读取配置，格式为：</p>
+<figure class="highlight properties"><table><tbody><tr><td class="code"><pre><span class="line"><span class="comment"># key 为接口或抽象类全限定名，value 为实现类全限定名列表（逗号/换行分隔）</span></span><br><span class="line"><span class="attr">com.example.MyFactory</span>=<span class="string">\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl1,\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl2</span></span><br></pre></td></tr></tbody></table></figure>
+<p><strong>加载方式</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line">List&lt;MyFactory&gt; list = SpringFactoriesLoader.loadFactories(MyFactory.class, classLoader);</span><br></pre></td></tr></tbody></table></figure>
+<p>常用于 <strong>Spring Boot 自动配置</strong>：key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code>，value 为各 <code>@Configuration</code> / <code>@AutoConfiguration</code> 类。</p>
+<h3 id="42-spring-boot-2x-与-3x-的差异"><a class="markdownIt-Anchor" href="#42-spring-boot-2x-与-3x-的差异"></a> 4.2 Spring Boot 2.x 与 3.x 的差异</h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>自动配置声明位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spring Boot 2.x</strong></td>
+<td><code>META-INF/spring.factories</code>，key：<code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code></td>
+</tr>
+<tr>
+<td><strong>Spring Boot 3.x</strong></td>
+<td><strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong>，每行一个配置类全限定名</td>
+</tr>
+</tbody>
+</table>
+<p>Boot 3 仍支持在 <code>spring.factories</code> 里写其他 key（如自定义 Factory），但 <strong>EnableAutoConfiguration</strong> 已改为从 <code>.imports</code> 读取。</p>
+<p><strong>Boot 3 示例</strong>（<code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">com.example.mystarter.MyAutoConfiguration</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-在-spring-中集成-java-spi-实现"><a class="markdownIt-Anchor" href="#五-在-spring-中集成-java-spi-实现"></a> 五、在 Spring 中集成 Java SPI 实现</h2>
+<p>若实现是通过 <strong>Java SPI</strong>（META - INF / services）提供的，可以在 Spring 里统一加载并注册为 Bean，供注入使用。</p>
+<h3 id="51-将-serviceloader-结果注册为-bean"><a class="markdownIt-Anchor" href="#51-将-serviceloader-结果注册为-bean"></a> 5.1 将 ServiceLoader 结果注册为 Bean</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>业务代码中直接 <code>@Autowired List&lt;Greeter&gt; greeters</code> 使用即可。</p>
+<h3 id="52-按类型注入单个实现当只有一个时"><a class="markdownIt-Anchor" href="#52-按类型注入单个实现当只有一个时"></a> 5.2 按类型注入单个实现（当只有一个时）</h3>
+<p>若 classpath 下仅有一个 SPI 实现，可封装为单 Bean：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConditionalOnSingleCandidate(Greeter.class)</span></span><br><span class="line">    <span class="keyword">public</span> Greeter <span class="title function_">greeter</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(Greeter.class).findFirst()</span><br><span class="line">            .orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"No Greeter implementation found"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="53-与-spring-boot-starter-结合"><a class="markdownIt-Anchor" href="#53-与-spring-boot-starter-结合"></a> 5.3 与 Spring Boot Starter 结合</h3>
+<p>自定义 Starter 时，通常用 <strong>Spring 的 SPI</strong>（spring.factories 或 Boot 3 的 .imports）声明自动配置类；在自动配置类里再按需使用 <strong>Java ServiceLoader</strong> 加载你的 SPI 实现并注册为 Bean。例如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="meta">@AutoConfiguration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAutoConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>并在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 中写上该类全限定名，这样引入你的 Starter 即可自动注册这些 Bean。</p>
+<hr>
+<h2 id="六-完整示例三模块-spring-boot"><a class="markdownIt-Anchor" href="#六-完整示例三模块-spring-boot"></a> 六、完整示例：三模块 + Spring Boot</h2>
+<h3 id="61-项目结构maven"><a class="markdownIt-Anchor" href="#61-项目结构maven"></a> 6.1 项目结构（Maven）</h3>
+<figure class="highlight text"><table><tbody><tr><td class="code"><pre><span class="line">spi-demo/</span><br><span class="line">  api/           # 接口</span><br><span class="line">  impl-hello/   # 实现 Hello</span><br><span class="line">  impl-hi/      # 实现 Hi</span><br><span class="line">  app/          # Spring Boot 主应用，依赖 api + impl-hello + impl-hi</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="62-api-模块"><a class="markdownIt-Anchor" href="#62-api-模块"></a> 6.2 api 模块</h3>
+<p><strong>pom.xml</strong>：仅需 <code>junit</code> 等（或无依赖）。</p>
+<p><strong>Greeter.java</strong>（同上）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="63-impl-hello-模块"><a class="markdownIt-Anchor" href="#63-impl-hello-模块"></a> 6.3 impl-hello 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HelloGreeter.java</strong> 实现 <code>Greeter</code>（同上）。</li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HelloGreeter</code>（注意 impl-hello 里包名可为 <code>com.example.impl</code>，与 impl-hi 若同包则类名不可重复，如改为 <code>com.example.impl.hello.HelloGreeter</code> 更稳妥）。</li>
+</ul>
+<h3 id="64-impl-hi-模块"><a class="markdownIt-Anchor" href="#64-impl-hi-模块"></a> 6.4 impl-hi 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HiGreeter.java</strong>：<code>return "Hi, " + name;</code></li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HiGreeter</code>（或 <code>com.example.impl.hi.HiGreeter</code>）。</li>
+</ul>
+<h3 id="65-app-模块spring-boot"><a class="markdownIt-Anchor" href="#65-app-模块spring-boot"></a> 6.5 app 模块（Spring Boot）</h3>
+<p><strong>pom.xml</strong>：依赖 <code>api</code>、<code>impl-hello</code>、<code>impl-hi</code> 以及 <code>spring-boot-starter</code>。</p>
+<p><strong>SpiConfiguration.java</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ServiceLoader;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>AppRunner.java</strong>（或 Controller）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppRunner</span> <span class="keyword">implements</span> <span class="title class_">CommandLineRunner</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Greeter&gt; greeters;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AppRunner</span><span class="params">(List&lt;Greeter&gt; greeters)</span> {</span><br><span class="line">        <span class="built_in">this</span>.greeters = greeters;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(String... args)</span> {</span><br><span class="line">        greeters.forEach(g -&gt; System.out.println(g.greet(<span class="string">"SPI"</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>运行后控制台会输出两类问候（来自 HelloGreeter 与 HiGreeter），说明跨模块 SPI 已被 Spring 加载并注入。</p>
+<hr>
+<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
+<table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Java SPI</strong></td>
+<td>接口 + META - INF/services/接口全限定名 文件（内容为实现类全限定名），通过 <strong>ServiceLoader</strong> 加载</td>
+</tr>
+<tr>
+<td><strong>跨项目</strong></td>
+<td>接口放在 api 模块，各实现放在不同模块并各自提供 META - INF / services；使用方依赖 api 与需要的实现模块，classpath 中有谁就加载谁</td>
+</tr>
+<tr>
+<td><strong>Spring 的 SPI</strong></td>
+<td><strong>SpringFactoriesLoader</strong> + <code>spring.factories</code>；Boot 3 自动配置改用 <strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong></td>
+</tr>
+<tr>
+<td><strong>Spring 中用 Java SPI</strong></td>
+<td>在 <code>@Configuration</code> 里用 <strong>ServiceLoader.load(接口)</strong> 得到实现列表，注册为 List Bean 或单 Bean，即可 <code>@Autowired</code> 使用</td>
+</tr>
+<tr>
+<td><strong>Starter</strong></td>
+<td>自动配置类中可同时使用 Spring 的 SPI（声明配置类）和 Java SPI（加载业务实现并注册 Bean）</td>
+</tr>
+</tbody>
+</table>
+<p>按上述方式即可在跨项目场景下实现 SPI，并在 Spring / Spring Boot 中统一使用这些实现。</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>Spring</tag>
+        <tag>SPI</tag>
+        <tag>ServiceLoader</tag>
+        <tag>自动配置</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</title>
     <url>/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/</url>
     <content><![CDATA[<h1 id="string-stringbuffer-stringbuilder-源码解读与-java-9-改动"><a class="markdownIt-Anchor" href="#string-stringbuffer-stringbuilder-源码解读与-java-9-改动"></a> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</h1>
@@ -2768,11 +2694,169 @@
         <category>源码解读</category>
       </categories>
       <tags>
-        <tag>源码解读</tag>
         <tag>java</tag>
+        <tag>源码解读</tag>
         <tag>String</tag>
         <tag>StringBuilder</tag>
         <tag>StringBuffer</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java 标准库 Serializable 整体实现流程（源码与示例）</title>
+    <url>/2025/03/01/2025-03-02-java-serializable-implementation/</url>
+    <content><![CDATA[<h1 id="java-标准库-serializable-整体实现流程源码与示例"><a class="markdownIt-Anchor" href="#java-标准库-serializable-整体实现流程源码与示例"></a> Java 标准库 Serializable 整体实现流程（源码与示例）</h1>
+<p>本文用 JDK 标准库（<code>java.io</code>）里的关键类 / 方法名 + 伪源码结构（接近 OpenJDK 源码组织方式），配合可运行示例，把 <strong>Serializable 从对象写出到读回</strong> 的整体实现流程讲清楚。</p>
+<hr>
+<h2 id="一-serializable-是标记接口真正干活的是-oosois"><a class="markdownIt-Anchor" href="#一-serializable-是标记接口真正干活的是-oosois"></a> 一、Serializable 是 “标记接口”，真正干活的是 OOS / OIS</h2>
+<p><code>Serializable</code> 本身几乎没有代码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> java.io;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Serializable</span> { }</span><br></pre></td></tr></tbody></table></figure>
+<p>它的意义：告诉序列化框架 ——<strong> 这个类允许被 Java 默认序列化机制处理</strong>。</p>
+<p>真正的入口在：</p>
+<ul>
+<li><strong>写出</strong>：<code>java.io.ObjectOutputStream</code></li>
+<li><strong>读回</strong>：<code>java.io.ObjectInputStream</code></li>
+</ul>
+<hr>
+<h2 id="二-写出流程objectoutputstream从-writeobject-到字节流"><a class="markdownIt-Anchor" href="#二-写出流程objectoutputstream从-writeobject-到字节流"></a> 二、写出流程（ObjectOutputStream）：从 writeObject 到字节流</h2>
+<h3 id="21-入口writeobjectobject-obj"><a class="markdownIt-Anchor" href="#21-入口writeobjectobject-obj"></a> 2.1 入口：writeObject (Object obj)</h3>
+<p>典型调用：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(out)) {</span><br><span class="line">    oos.writeObject(obj);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>核心流程（接近源码结构的伪源码）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    writeObject0(obj, <span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject0</span><span class="params">(Object obj, <span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">null</span>) { writeNull(); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1) 处理循环引用/重复引用：句柄表（HandleTable）</span></span><br><span class="line">    <span class="keyword">if</span> (handles.contains(obj)) { writeHandle(handles.lookup(obj)); <span class="keyword">return</span>; }</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2) 写类描述（class descriptor）</span></span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> ObjectStreamClass.lookup(obj.getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3) 根据对象类型分派</span></span><br><span class="line">    <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> String) writeString((String)obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj.getClass().isArray()) writeArray(obj);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> Enum) writeEnum((Enum)obj);</span><br><span class="line">    <span class="keyword">else</span> writeOrdinaryObject(obj, desc);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="22-关键objectstreamclass类的序列化描述"><a class="markdownIt-Anchor" href="#22-关键objectstreamclass类的序列化描述"></a> 2.2 关键：ObjectStreamClass（类的 “序列化描述”）</h3>
+<p><code>ObjectStreamClass</code> 负责：</p>
+<ul>
+<li>判断类是否 <code>Serializable</code></li>
+<li>计算 / 读取 <code>serialVersionUID</code></li>
+<li>收集可序列化字段（排除 <code>static</code>、排除 <code>transient</code>）</li>
+<li>解析是否存在私有钩子方法：<code>writeObject</code> / <code>readObject</code> / <code>readResolve</code> / <code>writeReplace</code></li>
+</ul>
+<p>伪源码：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> ObjectStreamClass <span class="title function_">lookup</span><span class="params">(Class&lt;?&gt; cl)</span> {</span><br><span class="line">    <span class="comment">// cache</span></span><br><span class="line">    <span class="comment">// if implements Serializable =&gt; build descriptor:</span></span><br><span class="line">    <span class="comment">//   - serialVersionUID</span></span><br><span class="line">    <span class="comment">//   - fields (ObjectStreamField[])</span></span><br><span class="line">    <span class="comment">//   - hasWriteObjectMethod?</span></span><br><span class="line">    <span class="comment">//   - hasReadObjectMethod?</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="23-写普通对象writeordinaryobject"><a class="markdownIt-Anchor" href="#23-写普通对象writeordinaryobject"></a> 2.3 写普通对象：writeOrdinaryObject</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeOrdinaryObject</span><span class="params">(Object obj, ObjectStreamClass desc)</span> {</span><br><span class="line">    writeClassDesc(desc);</span><br><span class="line">    handles.assign(obj);           <span class="comment">// 先登记，解决循环引用</span></span><br><span class="line">    desc.writeObject(obj, <span class="built_in">this</span>);   <span class="comment">// 默认字段 or 自定义 writeObject</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="24-两条路线默认字段序列化-vs-自定义-writeobject"><a class="markdownIt-Anchor" href="#24-两条路线默认字段序列化-vs-自定义-writeobject"></a> 2.4 两条路线：默认字段序列化 vs 自定义 writeObject</h3>
+<ul>
+<li><strong>默认序列化</strong>（没有定义 <code>private void writeObject</code>）：<code>defaultWriteFields(obj, desc)</code>，按收集到的字段顺序写出。</li>
+<li><strong>自定义序列化</strong>（类里定义了 <code>private void writeObject(ObjectOutputStream out)</code>）：JDK 用反射调用你的私有方法，你通常会先 <code>out.defaultWriteObject()</code>，再写自定义数据。</li>
+</ul>
+<hr>
+<h2 id="三-读回流程objectinputstream从-readobject-到对象还原"><a class="markdownIt-Anchor" href="#三-读回流程objectinputstream从-readobject-到对象还原"></a> 三、读回流程（ObjectInputStream）：从 readObject 到对象还原</h2>
+<h3 id="31-入口readobject"><a class="markdownIt-Anchor" href="#31-入口readobject"></a> 3.1 入口：readObject ()</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(in)) {</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> ois.readObject();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>伪源码结构：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title function_">readObject</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> readObject0(<span class="literal">false</span>);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> Object <span class="title function_">readObject0</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">byte</span> <span class="variable">tc</span> <span class="operator">=</span> readTC();</span><br><span class="line">    <span class="keyword">switch</span> (tc) {</span><br><span class="line">        <span class="keyword">case</span> TC_NULL: <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">case</span> TC_REFERENCE: <span class="keyword">return</span> handles.lookup(readHandle());</span><br><span class="line">        <span class="keyword">case</span> TC_STRING: <span class="keyword">return</span> readString();</span><br><span class="line">        <span class="keyword">case</span> TC_ARRAY: <span class="keyword">return</span> readArray();</span><br><span class="line">        <span class="keyword">case</span> TC_ENUM: <span class="keyword">return</span> readEnum();</span><br><span class="line">        <span class="keyword">case</span> TC_OBJECT: <span class="keyword">return</span> readOrdinaryObject(unshared);</span><br><span class="line">        ...</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="32-读普通对象readordinaryobject"><a class="markdownIt-Anchor" href="#32-读普通对象readordinaryobject"></a> 3.2 读普通对象：readOrdinaryObject</h3>
+<p>关键步骤：读 classDesc → 创建实例（通常不调用你的构造方法）→ 先塞进 handle 表 → 读字段 → 若有 <code>readObject</code> 则回调 → 若有 <code>readResolve</code> 则替换返回对象。</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readOrdinaryObject</span><span class="params">(<span class="type">boolean</span> unshared)</span> {</span><br><span class="line">    <span class="type">ObjectStreamClass</span> <span class="variable">desc</span> <span class="operator">=</span> readClassDesc();</span><br><span class="line">    <span class="type">Object</span> <span class="variable">obj</span> <span class="operator">=</span> desc.newInstance();</span><br><span class="line">    handles.assign(obj);</span><br><span class="line">    desc.readObject(obj, <span class="built_in">this</span>);</span><br><span class="line">    obj = desc.invokeReadResolve(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="33-serialversionuid-校验"><a class="markdownIt-Anchor" href="#33-serialversionuid-校验"></a> 3.3 serialVersionUID 校验</h3>
+<p>在读 classDesc、把流中的描述映射到本地类时，会比较流里写入的 <code>serialVersionUID</code> 与本地类的 <code>serialVersionUID</code>，不一致就抛 <code>InvalidClassException</code>。</p>
+<hr>
+<h2 id="四-句柄表handletable循环引用与重复引用"><a class="markdownIt-Anchor" href="#四-句柄表handletable循环引用与重复引用"></a> 四、句柄表（HandleTable）：循环引用与重复引用</h2>
+<h3 id="41-为什么需要句柄"><a class="markdownIt-Anchor" href="#41-为什么需要句柄"></a> 4.1 为什么需要句柄？</h3>
+<ul>
+<li><strong>重复引用</strong>要保持同一性：<code>a.x == a.y</code> 指向同一对象时，反序列化后也必须 <code>==</code>。</li>
+<li><strong>对象图可能有环</strong>：若每次遇到对象都 “深拷贝写一遍”，有环会无限递归、栈溢出。</li>
+</ul>
+<p>所以需要 “已见对象登记表”<strong>HandleTable</strong>：给每个<strong>第一次出现</strong>的对象分配递增的整数 id（handle），之后再遇到同一对象就写 <strong>TC_REFERENCE + handle</strong>。</p>
+<h3 id="42-handletable-数据结构源码风格"><a class="markdownIt-Anchor" href="#42-handletable-数据结构源码风格"></a> 4.2 HandleTable 数据结构（源码风格）</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">HandleTable</span> {</span><br><span class="line">    <span class="type">int</span>[] spine;       <span class="comment">// 哈希桶头结点</span></span><br><span class="line">    <span class="type">int</span>[] next;        <span class="comment">// 链表 next</span></span><br><span class="line">    Object[] objs;     <span class="comment">// 对象引用</span></span><br><span class="line">    <span class="type">int</span> size;          <span class="comment">// 已分配句柄数</span></span><br><span class="line">    <span class="type">int</span> threshold;</span><br><span class="line">    <span class="type">float</span> loadFactor;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 登记并返回 handle</span></span><br><span class="line">    <span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> { ... }   <span class="comment">// 查 handle，找不到返回 -1</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>按<strong>对象 identity</strong> 追踪：用 <code>System.identityHashCode(obj)</code> 做 hash，用 <code>==</code> 做相等判断（不是 <code>equals()</code>）。</li>
+<li>哈希桶 + 链式冲突：<code>spine[bucket]</code> 存该桶链表第一个 entry 的下标，<code>next[i]</code> 连接链表。</li>
+</ul>
+<h3 id="43-lookup判断这个对象以前写过没"><a class="markdownIt-Anchor" href="#43-lookup判断这个对象以前写过没"></a> 4.3 lookup：判断 “这个对象以前写过没？”</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">lookup</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> spine[bucket]; i &gt;= <span class="number">0</span>; i = next[i]) {</span><br><span class="line">        <span class="keyword">if</span> (objs[i] == obj)   <span class="comment">// identity 比较</span></span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="44-assign第一次见到对象时登记"><a class="markdownIt-Anchor" href="#44-assign第一次见到对象时登记"></a> 4.4 assign：第一次见到对象时登记</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">assign</span><span class="params">(Object obj)</span> {</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= next.length) growEntries();</span><br><span class="line">    <span class="keyword">if</span> (size &gt;= threshold) growSpine();</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> System.identityHashCode(obj);</span><br><span class="line">    <span class="type">int</span> <span class="variable">bucket</span> <span class="operator">=</span> (h &amp; <span class="number">0x7fffffff</span>) % spine.length;</span><br><span class="line">    objs[size] = obj;</span><br><span class="line">    next[size] = spine[bucket];</span><br><span class="line">    spine[bucket] = size;</span><br><span class="line">    <span class="keyword">return</span> size++;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="45-写入时何时写-tc_reference何时-assign"><a class="markdownIt-Anchor" href="#45-写入时何时写-tc_reference何时-assign"></a> 4.5 写入时：何时写 TC_REFERENCE？何时 assign？</h3>
+<ul>
+<li><strong>重复引用</strong>：<code>lookup(obj) != -1</code> 时，写 <code>TC_REFERENCE + (baseWireHandle + handle)</code>。</li>
+<li><strong>写对象本体前必须先 assign</strong>：这样在写字段时若再次遇到自己（如 <code>n.next = n</code>），<code>lookup</code> 会命中，直接写引用，不会无限递归。</li>
+</ul>
+<h3 id="46-identityhashcode-会冲突吗"><a class="markdownIt-Anchor" href="#46-identityhashcode-会冲突吗"></a> 4.6 identityHashCode 会冲突吗？</h3>
+<p>会。<code>System.identityHashCode(obj)</code> 是 32 位 int，不同对象可能得到相同值。HandleTable <strong>不依赖 hash 唯一性</strong>：用 hash 选桶，用 <strong><code>==</code></strong> 做最终确认；冲突只会让同一桶内链表变长，不会误判。</p>
+<hr>
+<h2 id="五-descwriteobjectobj-this-源码与输出内容"><a class="markdownIt-Anchor" href="#五-descwriteobjectobj-this-源码与输出内容"></a> 五、desc.writeObject(obj, this) 源码与输出内容</h2>
+<p>在 <code>ObjectStreamClass</code> 里：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(Object obj, ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">    <span class="keyword">if</span> (writeObjectMethod != <span class="literal">null</span>) {</span><br><span class="line">        invokeWriteObject(obj, out);   <span class="comment">// 反射调用 private writeObject</span></span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">        defaultWriteFields(obj, out);   <span class="comment">// 按字段类型逐个写出</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>defaultWriteFields</strong>：遍历 <code>ObjectStreamField[]</code>，用反射取字段值，按类型调用 <code>out.writeInt()</code> / <code>out.writeLong()</code> / <code>out.writeObject()</code> 等。</li>
+<li><strong>invokeWriteObject</strong>：<code>writeObjectMethod.invoke(obj, new Object[]{out})</code>，你在方法里可以 <code>out.defaultWriteObject()</code> 再写额外数据。</li>
+</ul>
+<h3 id="简单示例默认序列化输出什么"><a class="markdownIt-Anchor" href="#简单示例默认序列化输出什么"></a> 简单示例：默认序列化输出什么？</h3>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SimpleDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Person</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">        <span class="type">int</span> age;</span><br><span class="line">        String name;</span><br><span class="line">        Person(<span class="type">int</span> age, String name) { <span class="built_in">this</span>.age = age; <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Person</span> <span class="variable">p</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Person</span>(<span class="number">18</span>, <span class="string">"Alice"</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos);</span><br><span class="line">        oos.writeObject(p);</span><br><span class="line">        oos.close();</span><br><span class="line">        <span class="type">byte</span>[] data = bos.toByteArray();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">byte</span> b : data) System.out.printf(<span class="string">"%02X "</span>, b);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>典型输出（节选）：</p>
+<ul>
+<li><code>AC ED 00 05</code>：STREAM_MAGIC + 版本</li>
+<li><code>73</code>：TC_OBJECT</li>
+<li><code>72</code>：TC_CLASSDESC，后跟类名、serialVersionUID、flags、字段元数据（如 <code>I age</code>、<code>L name</code>）、TC_ENDBLOCKDATA、父类描述</li>
+<li>接着是字段数据：<code>00 00 00 12</code>（age = 18），以及表示 “Alice” 的 TC_STRING 等</li>
+</ul>
+<p>若有自定义 <code>writeObject</code> 里多写了 <code>out.writeInt(999)</code>，流里会多出 <code>00 00 03 E7</code>。</p>
+<hr>
+<h2 id="六-完整示例默认字段-transient-自定义-writeobjectreadobject"><a class="markdownIt-Anchor" href="#六-完整示例默认字段-transient-自定义-writeobjectreadobject"></a> 六、完整示例：默认字段 + transient + 自定义 writeObject / readObject</h2>
+<p>下面可直接运行，体现 “默认字段块 + 额外数据 + transient 手动处理”：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializableDemo</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">User</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">serialVersionUID</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> age;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> String password;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">transient</span> <span class="type">int</span> checksum;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="title function_">User</span><span class="params">(String name, <span class="type">int</span> age, String password)</span> {</span><br><span class="line">            <span class="built_in">this</span>.name = name;</span><br><span class="line">            <span class="built_in">this</span>.age = age;</span><br><span class="line">            <span class="built_in">this</span>.password = password;</span><br><span class="line">            <span class="built_in">this</span>.checksum = calcChecksum();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="type">int</span> <span class="title function_">calcChecksum</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> (name == <span class="literal">null</span> ? <span class="number">0</span> : name.hashCode()) ^ age;</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">writeObject</span><span class="params">(ObjectOutputStream out)</span> <span class="keyword">throws</span> IOException {</span><br><span class="line">            out.defaultWriteObject();</span><br><span class="line">            out.writeObject(password);</span><br><span class="line">            out.writeInt(calcChecksum());</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">readObject</span><span class="params">(ObjectInputStream in)</span> <span class="keyword">throws</span> IOException, ClassNotFoundException {</span><br><span class="line">            in.defaultReadObject();</span><br><span class="line">            <span class="built_in">this</span>.password = (String) in.readObject();</span><br><span class="line">            <span class="type">int</span> <span class="variable">cs</span> <span class="operator">=</span> in.readInt();</span><br><span class="line">            <span class="built_in">this</span>.checksum = cs;</span><br><span class="line">            <span class="keyword">if</span> (cs != calcChecksum()) {</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InvalidObjectException</span>(<span class="string">"checksum mismatch!"</span>);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> String <span class="title function_">toString</span><span class="params">()</span> {</span><br><span class="line">            <span class="keyword">return</span> <span class="string">"User{name='"</span> + name + <span class="string">"', age="</span> + age + <span class="string">", password='"</span> + password + <span class="string">"', checksum="</span> + checksum + <span class="string">"}"</span>;</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">User</span> <span class="variable">u1</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>(<span class="string">"Alice"</span>, <span class="number">20</span>, <span class="string">"p@ss"</span>);</span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(u1);</span><br><span class="line">            oos.flush();</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"serialized bytes len="</span> + data.length);</span><br><span class="line"></span><br><span class="line">        User u2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            u2 = (User) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        System.out.println(<span class="string">"u1="</span> + u1);</span><br><span class="line">        System.out.println(<span class="string">"u2="</span> + u2);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>可看到：transient 的 <code>password</code> 通过自定义 write / read 补回；校验失败在 <code>readObject</code> 里抛 <code>InvalidObjectException</code>。</p>
+<hr>
+<h2 id="七-验证句柄表重复引用与循环引用"><a class="markdownIt-Anchor" href="#七-验证句柄表重复引用与循环引用"></a> 七、验证句柄表：重复引用与循环引用</h2>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HandleTableProof</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Node</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> {</span><br><span class="line">        String name;</span><br><span class="line">        Node next;</span><br><span class="line">        Node(String name) { <span class="built_in">this</span>.name = name; }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"A"</span>);</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"B"</span>);</span><br><span class="line">        a.next = b;</span><br><span class="line">        b.next = a;   <span class="comment">// A &lt;-&gt; B 形成环</span></span><br><span class="line"></span><br><span class="line">        <span class="type">Node</span> <span class="variable">root</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Node</span>(<span class="string">"ROOT"</span>);</span><br><span class="line">        root.next = a;</span><br><span class="line"></span><br><span class="line">        <span class="type">byte</span>[] data;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">             <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(bos)) {</span><br><span class="line">            oos.writeObject(root);</span><br><span class="line">            data = bos.toByteArray();</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        Node root2;</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">ObjectInputStream</span> <span class="variable">ois</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(data))) {</span><br><span class="line">            root2 = (Node) ois.readObject();</span><br><span class="line">        }</span><br><span class="line">        <span class="type">Node</span> <span class="variable">a2</span> <span class="operator">=</span> root2.next;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">b2</span> <span class="operator">=</span> a2.next;</span><br><span class="line">        System.out.println(<span class="string">"b2.next == a2 ? "</span> + (b2.next == a2));  <span class="comment">// true，环被还原</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>没有 “先 assign 再写 / 读字段” 的策略，写时会无限递归，或读回来环断掉（<code>b2.next != a2</code>）。</p>
+<hr>
+<h2 id="八-四个钩子点serializable-的威力"><a class="markdownIt-Anchor" href="#八-四个钩子点serializable-的威力"></a> 八、四个钩子点（Serializable 的威力）</h2>
+<table>
+<thead>
+<tr>
+<th>钩子</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>private void writeObject(ObjectOutputStream out)</code></td>
+<td>自定义写出流程</td>
+</tr>
+<tr>
+<td><code>private void readObject(ObjectInputStream in)</code></td>
+<td>自定义读回流程</td>
+</tr>
+<tr>
+<td><code>private Object writeReplace()</code></td>
+<td>写出前用另一对象替代（代理、单例、版本迁移）</td>
+</tr>
+<tr>
+<td><code>private Object readResolve()</code></td>
+<td>读回后用另一对象替代（单例常用）</td>
+</tr>
+</tbody>
+</table>
+<p>单例防反序列化破坏示例：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> Object <span class="title function_">readResolve</span><span class="params">()</span> {</span><br><span class="line">    <span class="keyword">return</span> INSTANCE;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>另外，<strong>serialVersionUID</strong> 建议显式声明，避免改字段后 JDK 自动计算的 UID 变化导致旧数据读不回。</p>
+<hr>
+<h2 id="九-serializable-vs-externalizable简要"><a class="markdownIt-Anchor" href="#九-serializable-vs-externalizable简要"></a> 九、Serializable vs Externalizable（简要）</h2>
+<ul>
+<li><strong>Serializable</strong>：默认字段序列化 + 可选钩子（更常用）。</li>
+<li><strong>Externalizable</strong>：必须实现 <code>writeExternal</code>/<code>readExternal</code>，完全自己控制格式；反序列化时会调用<strong>无参构造</strong>。</li>
+</ul>
+<p>若需要跨版本稳定、可控二进制格式，实践中常用自定义协议（Kryo/Protobuf/JSON）或 Externalizable / 手写 DataOutput/DataInput。</p>
+<hr>
+<h2 id="十-调用链小结"><a class="markdownIt-Anchor" href="#十-调用链小结"></a> 十、调用链小结</h2>
+<p><strong>写出</strong>：<code>writeObject(obj)</code> → <code>writeObject0</code> → <code>writeOrdinaryObject</code> → <code>writeClassDesc</code> → <code>handles.assign(obj)</code> → <code>desc.writeObject(obj, this)</code> → <code>defaultWriteFields</code> 或 <code>invokeWriteObject</code>。</p>
+<p><strong>读回</strong>：<code>readObject()</code> → <code>readObject0</code> → 根据 TC 分派 → <code>readOrdinaryObject</code> → <code>readClassDesc</code> → <code>desc.newInstance()</code> → <code>handles.assign(obj)</code> → <code>desc.readObject(obj, this)</code> → <code>invokeReadResolve</code>。</p>
+<p>读 OpenJDK 时可重点看：<code>writeObject0</code> 的重复引用分支、<code>writeOrdinaryObject</code> 里 assign 的时机、HandleTable 的 lookup / assign、以及 OIS 里 TC_REFERENCE 与 readOrdinaryObject 的顺序。</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>源码解读</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>源码解读</tag>
+        <tag>序列化</tag>
+        <tag>ObjectOutputStream</tag>
+        <tag>ObjectInputStream</tag>
       </tags>
   </entry>
   <entry>
@@ -3326,6 +3410,55 @@
       </tags>
   </entry>
   <entry>
+    <title>设计模式（二十）状态模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-20-state/</url>
+    <content><![CDATA[<h1 id="状态模式state"><a class="markdownIt-Anchor" href="#状态模式state"></a> 状态模式（State）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>状态模式</strong>允许对象在内部状态改变时改变其行为，对象看起来像是修改了类。</p>
+<p><strong>解决的问题</strong>：当对象行为依赖多种状态且不同状态下行为差异大时，若用大量 if-else/switch 会难以维护；把 “每种状态” 封装成独立类，状态转换时切换当前状态对象，行为随状态对象变化。</p>
+<p><strong>定义</strong>：允许一个对象在其内部状态改变时改变它的行为，对象看起来修改了它的类。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Context</strong>：上下文，持有当前 State，客户请求委托给当前 state 处理；可提供 setState () 供状态类切换状态。</li>
+<li><strong>State</strong>：抽象状态，定义行为接口（如 handle ()）。</li>
+<li><strong>ConcreteState</strong>：具体状态，实现行为，并在适当时机调用 context.setState(nextState) 切换状态。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">State</span> { <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> State state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(State s)</span> { <span class="built_in">this</span>.state = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> { state.handle(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteStateA</span> <span class="keyword">implements</span> <span class="title class_">State</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span> {</span><br><span class="line">        <span class="comment">// 处理并可能切换</span></span><br><span class="line">        ctx.setState(<span class="keyword">new</span> <span class="title class_">ConcreteStateB</span>());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Spring State Machine</strong>：spring-statemachine 库显式支持状态机建模，状态与迁移由配置或代码定义，事件驱动迁移，是状态模式的完整实现；适用于订单、工作流、审批等有明确状态与迁移的场景。</li>
+<li><strong>Bean 生命周期</strong>：Bean 的创建、初始化、运行、销毁等可视为不同 “状态”，容器在不同状态下执行不同逻辑（如 PostProcessor、InitializingBean），可抽象为状态思想。</li>
+<li><strong>连接 / 会话状态</strong>：如 TCP 连接、WebSocket 会话的 “未连接/已连接/关闭中/已关闭”，用状态对象封装各阶段行为与迁移条件。</li>
+<li><strong>事务状态</strong>：事务管理器内部有 “无事务/活跃/提交中/回滚中” 等状态，行为（提交、回滚、挂起）随状态变化。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>订单/工单/审批流</strong>：待支付、已支付、发货中、已完成、已取消等，每状态下可执行的操作与下一状态不同，用状态模式（或状态机）清晰建模。</li>
+<li><strong>游戏 / 动画</strong>：角色 “待机/跑/攻击/受伤” 等，每状态对应不同动画与输入响应，切换状态即切换行为。</li>
+<li><strong>连接 / 会话管理</strong>：连接建立、认证、传输、关闭等阶段，每阶段允许的操作与错误处理不同。</li>
+<li><strong>UI 控件</strong>：按钮 “正常/禁用/加载中”，不同状态下点击行为、样式不同。</li>
+<li><strong>协议解析</strong>：解析器处于 “读头/读体/读尾” 等状态，收到数据时根据当前状态决定如何处理与迁移。</li>
+</ul>
+<p><strong>不适用</strong>：状态很少、行为差异不大时，简单分支即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>状态模式通过 “状态即对象 + 行为委托给当前状态 + 状态间迁移” 消除复杂分支；Spring 中 <strong>Spring State Machine</strong>、<strong>Bean 生命周期</strong>、<strong>连接 / 事务状态</strong> 有体现。业务上适用于<strong>订单/工作流、游戏/动画、连接/会话、UI 状态、协议解析</strong>等场景。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+        <category>行为型</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+        <tag>Spring</tag>
+        <tag>状态</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java 21 新特性总结与示例</title>
     <url>/2025/03/01/2025-03-02-java21-features-summary/</url>
     <content><![CDATA[<h1 id="java-21-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-21-新特性总结与示例"></a> Java 21 新特性总结与示例</h1>
@@ -3459,6 +3592,56 @@
         <tag>模式匹配</tag>
         <tag>Java21</tag>
         <tag>记录模式</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景</title>
+    <url>/2025/03/01/2025-03-02-design-pattern-21-strategy/</url>
+    <content><![CDATA[<h1 id="策略模式strategy"><a class="markdownIt-Anchor" href="#策略模式strategy"></a> 策略模式（Strategy）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>策略模式</strong>定义一系列算法，将每个算法封装起来并使它们可互换；策略使算法独立于使用它的客户而变化。</p>
+<p><strong>解决的问题</strong>：同一类问题有多种解法（如多种排序、多种支付、多种校验），若用 if-else 堆砌会难以扩展；把每种解法抽成独立策略类，客户依赖策略接口，运行时注入不同实现即可切换。</p>
+<p><strong>定义</strong>：定义一系列算法，把它们一个个封装起来，并且使它们可以相互替换；策略模式使算法独立于使用它的客户。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Strategy</strong>：策略接口，定义算法方法（如 execute (data)）。</li>
+<li><strong>ConcreteStrategy</strong>：具体策略，实现不同算法。</li>
+<li><strong>Context</strong>：上下文，持有 Strategy，将客户请求委托给当前策略；可在构造或 setter 中注入策略。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Strategy</span> { <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a + b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Multiply</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a * b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> Strategy strategy;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrategy</span><span class="params">(Strategy s)</span> { <span class="built_in">this</span>.strategy = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">execute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> strategy.compute(a, b); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>ResourceLoader / 资源加载策略</strong>：根据 URL 前缀（file:、classpath:、http:）选择不同 Resource 实现，可视为 “按前缀选择加载策略”；Spring 内置多种 Resource 实现，由 ResourceLoader 路由。</li>
+<li><strong>AOP 代理策略</strong>：JdkDynamicAopProxy 与 Cglib2AopProxy 是两种 “生成代理” 的策略，根据目标是否实现接口选择其一。</li>
+<li><strong>PlatformTransactionManager 与具体实现</strong>：事务管理是抽象，DataSourceTransactionManager、HibernateTransactionManager 等是不同策略，由配置或自动装配决定使用哪种。</li>
+<li><strong>MessageConverter</strong>：HTTP 消息的序列化 / 反序列化有多种策略（JSON、XML 等），根据 Content-Type 或配置选择不同 Converter。</li>
+<li><strong>CacheManager</strong>：缓存抽象，Redis、Caffeine、Simple 等是不同策略，通过配置切换。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>多种算法 / 规则可替换</strong>：如支付（微信/支付宝/银联）、运费计算（按重量/按体积/固定）、折扣（满减/会员价/券），每种一种策略，便于新增与测试。</li>
+<li><strong>多数据源 / 多协议</strong>：根据配置或路由键选择不同数据源、不同 RPC 协议，客户只依赖 “获取连接 / 发请求” 的接口。</li>
+<li><strong>多格式解析 / 序列化</strong>：同一业务数据支持 JSON/XML/二进制等多种格式，每种格式一个策略。</li>
+<li><strong>多验证规则</strong>：校验逻辑有多种（格式、黑名单、风控），可组合或按场景选不同策略。</li>
+<li><strong>多通知渠道</strong>：发送通知支持短信/邮件/站内信/推送，每种渠道一个策略，由配置或业务选择。</li>
+</ul>
+<p><strong>不适用</strong>：算法唯一或很少变化时，直接实现即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>策略模式通过 “策略接口 + 多种实现 + 上下文委托” 使算法可替换、易扩展；Spring 中 <strong>ResourceLoader</strong>、<strong>AOP 代理选择</strong>、<strong>事务管理器</strong>、<strong>MessageConverter</strong>、<strong>CacheManager</strong> 都是策略思想的体现。业务上适用于<strong>多种支付/计算/校验、多数据源/多协议、多格式、多通知渠道</strong>等场景。</p>
+]]></content>
+      <categories>
+        <category>设计模式</category>
+        <category>行为型</category>
+      </categories>
+      <tags>
+        <tag>设计模式</tag>
+        <tag>Spring</tag>
+        <tag>策略</tag>
       </tags>
   </entry>
   <entry>

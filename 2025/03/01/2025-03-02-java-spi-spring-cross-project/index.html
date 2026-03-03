@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous" defer></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="SPI 机制与跨项目实现（含 Spring 与完整示例） 本文说明 SPI（Service Provider Interface） 是什么、如何在跨项目 &#x2F; 多模块下实现，以及如何与 Spring 结合使用，并给出可运行的示例（含目录结构）。   一、什么是 SPI SPI（Service Provider Interface） 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SPI 机制与跨项目实现（含 Spring 与完整示例）">
+<meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/index.html">
+<meta property="og:site_name" content="贝加尔湖畔">
+<meta property="og:description" content="SPI 机制与跨项目实现（含 Spring 与完整示例） 本文说明 SPI（Service Provider Interface） 是什么、如何在跨项目 &#x2F; 多模块下实现，以及如何与 Spring 结合使用，并给出可运行的示例（含目录结构）。   一、什么是 SPI SPI（Service Provider Interface） 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-03T06:51:52.614Z">
+<meta property="article:author" content="cartery">
+<meta property="article:tag" content="SPI">
+<meta property="article:tag" content="ServiceLoader">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="自动配置">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/","path":"2025/03/01/2025-03-02-java-spi-spring-cross-project/","title":"SPI 机制与跨项目实现（含 Spring 与完整示例）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SPI 机制与跨项目实现（含 Spring 与完整示例） | 贝加尔湖畔</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/7.2.0/pangu.umd.js" integrity="sha256-JnmRRnJK7DC6RQJbAJb6AXOM9OmWzS6z8eYultk/48Y=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+  <script src="/js/third-party/pace.js" defer></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/"}</script>
+  <script src="/js/third-party/quicklink.js" defer></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">贝加尔湖畔</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#spi-%E6%9C%BA%E5%88%B6%E4%B8%8E%E8%B7%A8%E9%A1%B9%E7%9B%AE%E5%AE%9E%E7%8E%B0%E5%90%AB-spring-%E4%B8%8E%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text"> SPI 机制与跨项目实现（含 Spring 与完整示例）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AF-spi"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、什么是 SPI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-java-%E5%8E%9F%E7%94%9F-spiserviceloader"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、Java 原生 SPI：ServiceLoader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E7%BA%A6%E5%AE%9A"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 约定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 使用方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E8%B7%A8%E9%A1%B9%E7%9B%AE-%E5%A4%9A%E6%A8%A1%E5%9D%97%E5%AE%9E%E7%8E%B0-spi"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、跨项目 &#x2F; 多模块实现 SPI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E6%A8%A1%E5%9D%97%E5%88%92%E5%88%86"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 模块划分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E7%9B%AE%E5%BD%95%E4%B8%8E%E6%96%87%E4%BB%B6%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 目录与文件示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-spring-%E4%B8%AD%E7%9A%84-spi-%E5%BD%A2%E6%80%81"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、Spring 中的 SPI 形态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-springfactoriesloaderspringfactories"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 SpringFactoriesLoader（spring.factories）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-spring-boot-2x-%E4%B8%8E-3x-%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 Spring Boot 2.x 与 3.x 的差异</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E5%9C%A8-spring-%E4%B8%AD%E9%9B%86%E6%88%90-java-spi-%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、在 Spring 中集成 Java SPI 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-%E5%B0%86-serviceloader-%E7%BB%93%E6%9E%9C%E6%B3%A8%E5%86%8C%E4%B8%BA-bean"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 将 ServiceLoader 结果注册为 Bean</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-%E6%8C%89%E7%B1%BB%E5%9E%8B%E6%B3%A8%E5%85%A5%E5%8D%95%E4%B8%AA%E5%AE%9E%E7%8E%B0%E5%BD%93%E5%8F%AA%E6%9C%89%E4%B8%80%E4%B8%AA%E6%97%B6"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 按类型注入单个实现（当只有一个时）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-%E4%B8%8E-spring-boot-starter-%E7%BB%93%E5%90%88"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 与 Spring Boot Starter 结合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B%E4%B8%89%E6%A8%A1%E5%9D%97-spring-boot"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、完整示例：三模块 + Spring Boot</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#61-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84maven"><span class="nav-number">1.6.1.</span> <span class="nav-text"> 6.1 项目结构（Maven）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#62-api-%E6%A8%A1%E5%9D%97"><span class="nav-number">1.6.2.</span> <span class="nav-text"> 6.2 api 模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#63-impl-hello-%E6%A8%A1%E5%9D%97"><span class="nav-number">1.6.3.</span> <span class="nav-text"> 6.3 impl-hello 模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#64-impl-hi-%E6%A8%A1%E5%9D%97"><span class="nav-number">1.6.4.</span> <span class="nav-text"> 6.4 impl-hi 模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#65-app-%E6%A8%A1%E5%9D%97spring-boot"><span class="nav-number">1.6.5.</span> <span class="nav-text"> 6.5 app 模块（Spring Boot）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、小结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartery</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">71</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SPI 机制与跨项目实现（含 Spring 与完整示例） | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SPI 机制与跨项目实现（含 Spring 与完整示例）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="spi-机制与跨项目实现含-spring-与完整示例"><a class="markdownIt-Anchor" href="#spi-机制与跨项目实现含-spring-与完整示例"></a> SPI 机制与跨项目实现（含 Spring 与完整示例）</h1>
+<p>本文说明 <strong>SPI（Service Provider Interface）</strong> 是什么、如何在<strong>跨项目 / 多模块</strong>下实现，以及如何与 <strong>Spring</strong> 结合使用，并给出可运行的示例（含目录结构）。</p>
+<hr>
+<h2 id="一-什么是-spi"><a class="markdownIt-Anchor" href="#一-什么是-spi"></a> 一、什么是 SPI</h2>
+<p><strong>SPI（Service Provider Interface）</strong> 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与加载” 的机制。</p>
+<ul>
+<li><strong>接口方</strong>：定义标准接口（如 <code>javax.sql.Driver</code>、日志门面 API），不绑定具体实现。</li>
+<li><strong>实现方</strong>：提供具体实现类，并按约定在 <code>META-INF/services/</code> 下声明 “接口全限定名 → 实现类全限定名”。</li>
+<li><strong>使用方</strong>：通过 <strong>ServiceLoader</strong> 或 <strong>SpringFactoriesLoader</strong> 加载当前 classpath 下所有实现，无需硬编码实现类名。</li>
+</ul>
+<p><strong>典型用途</strong>：驱动加载（JDBC、日志）、插件化、多实现可替换（如多种加密、多种序列化）。</p>
+<hr>
+<h2 id="二-java-原生-spiserviceloader"><a class="markdownIt-Anchor" href="#二-java-原生-spiserviceloader"></a> 二、Java 原生 SPI：ServiceLoader</h2>
+<h3 id="21-约定"><a class="markdownIt-Anchor" href="#21-约定"></a> 2.1 约定</h3>
+<ul>
+<li>在 <strong>META-INF/services/</strong> 下新建文件，<strong>文件名为接口的全限定类名</strong>。</li>
+<li>文件内容为<strong>实现类的全限定类名</strong>，一行一个；<code>#</code> 开头为注释。</li>
+<li>实现类必须有<strong>无参构造器</strong>（ServiceLoader 通过反射实例化）。</li>
+</ul>
+<h3 id="22-使用方式"><a class="markdownIt-Anchor" href="#22-使用方式"></a> 2.2 使用方式</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;MyService&gt; loader = ServiceLoader.load(MyService.class);</span><br><span class="line"><span class="keyword">for</span> (MyService impl : loader) {</span><br><span class="line">    impl.doSomething();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>或：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Iterator&lt;MyService&gt; it = ServiceLoader.load(MyService.class).iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) {</span><br><span class="line">    <span class="type">MyService</span> <span class="variable">impl</span> <span class="operator">=</span> it.next();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>注意</strong>：<code>ServiceLoader.load(Class, ClassLoader)</code> 使用传入的 ClassLoader（通常为当前线程上下文类加载器）加载实现类；跨项目时需保证接口与实现都在同一 classpath 或可被同一 ClassLoader 看到。</p>
+<hr>
+<h2 id="三-跨项目-多模块实现-spi"><a class="markdownIt-Anchor" href="#三-跨项目-多模块实现-spi"></a> 三、跨项目 / 多模块实现 SPI</h2>
+<h3 id="31-模块划分"><a class="markdownIt-Anchor" href="#31-模块划分"></a> 3.1 模块划分</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>api</strong></td>
+<td>定义 SPI 接口（及可选常量、异常），供 “使用方” 和 “实现方” 依赖</td>
+</tr>
+<tr>
+<td><strong>impl-a / impl-b</strong></td>
+<td>实现接口，并在本模块 resources 下提供 <code>META-INF/services/接口全限定名</code></td>
+</tr>
+<tr>
+<td><strong>app</strong></td>
+<td>业务应用，依赖 api + 若干 impl 模块（或通过依赖传递 / 插件包引入），通过 ServiceLoader 加载实现</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-目录与文件示例"><a class="markdownIt-Anchor" href="#32-目录与文件示例"></a> 3.2 目录与文件示例</h3>
+<p>假设接口为 <code>com.example.spi.Greeter</code>，两个实现为 <code>com.example.impl.HelloGreeter</code> 和 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>api 模块</strong>（只含接口）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">api/</span><br><span class="line">  src/main/java/com/example/spi/Greeter.java</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-a 模块</strong>（实现 + 声明）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">impl-a/</span><br><span class="line">  src/main/java/com/example/impl/HelloGreeter.java</span><br><span class="line">  src/main/resources/META-INF/services/com.example.spi.Greeter</span><br></pre></td></tr></tbody></table></figure>
+<p><code>HelloGreeter.java</code>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloGreeter</span> <span class="keyword">implements</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">greet</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>META-INF/services/com.example.spi.Greeter</code> 文件内容（仅一行）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.impl.HelloGreeter</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-b 模块</strong>：同理，实现类如 <code>HiGreeter</code>，并在 <code>META-INF/services/com.example.spi.Greeter</code> 中写 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>app 模块</strong>：依赖 api 以及需要启用的 impl-a / impl-b，主类中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;Greeter&gt; loader = ServiceLoader.load(Greeter.class);</span><br><span class="line">loader.forEach(g -&gt; System.out.println(g.greet(<span class="string">"World"</span>)));</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>依赖关系</strong>：app 依赖 api + impl-a（或 impl-a、impl-b 都依赖）；<strong>谁在 classpath 谁就会被 ServiceLoader 发现</strong>。因此 “跨项目” 只需：接口在 api 工程，实现在各自工程并带好 <code>META-INF/services</code>，使用方工程通过 Maven / Gradle 依赖需要的实现模块即可。</p>
+<hr>
+<h2 id="四-spring-中的-spi-形态"><a class="markdownIt-Anchor" href="#四-spring-中的-spi-形态"></a> 四、Spring 中的 SPI 形态</h2>
+<h3 id="41-springfactoriesloaderspringfactories"><a class="markdownIt-Anchor" href="#41-springfactoriesloaderspringfactories"></a> 4.1 SpringFactoriesLoader（spring.factories）</h3>
+<p>Spring 在 <code>spring-core</code> 中提供 <strong>SpringFactoriesLoader</strong>，约定从 <strong>META-INF/spring.factories</strong> 读取配置，格式为：</p>
+<figure class="highlight properties"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key 为接口或抽象类全限定名，value 为实现类全限定名列表（逗号/换行分隔）</span></span><br><span class="line"><span class="attr">com.example.MyFactory</span>=<span class="string">\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl1,\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl2</span></span><br></pre></td></tr></tbody></table></figure>
+<p><strong>加载方式</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;MyFactory&gt; list = SpringFactoriesLoader.loadFactories(MyFactory.class, classLoader);</span><br></pre></td></tr></tbody></table></figure>
+<p>常用于 <strong>Spring Boot 自动配置</strong>：key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code>，value 为各 <code>@Configuration</code> / <code>@AutoConfiguration</code> 类。</p>
+<h3 id="42-spring-boot-2x-与-3x-的差异"><a class="markdownIt-Anchor" href="#42-spring-boot-2x-与-3x-的差异"></a> 4.2 Spring Boot 2.x 与 3.x 的差异</h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>自动配置声明位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spring Boot 2.x</strong></td>
+<td><code>META-INF/spring.factories</code>，key：<code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code></td>
+</tr>
+<tr>
+<td><strong>Spring Boot 3.x</strong></td>
+<td><strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong>，每行一个配置类全限定名</td>
+</tr>
+</tbody>
+</table>
+<p>Boot 3 仍支持在 <code>spring.factories</code> 里写其他 key（如自定义 Factory），但 <strong>EnableAutoConfiguration</strong> 已改为从 <code>.imports</code> 读取。</p>
+<p><strong>Boot 3 示例</strong>（<code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.mystarter.MyAutoConfiguration</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-在-spring-中集成-java-spi-实现"><a class="markdownIt-Anchor" href="#五-在-spring-中集成-java-spi-实现"></a> 五、在 Spring 中集成 Java SPI 实现</h2>
+<p>若实现是通过 <strong>Java SPI</strong>（META - INF / services）提供的，可以在 Spring 里统一加载并注册为 Bean，供注入使用。</p>
+<h3 id="51-将-serviceloader-结果注册为-bean"><a class="markdownIt-Anchor" href="#51-将-serviceloader-结果注册为-bean"></a> 5.1 将 ServiceLoader 结果注册为 Bean</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>业务代码中直接 <code>@Autowired List&lt;Greeter&gt; greeters</code> 使用即可。</p>
+<h3 id="52-按类型注入单个实现当只有一个时"><a class="markdownIt-Anchor" href="#52-按类型注入单个实现当只有一个时"></a> 5.2 按类型注入单个实现（当只有一个时）</h3>
+<p>若 classpath 下仅有一个 SPI 实现，可封装为单 Bean：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConditionalOnSingleCandidate(Greeter.class)</span></span><br><span class="line">    <span class="keyword">public</span> Greeter <span class="title function_">greeter</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(Greeter.class).findFirst()</span><br><span class="line">            .orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"No Greeter implementation found"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="53-与-spring-boot-starter-结合"><a class="markdownIt-Anchor" href="#53-与-spring-boot-starter-结合"></a> 5.3 与 Spring Boot Starter 结合</h3>
+<p>自定义 Starter 时，通常用 <strong>Spring 的 SPI</strong>（spring.factories 或 Boot 3 的 .imports）声明自动配置类；在自动配置类里再按需使用 <strong>Java ServiceLoader</strong> 加载你的 SPI 实现并注册为 Bean。例如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AutoConfiguration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAutoConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>并在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 中写上该类全限定名，这样引入你的 Starter 即可自动注册这些 Bean。</p>
+<hr>
+<h2 id="六-完整示例三模块-spring-boot"><a class="markdownIt-Anchor" href="#六-完整示例三模块-spring-boot"></a> 六、完整示例：三模块 + Spring Boot</h2>
+<h3 id="61-项目结构maven"><a class="markdownIt-Anchor" href="#61-项目结构maven"></a> 6.1 项目结构（Maven）</h3>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">spi-demo/</span><br><span class="line">  api/           # 接口</span><br><span class="line">  impl-hello/   # 实现 Hello</span><br><span class="line">  impl-hi/      # 实现 Hi</span><br><span class="line">  app/          # Spring Boot 主应用，依赖 api + impl-hello + impl-hi</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="62-api-模块"><a class="markdownIt-Anchor" href="#62-api-模块"></a> 6.2 api 模块</h3>
+<p><strong>pom.xml</strong>：仅需 <code>junit</code> 等（或无依赖）。</p>
+<p><strong>Greeter.java</strong>（同上）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="63-impl-hello-模块"><a class="markdownIt-Anchor" href="#63-impl-hello-模块"></a> 6.3 impl-hello 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HelloGreeter.java</strong> 实现 <code>Greeter</code>（同上）。</li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HelloGreeter</code>（注意 impl-hello 里包名可为 <code>com.example.impl</code>，与 impl-hi 若同包则类名不可重复，如改为 <code>com.example.impl.hello.HelloGreeter</code> 更稳妥）。</li>
+</ul>
+<h3 id="64-impl-hi-模块"><a class="markdownIt-Anchor" href="#64-impl-hi-模块"></a> 6.4 impl-hi 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HiGreeter.java</strong>：<code>return "Hi, " + name;</code></li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HiGreeter</code>（或 <code>com.example.impl.hi.HiGreeter</code>）。</li>
+</ul>
+<h3 id="65-app-模块spring-boot"><a class="markdownIt-Anchor" href="#65-app-模块spring-boot"></a> 6.5 app 模块（Spring Boot）</h3>
+<p><strong>pom.xml</strong>：依赖 <code>api</code>、<code>impl-hello</code>、<code>impl-hi</code> 以及 <code>spring-boot-starter</code>。</p>
+<p><strong>SpiConfiguration.java</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ServiceLoader;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>AppRunner.java</strong>（或 Controller）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppRunner</span> <span class="keyword">implements</span> <span class="title class_">CommandLineRunner</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Greeter&gt; greeters;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AppRunner</span><span class="params">(List&lt;Greeter&gt; greeters)</span> {</span><br><span class="line">        <span class="built_in">this</span>.greeters = greeters;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(String... args)</span> {</span><br><span class="line">        greeters.forEach(g -&gt; System.out.println(g.greet(<span class="string">"SPI"</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>运行后控制台会输出两类问候（来自 HelloGreeter 与 HiGreeter），说明跨模块 SPI 已被 Spring 加载并注入。</p>
+<hr>
+<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
+<table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Java SPI</strong></td>
+<td>接口 + META - INF/services/接口全限定名 文件（内容为实现类全限定名），通过 <strong>ServiceLoader</strong> 加载</td>
+</tr>
+<tr>
+<td><strong>跨项目</strong></td>
+<td>接口放在 api 模块，各实现放在不同模块并各自提供 META - INF / services；使用方依赖 api 与需要的实现模块，classpath 中有谁就加载谁</td>
+</tr>
+<tr>
+<td><strong>Spring 的 SPI</strong></td>
+<td><strong>SpringFactoriesLoader</strong> + <code>spring.factories</code>；Boot 3 自动配置改用 <strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong></td>
+</tr>
+<tr>
+<td><strong>Spring 中用 Java SPI</strong></td>
+<td>在 <code>@Configuration</code> 里用 <strong>ServiceLoader.load(接口)</strong> 得到实现列表，注册为 List Bean 或单 Bean，即可 <code>@Autowired</code> 使用</td>
+</tr>
+<tr>
+<td><strong>Starter</strong></td>
+<td>自动配置类中可同时使用 Spring 的 SPI（声明配置类）和 Java SPI（加载业务实现并注册 Bean）</td>
+</tr>
+</tbody>
+</table>
+<p>按上述方式即可在跨项目场景下实现 SPI，并在 Spring / Spring Boot 中统一使用这些实现。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+              <a href="/tags/SPI/" rel="tag"># SPI</a>
+              <a href="/tags/ServiceLoader/" rel="tag"># ServiceLoader</a>
+              <a href="/tags/%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE/" rel="tag"># 自动配置</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/" rel="prev" title="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动">
+                  <i class="fa fa-angle-left"></i> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-serialization-compare-scenarios/" rel="next" title="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景">
+                  Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cartery</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">96k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:27</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

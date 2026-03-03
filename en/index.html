@@ -223,283 +223,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/30/2025-01-30-langchain4j-text-splitter/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/en/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Beside Lake Baikal">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | Beside Lake Baikal">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/en/2025/01/30/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter — Implementation Notes</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00Z">2025-01-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-03-02 09:48:18" itemprop="dateModified" datetime="2026-03-02T09:48:18Z">2026-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/source-reading/" itemprop="url" rel="index"><span itemprop="name">source-reading</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/en/categories/agent/source-reading/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="Word count in article">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">Word count in article: </span>
-      <span>3.7k</span>
-    </span>
-    <span class="post-meta-item" title="Reading time">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">Reading time &asymp;</span>
-      <span>3 mins.</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="langchain4j-splitter-package-document-splitting-source-walkthrough"><a class="markdownIt-Anchor" href="#langchain4j-splitter-package-document-splitting-source-walkthrough"></a> LangChain4j Splitter Package — Document Splitting Source Walkthrough</h1>
-<h2 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h2>
-<p>LangChain4j provides document splitting in the package <code>dev.langchain4j.data.document.splitter</code>: the <code>DocumentSplitter</code> interface turns a <code>Document</code> into multiple <code>TextSegment</code>s, with support for character, line, paragraph, sentence, word, and regex-based splitting.</p>
-<ul>
-<li>Package docs: <a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
-</ul>
-<h2 id="core-interface"><a class="markdownIt-Anchor" href="#core-interface"></a> Core interface</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Conceptual interface (LangChain4j)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>Input: <code>Document</code></li>
-<li>Output: <code>List&lt;TextSegment&gt;</code>, each segment bounded by <code>maxSegmentSize</code></li>
-</ul>
-<h2 id="built-in-splitters-langchain4j"><a class="markdownIt-Anchor" href="#built-in-splitters-langchain4j"></a> Built-in splitters (LangChain4j)</h2>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>Separator / behavior</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>By paragraph</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>By line</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>Sentence boundary</td>
-<td>By sentence</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>By word</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>Character</td>
-<td>By character</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>Regex</td>
-<td>By regex</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>Base for hierarchical splitting</td>
-</tr>
-</tbody>
-</table>
-<h2 id="source-hierarchicaldocumentsplitter-and-segmentbuilder"><a class="markdownIt-Anchor" href="#source-hierarchicaldocumentsplitter-and-segmentbuilder"></a> Source: HierarchicalDocumentSplitter and SegmentBuilder</h2>
-<h3 id="1-overall-flow-hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-overall-flow-hierarchicaldocumentsplittersplit"></a> 1. Overall flow (HierarchicalDocumentSplitter.split)</h3>
-<p>The core of hierarchical splitting is <code>HierarchicalDocumentSplitter.split(Document)</code>:</p>
-<ol>
-<li>Use the subclass’s <code>split(text)</code> to get <code>parts</code> at the current granularity (e.g. paragraph, line, word).</li>
-<li>Use <strong>SegmentBuilder</strong> to combine parts into segments of at most <code>maxSegmentSize</code>; when a part doesn’t fit, flush the current segment, then take a tail overlap of size <code>maxOverlapSize</code> as the start of the next segment.</li>
-<li>If a <strong>single part</strong> exceeds <code>maxSegmentSize</code>, hand it to <strong>subSplitter</strong> (e.g. long paragraph → split by sentence); sub-split results are reattached to the original Document’s metadata by index.</li>
-</ol>
-<p>Size can be character count or token count via <code>TokenCountEstimator</code> and <code>estimateSize(text)</code> in SegmentBuilder.</p>
-<h3 id="2-segmentbuilder-role-and-structure"><a class="markdownIt-Anchor" href="#2-segmentbuilder-role-and-structure"></a> 2. SegmentBuilder role and structure</h3>
-<p><code>SegmentBuilder</code> (<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>) is a package-level utility (<code>@Internal</code>). It has <strong>no private inner classes</strong> and only: concatenates text parts with a given separator without exceeding <code>maxSegmentSize</code>, and supports “overlap from end” by prepending in reverse order.</p>
-<p><strong>Private fields (6)</strong></p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>Max length per segment (chars or tokens)</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>Text length function</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>Separator when joining (e.g. <code>"\n\n"</code>)</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>Length of the separator</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>Current segment content</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>Current segment length (from sizeFunction)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Public API</strong></p>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>Current segment length</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>Whether adding one more part still keeps size ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>Compute text length via sizeFunction</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>Append with joinSeparator (main flow)</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>Prepend (for overlap from segment end)</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>Whether current segment is non-empty</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>Returns <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>Clear current segment for next one</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-and-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-and-subsplitter"></a> 3. Overlap and subSplitter</h3>
-<ul>
-<li><strong>Overlap</strong>: After flushing a segment, <code>overlapFrom(segmentText)</code> takes up to <code>maxOverlapSize</code> from the <strong>end by sentence</strong> (in reverse order) as the start of the next segment, so adjacent segments overlap without breaking semantics.</li>
-<li><strong>subSplitter</strong>: When a single part is too long, a sub-splitter (e.g. <code>DocumentBySentenceSplitter</code>) is used; the default chain is provided by <code>defaultSubSplitter()</code> (e.g. paragraph → sentence → word → character).</li>
-</ul>
-<h2 id="recommended-usage-documentsplittersrecursive"><a class="markdownIt-Anchor" href="#recommended-usage-documentsplittersrecursive"></a> Recommended usage: DocumentSplitters.recursive()</h2>
-<p>LangChain4j recommends <strong>recursive</strong> splitting for general text: try paragraph → line → sentence → word → character until <code>maxSegmentSize</code> is satisfied.</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j example</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>Supports both character count and token count for size.</p>
-<h2 id="references"><a class="markdownIt-Anchor" href="#references"></a> References</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j package summary</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/30/2025-01-30-python-recursive-character-text-splitter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -536,7 +259,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2026-03-02 09:48:18" itemprop="dateModified" datetime="2026-03-02T09:48:18Z">2026-03-02</time>
+      <time title="Modified: 2026-03-03 06:51:52" itemprop="dateModified" datetime="2026-03-03T06:51:52Z">2026-03-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -773,6 +496,283 @@
 <li><strong>Overlap</strong>: Keep <code>chunk_overlap</code> characters (or tokens) between adjacent chunks to avoid cutting semantics at boundaries.</li>
 <li><strong>Length</strong>: Default is <code>len()</code> (character count); <code>length_function</code> can be set to token count (e.g. tiktoken).</li>
 </ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/30/2025-01-30-langchain4j-text-splitter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/en/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Beside Lake Baikal">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | Beside Lake Baikal">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/en/2025/01/30/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter — Implementation Notes</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00Z">2025-01-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2026-03-03 06:51:52" itemprop="dateModified" datetime="2026-03-03T06:51:52Z">2026-03-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en/categories/agent/source-reading/" itemprop="url" rel="index"><span itemprop="name">source-reading</span></a>
+        </span>
+          , 
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/en/categories/agent/source-reading/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>3.7k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>3 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="langchain4j-splitter-package-document-splitting-source-walkthrough"><a class="markdownIt-Anchor" href="#langchain4j-splitter-package-document-splitting-source-walkthrough"></a> LangChain4j Splitter Package — Document Splitting Source Walkthrough</h1>
+<h2 id="overview"><a class="markdownIt-Anchor" href="#overview"></a> Overview</h2>
+<p>LangChain4j provides document splitting in the package <code>dev.langchain4j.data.document.splitter</code>: the <code>DocumentSplitter</code> interface turns a <code>Document</code> into multiple <code>TextSegment</code>s, with support for character, line, paragraph, sentence, word, and regex-based splitting.</p>
+<ul>
+<li>Package docs: <a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+</ul>
+<h2 id="core-interface"><a class="markdownIt-Anchor" href="#core-interface"></a> Core interface</h2>
+<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Conceptual interface (LangChain4j)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>Input: <code>Document</code></li>
+<li>Output: <code>List&lt;TextSegment&gt;</code>, each segment bounded by <code>maxSegmentSize</code></li>
+</ul>
+<h2 id="built-in-splitters-langchain4j"><a class="markdownIt-Anchor" href="#built-in-splitters-langchain4j"></a> Built-in splitters (LangChain4j)</h2>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Separator / behavior</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentByParagraphSplitter</code></td>
+<td><code>"\n\n"</code></td>
+<td>By paragraph</td>
+</tr>
+<tr>
+<td><code>DocumentByLineSplitter</code></td>
+<td><code>"\n"</code></td>
+<td>By line</td>
+</tr>
+<tr>
+<td><code>DocumentBySentenceSplitter</code></td>
+<td>Sentence boundary</td>
+<td>By sentence</td>
+</tr>
+<tr>
+<td><code>DocumentByWordSplitter</code></td>
+<td><code>" "</code></td>
+<td>By word</td>
+</tr>
+<tr>
+<td><code>DocumentByCharacterSplitter</code></td>
+<td>Character</td>
+<td>By character</td>
+</tr>
+<tr>
+<td><code>DocumentByRegexSplitter</code></td>
+<td>Regex</td>
+<td>By regex</td>
+</tr>
+<tr>
+<td><code>HierarchicalDocumentSplitter</code></td>
+<td>-</td>
+<td>Base for hierarchical splitting</td>
+</tr>
+</tbody>
+</table>
+<h2 id="source-hierarchicaldocumentsplitter-and-segmentbuilder"><a class="markdownIt-Anchor" href="#source-hierarchicaldocumentsplitter-and-segmentbuilder"></a> Source: HierarchicalDocumentSplitter and SegmentBuilder</h2>
+<h3 id="1-overall-flow-hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-overall-flow-hierarchicaldocumentsplittersplit"></a> 1. Overall flow (HierarchicalDocumentSplitter.split)</h3>
+<p>The core of hierarchical splitting is <code>HierarchicalDocumentSplitter.split(Document)</code>:</p>
+<ol>
+<li>Use the subclass’s <code>split(text)</code> to get <code>parts</code> at the current granularity (e.g. paragraph, line, word).</li>
+<li>Use <strong>SegmentBuilder</strong> to combine parts into segments of at most <code>maxSegmentSize</code>; when a part doesn’t fit, flush the current segment, then take a tail overlap of size <code>maxOverlapSize</code> as the start of the next segment.</li>
+<li>If a <strong>single part</strong> exceeds <code>maxSegmentSize</code>, hand it to <strong>subSplitter</strong> (e.g. long paragraph → split by sentence); sub-split results are reattached to the original Document’s metadata by index.</li>
+</ol>
+<p>Size can be character count or token count via <code>TokenCountEstimator</code> and <code>estimateSize(text)</code> in SegmentBuilder.</p>
+<h3 id="2-segmentbuilder-role-and-structure"><a class="markdownIt-Anchor" href="#2-segmentbuilder-role-and-structure"></a> 2. SegmentBuilder role and structure</h3>
+<p><code>SegmentBuilder</code> (<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>) is a package-level utility (<code>@Internal</code>). It has <strong>no private inner classes</strong> and only: concatenates text parts with a given separator without exceeding <code>maxSegmentSize</code>, and supports “overlap from end” by prepending in reverse order.</p>
+<p><strong>Private fields (6)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maxSegmentSize</code></td>
+<td><code>int</code></td>
+<td>Max length per segment (chars or tokens)</td>
+</tr>
+<tr>
+<td><code>sizeFunction</code></td>
+<td><code>Function&lt;String, Integer&gt;</code></td>
+<td>Text length function</td>
+</tr>
+<tr>
+<td><code>joinSeparator</code></td>
+<td><code>String</code></td>
+<td>Separator when joining (e.g. <code>"\n\n"</code>)</td>
+</tr>
+<tr>
+<td><code>joinSeparatorSize</code></td>
+<td><code>int</code></td>
+<td>Length of the separator</td>
+</tr>
+<tr>
+<td><code>segment</code></td>
+<td><code>String</code></td>
+<td>Current segment content</td>
+</tr>
+<tr>
+<td><code>segmentSize</code></td>
+<td><code>int</code></td>
+<td>Current segment length (from sizeFunction)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Public API</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>getSize()</code></td>
+<td>Current segment length</td>
+</tr>
+<tr>
+<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
+<td>Whether adding one more part still keeps size ≤ maxSegmentSize</td>
+</tr>
+<tr>
+<td><code>sizeOf(String text)</code></td>
+<td>Compute text length via sizeFunction</td>
+</tr>
+<tr>
+<td><code>append(String text)</code></td>
+<td>Append with joinSeparator (main flow)</td>
+</tr>
+<tr>
+<td><code>prepend(String text)</code></td>
+<td>Prepend (for overlap from segment end)</td>
+</tr>
+<tr>
+<td><code>isNotEmpty()</code></td>
+<td>Whether current segment is non-empty</td>
+</tr>
+<tr>
+<td><code>toString()</code></td>
+<td>Returns <code>segment.trim()</code></td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>Clear current segment for next one</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-overlap-and-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-and-subsplitter"></a> 3. Overlap and subSplitter</h3>
+<ul>
+<li><strong>Overlap</strong>: After flushing a segment, <code>overlapFrom(segmentText)</code> takes up to <code>maxOverlapSize</code> from the <strong>end by sentence</strong> (in reverse order) as the start of the next segment, so adjacent segments overlap without breaking semantics.</li>
+<li><strong>subSplitter</strong>: When a single part is too long, a sub-splitter (e.g. <code>DocumentBySentenceSplitter</code>) is used; the default chain is provided by <code>defaultSubSplitter()</code> (e.g. paragraph → sentence → word → character).</li>
+</ul>
+<h2 id="recommended-usage-documentsplittersrecursive"><a class="markdownIt-Anchor" href="#recommended-usage-documentsplittersrecursive"></a> Recommended usage: DocumentSplitters.recursive()</h2>
+<p>LangChain4j recommends <strong>recursive</strong> splitting for general text: try paragraph → line → sentence → word → character until <code>maxSegmentSize</code> is satisfied.</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j example</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
+<p>Supports both character count and token count for size.</p>
+<h2 id="references"><a class="markdownIt-Anchor" href="#references"></a> References</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j package summary</a></li>
+</ul>
 
       
     </div>

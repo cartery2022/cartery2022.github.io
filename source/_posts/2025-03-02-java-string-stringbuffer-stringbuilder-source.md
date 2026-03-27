@@ -14,7 +14,7 @@ categories:
 
 # String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动
 
-本文从 JDK 源码出发，说明 **String**、**StringBuffer**、**StringBuilder** 三者的实现结构、核心逻辑与使用场景，并单独梳理 **Java 9 及以后版本** 对这三类的改动（紧凑字符串、byte[] 存储、字符串拼接编译方式等）。
+本文从 JDK 源码出发，说明 **String**、**StringBuffer**、**StringBuilder** 三者的实现结构、核心逻辑与使用场景；**第五节「知识点演变」** 自 **Java 8** 起按时间顺序说明存储与编译策略的演进（含 **Java 9** 紧凑字符串与 invokedynamic 拼接等）。
 
 ---
 
@@ -100,6 +100,25 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 
 **一句话**：String 的 hashCode 用于在 HashMap、HashSet 等容器里**快速定位和比较**“是不是同一个字符串”；`hash` 字段用来**缓存**这个值，因为字符串不可变，算一次即可。
 
+### 2.5 `hashCode()` 源码骨架（Java 9+）
+
+与 **Compact Strings** 对齐：`hash` 仍为 **0 表示未缓存**；实际计算按 **`coder`** 委托给 **`StringLatin1`** 或 **`StringUTF16`** 的静态方法（遍历 **byte[]** 上逻辑字符，公式仍为 **`h = 31 * h + c`** 的推广）。
+
+```java
+// String.hashCode() —— 与 OpenJDK 主干一致的思想（略去具体辅助方法名）
+public int hashCode() {
+    int h = hash;
+    if (h == 0 && !isEmpty()) {
+        hash = h = isLatin1()
+            ? StringLatin1.hashCode(value)
+            : StringUTF16.hashCode(value);
+    }
+    return h;
+}
+```
+
+**`equals` 依赖 `coder` + 字节级比较**：两串 **`coder` 相同**时直接比较 **`value`**；若一 **Latin-1** 一 **UTF-16**，则需按码点对齐比较（源码中有对应分支）。
+
 ---
 
 ## 三、AbstractStringBuilder 源码解读
@@ -163,6 +182,24 @@ void ensureCapacityInternal(int minimumCapacity) {
 - **insert / delete**：同样先保证容量，再移动区间内元素，更新 count。
 - 若传入 null，通常当作 `"null"` 字符串处理（appendNull）。
 
+### 3.4 `append(String)` 源码主干（与 OpenJDK 一致）
+
+逻辑三步：**判空 → 按 `count + len` 扩容 → 按当前 `coder` 把 `str` 写入 `value`**。Java 9+ 中写操作会落在 **`StringLatin1` / `StringUTF16`** 或 **`putStringAt`** 一类私有方法上，必要时对 **`str` 做解压或混合编码**，保证本 builder 与 **`String` 的 coder 约定**一致。
+
+```java
+public AbstractStringBuilder append(String str) {
+    if (str == null)
+        return appendNull();
+    int len = str.length();
+    ensureCapacityInternal(count + len);
+    putStringAt(count, str);   // 内部按 coder 将 str 拷入 value
+    count += len;
+    return this;
+}
+```
+
+**`ensureCapacityInternal` → `newCapacity`**：容量不足时 **`Arrays.copyOf`** 到更大 **byte[]**（长度按字符数 × 每字符字节数换算），再执行 **`putStringAt`**。**`StringBuilder.append` 无锁**；**`StringBuffer.append` 对整段方法 `synchronized`**，再 **`super.append`**。
+
 ---
 
 ## 四、StringBuffer 与 StringBuilder 的差异
@@ -190,31 +227,47 @@ public StringBuilder append(String str) {
 
 ---
 
-## 五、Java 9 及以后对三者的改动汇总
+## 五、知识点演变（自 Java 8 起按时间顺序）
 
-### 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益
+String / AbstractStringBuilder 早于 Java 8 已存在；本节从 **Java 8** 起按版本发布时间叙述存储与编译策略的变化，不向前追溯。
 
-| 项目 | Java 8 | Java 9+ |
-|------|--------|---------|
-| **String** | `char[] value`，2 字节/字符 | `byte[] value` + `byte coder`，LATIN1 时 1 字节/字符 |
-| **AbstractStringBuilder**（及 StringBuffer/StringBuilder） | `char[] value` | `byte[] value` + `byte coder` |
+### 5.1 Java 8（基线）
 
-- **动机**：大量字符串只含 Latin-1 字符，堆上 String 占比高，改为按需 1 字节/字符可显著 **降低内存与 GC 压力**。
-- **对 StringBuffer/StringBuilder**：内部存储与 String 统一，转换与拷贝时无需再在 char[] 与 byte[] 间多做转换，实现更一致。
+- **String**：`char[] value`，每码元 **2 字节**；字面量与 `intern` 走常量池。
+- **AbstractStringBuilder / StringBuffer / StringBuilder**：可变 `char[]`，扩容 **×2+2**。
+- **`"a" + b + "c"`**：编译为 **显式 StringBuilder** 链（new → append → `toString()`）。
 
-### 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）
+### 5.2 Java 9
 
-- **Java 8 及以前**：`"a" + b + "c"` 编译为 **显式 StringBuilder**：new StringBuilder → 多次 append → toString()。
-- **Java 9+**：改为 **invokedynamic**（如 `makeConcatWithConstants`），由 JVM 在运行时选择拼接策略（可优化为直接使用 byte[]、避免中间 StringBuilder 等），**字节码更简洁**，且未来可继续优化而无需重新编译应用。
-- **注意**：早期版本（如 Java 11–18）存在“先求值再转字符串”的顺序与旧行为不一致的 bug，**Java 19 已修复**。
+- **JEP 254 Compact Strings**：String 与 AbstractStringBuilder 改为 **`byte[]` + `coder`**（Latin-1 时 1 字节/字符），**不可变 / 可变语义不变**。
+- **JEP 280（Indify String Concatenation）**：`'+'` 拼接改为 **invokedynamic**（如 `makeConcatWithConstants`），字节码更简洁，运行时可继续优化。
 
-这主要影响 **编译期** 对 `+` 拼接的翻译，不改变 String/StringBuilder 的公开 API，但运行时生成的实现会随 JDK 版本演进。
+### 5.3 Java 11
 
-### 5.3 后续版本中的小补充
+- String 增加 **isBlank()、strip()、repeat()、lines()** 等，实现基于 **byte[]+coder**。
 
-- **Java 11**：String 增加 **isBlank()、strip()、repeat()、lines()** 等，内部实现基于 byte[]+coder。
-- **Java 17**：**String.format()** 等实现有优化，性能有提升。
-- **Java 21**：**字符串模板**（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 **可变数组参数** 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。
+### 5.4 Java 17
+
+- **String.format** 等实现优化，性能提升（具体以发行说明为准）。
+
+### 5.5 Java 19
+
+- 修复部分版本（约 **11～18**）上 invokedynamic 拼接在 **求值/转字符串顺序** 上与旧行为不一致的问题。
+
+### 5.6 Java 21
+
+- **字符串模板**（JEP 430，预览阶段以当时 JDK 为准）提供新的构建方式；**String 构造器** 对可变数组参数的拷贝与健壮性增强，避免调用方事后改数组影响内容。
+
+### 5.7 小结表
+
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 8** | `char[]`；`+` → StringBuilder |
+| ② | **Java 9** | 紧凑字符串；`+` → invokedynamic |
+| ③ | **Java 11** | isBlank、strip 等 API |
+| ④ | **Java 17** | format 等优化 |
+| ⑤ | **Java 19** | 拼接求值顺序 bug 修复 |
+| ⑥ | **Java 21** | 模板预览；构造器健壮性 |
 
 ---
 
@@ -232,4 +285,4 @@ public StringBuilder append(String str) {
 - **String**：不可变，Java 9+ 用 byte[]+coder 做紧凑存储；所有“修改”都是新对象。
 - **AbstractStringBuilder**：可变，Java 9+ 同样 byte[]+coder，扩容规则 *2+2，与 String 编码一致。
 - **StringBuffer** = AbstractStringBuilder + synchronized；**StringBuilder** = AbstractStringBuilder，无同步。
-- **Java 9+**：三者存储统一为 byte[]+coder（Compact Strings），字符串 `+` 的编译从 StringBuilder 链式调用改为 invokedynamic，后续版本继续在 format、构造器、模板等方面做增强。
+- **自 Java 9 起**：存储统一为 byte[]+coder；`+` 走 invokedynamic；其后 **11 / 17 / 19 / 21** 分别在 API、format、拼接语义修复、模板与构造器等方面演进（见第五节）。

@@ -1,5 +1,5 @@
 ---
-title: VarHandle 详解与 Java 8 之后的发展
+title: VarHandle 详解与 JDK 演进
 date: 2025-03-02
 tags:
   - java
@@ -11,9 +11,9 @@ categories:
   - 并发
 ---
 
-# VarHandle 详解与 Java 8 之后的发展
+# VarHandle 详解与 JDK 演进
 
-**说明**：`VarHandle` 在 **Java 9** 才通过 **JEP 193** 正式引入标准库。**Java 8 及以前没有 `VarHandle`**；本文先讲 VarHandle 是什么、怎么用，再按时间线说明 **Java 9 起** 的能力扩展与在 JDK 内部的落地。
+**说明**：`VarHandle` 在 **Java 9**（JEP 193）才进入标准库，**此前无对应 API**；本文先讲其用途与用法，**知识点演变从 Java 9 起按时间顺序**叙述（不单独以 Java 8 为起点）。
 
 ---
 
@@ -100,40 +100,40 @@ public class Demo {
 
 编写并发代码时应**以 Javadoc 与 JLS 为准**，本节只做导读。
 
+### 4.1 源码与运行时：`Lookup`、签名多态、intrinsic
+
+**`findVarHandle` / `arrayElementVarHandle`** 在 **`java.lang.invoke`** 中解析访问目标并构造 **`VarHandle`**（字段或数组元素的**布局与权限**在句柄创建时即定死）。
+
+`VarHandle` 的 **`get`、`set`、`compareAndSet`** 等为 **`@MethodHandle.PolymorphicSignature`**：编译器按实参类型生成 **`invokeExact` 约定**下的 `invoke`，**不必**为每种类型单独声明一套方法。
+
+JVM 将 **AccessMode** 映射到 **内存排序**；HotSpot 可对 **`compareAndSet`、`getVolatile`** 等做 **intrinsic**，与历史上 **Unsafe** CAS 同级。
+
 ---
 
-## 五、Java 8 之后的发展时间线
+## 五、知识点演变（自 Java 9 起按时间顺序）
 
-### 5.1 Java 8 及以前
+### 5.1 Java 9：JEP 193，首次发布
 
-- **无 `VarHandle`**。  
-- 并发原子操作用 **`java.util.concurrent.atomic`**、**Unsafe**（内部）、或 **`synchronized` / `volatile`**。
+- 引入 **`java.lang.invoke.VarHandle`** 与配套 **Lookup** API。  
+- 覆盖实例/静态字段、数组元素等；提供多类访问模式与 fence、`reachabilityFence`。  
+- 为 **JUC / JDK 内部逐步替换 Unsafe 字段访问** 打下基础。
 
-### 5.2 Java 9：JEP 193，VarHandle 首次发布
+### 5.2 Java 11：位运算原子 API + AQS 等落地 VarHandle
 
-- **`java.lang.invoke.VarHandle`** 与配套 Lookup API。  
-- 覆盖实例/静态字段、数组元素等；提供上述多类访问模式与 fence、`reachabilityFence`。  
-- 为后续 **JUC、JDK 内部逐步替换 Unsafe 字段访问** 打下基础。
+- 增加 **`getAndBitwiseOr` / `And` / `Xor`** 及 **Acquire/Release** 变体等（以当前 JDK Javadoc 为准）。  
+- **AQS** 等对同步状态的 CAS 等改为以 **VarHandle** 实现（如 **JDK-8149644**），**`ReentrantLock` 等对外 API 不变**。
 
-### 5.3 Java 11：位运算原子 API + 内部广泛使用
+### 5.3 Java 12 及以后
 
-- VarHandle 增加 **`getAndBitwiseOr` / `And` / `Xor`** 及带 **Acquire/Release** 语义的变体，以及按位相关的单比特操作等（具体以当前 JDK `VarHandle` Javadoc 列举为准），更贴近硬件上的原子位操作能力。  
-- **AbstractQueuedSynchronizer（AQS）** 等对**同步状态**的 CAS 等实现，迁移到以 **VarHandle** 实现原子更新（如 **JDK-8149644** 一类变更），减少对 `Unsafe` 的依赖，**应用层 `ReentrantLock` 等 API 不变**。
+- **API 稳定**，以小改进、文档补充为主；与 **Panama / `MemorySegment`** 等堆外访问体系**并行存在、定位不同**。
 
-### 5.4 Java 12 及以后
+### 5.4 小结表
 
-- `VarHandle` 作为稳定 API，随版本补充文档与小改进；**核心模型仍是 JEP 193 + Java 11 的位运算扩展**。  
-- 应用层若未使用新增方法，一般无需改代码。  
-- 与 **Foreign Memory / Panama（如 `MemorySegment`）** 等走的是另一套 API（不同 JEP），和“堆内字段上的 VarHandle”互补而不是替代关系。
-
-### 5.5 小结表
-
-| 版本 | 与 VarHandle 相关的内容 |
-|------|-------------------------|
-| **≤ 8** | 无 VarHandle |
-| **9** | JEP 193：VarHandle 与全套基础访问模式 |
-| **11** | 位运算类原子方法；AQS 等内部改用 VarHandle |
-| **12+** | 持续维护；与 Panama 等并存 |
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 9** | JEP 193，VarHandle 与基础访问模式 |
+| ② | **Java 11** | 位运算原子；AQS 等内部用 VarHandle |
+| ③ | **12+** | 维护；与 Panama 等并存 |
 
 ---
 
@@ -178,7 +178,6 @@ public class CounterHolder {
 
 ## 八、小结
 
-- **VarHandle 自 Java 9 起存在**，不是 Java 8 的 API；Java 8 之后的发展即 **9 起引入、11 增强位运算与 JDK 内部迁移**。  
-- 它提供**类型安全、有 JMM 语义说明**的字段/元素原子与有序访问，是 **`Unsafe` 字段操作** 的标准替代方向之一。  
-- **Java 11** 在 VarHandle 上扩展了**按位原子**能力，并推动 **AQS** 等核心类用 VarHandle 实现状态更新；之后版本以**稳定演进**为主。  
+- **VarHandle** 提供**类型安全、有 JMM 语义说明**的字段/元素原子与有序访问，是 **`Unsafe` 字段操作** 的标准替代方向之一。  
+- **演变顺序**：**Java 9** 引入 → **Java 11** 扩展位运算原子并让 **AQS** 等用 VarHandle 更新状态 → **12+** 稳定维护并与 Panama 并存。  
 - 日常业务优先 **`java.util.concurrent`** 与 **`synchronized`**；**VarHandle** 面向需要**精细内存语义**或 **JDK/框架级** 实现的场景。

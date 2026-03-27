@@ -89,12 +89,28 @@ public class ProxyDemo {
 
 ## 四、工作原理（源码层面）
 
-### 4.1 newProxyInstance 流程概要
+### 4.1 `Proxy.newProxyInstance` 源码主干（`java.lang.reflect.Proxy`）
 
-1. 校验：`loader`、`interfaces` 非空，接口均为接口类型且由同一 loader 加载等。
-2. **查找或生成代理类**：以 `(loader, interfaces)` 为 key 查缓存；若无则用 **ProxyGenerator**（或内部等价实现）生成代理类字节码，再通过 `Unsafe.defineClass` 或 `ClassLoader.defineClass` 加载。
-3. **实例化**：取代理类的唯一构造器，参数类型为 `InvocationHandler`，传入 `h`，`newInstance(h)` 得到代理实例。
-4. 返回该实例。
+入口完成**参数校验**（`interfaces` 非空、元素均为接口、类加载器一致等），再取得**代理类 `Class` 与构造器**，最后用 **`AccessController.doPrivileged`** 包一层**特权反射**，以 **`InvocationHandler` 为唯一入参** **`newInstance`** 出代理对象（JDK 版本间 `invoke` 无参构造 / `Constructor.newInstance` 细节略有整理，语义不变）。
+
+```java
+@CallerSensitive
+public static Object newProxyInstance(ClassLoader loader,
+                                      Class<?>[] interfaces,
+                                      InvocationHandler h) {
+    Objects.requireNonNull(h);
+    final Class<?>[] intfs = interfaces.clone();
+    // 安全与模块检查、生成或取缓存的代理类 Class clazz …
+    try {
+        Constructor<?> cons = clazz.getConstructor(InvocationHandler.class);
+        return cons.newInstance(h);
+    } catch (ReflectiveOperationException e) {
+        throw new InternalError(e.toString(), e);
+    }
+}
+```
+
+**代理类从哪来**：**`Proxy.getProxyConstructor(loader, interfaces)`**（内部再 **`getProxyClass0`**）维护 **`loader + 接口签名 → Class`** 的**软引用缓存**；缓存未命中时由 **`ProxyGenerator.generateProxyClass`**（或同职责实现）生成字节码，再通过 **定义类 API**（历史上常见 **`Unsafe.defineClass` / `Lookup.defineHiddenClass`** 一类路径，随 JDK 演进）装入 **`loader`**。
 
 ### 4.2 生成的代理类长什么样
 
@@ -125,34 +141,34 @@ public final String say(String name) {
 
 ---
 
-## 五、Java 9 及以后对动态代理的改动
+## 五、知识点演变（自 Java 8 起按时间顺序）
 
-### 5.1 模块系统与代理类的包、可见性
+JDK 动态代理早于 Java 8 已存在；本节从 **Java 8** 起按版本发布时间叙述，不向前追溯。
 
-Java 9 引入模块后，代理类的 **包与可见性** 受“代理接口所在包是否被当前模块导出/打开”影响：
+### 5.1 Java 8（基线）
+
+- **公开 API**：**`Proxy.newProxyInstance`**、**`InvocationHandler.invoke`** 的用法与当今一致。
+- **内部**：**`sun.misc.ProxyGenerator`**（非标准、不推荐依赖）；调试保存字节码可用 **`-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true`**。
+
+### 5.2 Java 9 及以后
+
+- **JPMS**：代理类的 **包与模块可见性** 依赖接口所在包是否 **导出/打开**；若有接口在 **未导出且未打开** 的包中，代理类位于 **动态模块**，应用应通过 **`Proxy.newProxyInstance`** 创建，避免对代理类 **`Constructor.newInstance`** 反射失败（**`IllegalAccessException`**）。
 
 | 情况 | 代理类所在位置/可见性 |
 |------|------------------------|
-| 所有代理接口都在**已导出或已打开**的包中 | 代理类在“未命名包”或实现定义的包中（如 com.sun.proxy），公共接口时一般为 public |
-| 至少一个代理接口在**未导出且未打开**的包中 | 代理类在 **动态模块** 中；若通过 `Constructor.newInstance()` 在代理类上反射创建实例，可能抛 `IllegalAccessException`，应使用 **Proxy.newProxyInstance()** 创建 |
+| 所有代理接口都在**已导出或已打开**的包中 | 代理类在约定实现包（如 com.sun.proxy），公共接口时一般为 public |
+| 至少一个代理接口在**未导出且未打开**的包中 | 代理类在 **动态模块**；须用 **Proxy.newProxyInstance()** |
 
-要点：当接口来自未导出包时，代理类被放在“动态模块”里，与普通模块的访问规则一致，不能随意反射实例化，必须走 `Proxy.newProxyInstance()`。
+- **ProxyGenerator** 迁至 **jdk.internal** 等非导出路径；保存生成类改用 **`-Djdk.proxy.ProxyGenerator.saveGeneratedFiles=true`**。
 
-### 5.2 ProxyGenerator 位置与保存代理类字节码
+### 5.3 小结表
 
-| 项目 | Java 8 | Java 9+ |
-|------|--------|---------|
-| **ProxyGenerator 所在包** | `sun.misc.ProxyGenerator`（不推荐依赖） | 移至 **jdk.internal**（如 `jdk.internal.reflect`），非导出 API |
-| **保存生成的 .class 文件** | `-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true` | **`-Djdk.proxy.ProxyGenerator.saveGeneratedFiles=true`** |
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 8** | API 定型；sun.misc 调试开关 |
+| ② | **Java 9+** | 模块与动态模块；内部迁移与新调试属性 |
 
-调试时若要把运行时生成的代理类 dump 到磁盘，Java 9+ 需使用新系统属性 **`jdk.proxy.ProxyGenerator.saveGeneratedFiles=true`**；不要依赖 `sun.misc.ProxyGenerator`，内部实现可能随时调整。
-
-### 5.3 核心 API 保持不变
-
-- **Proxy.newProxyInstance(ClassLoader, Class<?>[], InvocationHandler)** 的签名与语义未变。
-- **InvocationHandler.invoke** 的约定未变。
-- 代理类仍继承 `Proxy`、实现指定接口，方法转发到 handler。  
-因此“怎么用”在 8 与 9+ 一致，变化主要在“代理类放在哪个模块/包、如何生成与加载”以及调试/内部实现细节。
+**对外**：**`Proxy.newProxyInstance`** / **`InvocationHandler`** 的签名与语义不变。
 
 ---
 
@@ -173,4 +189,4 @@ Java 9 引入模块后，代理类的 **包与可见性** 受“代理接口所�
 
 - **JDK 动态代理**：通过 **Proxy.newProxyInstance** 传入类加载器、接口数组和 **InvocationHandler**，在运行时生成实现这些接口的代理类，所有接口方法（以及 equals/hashCode/toString）调用都转到 **handler.invoke**，常用于 AOP、RPC 客户端等。
 - **限制**：只能基于接口；代理类继承 `Proxy`，由内部 ProxyGenerator 生成字节码并加载。
-- **Java 9+**：模块化下代理类可能位于“动态模块”，未导出包中的接口会影响代理类的可访问性；ProxyGenerator 移入 jdk.internal，保存生成文件改用 **`jdk.proxy.ProxyGenerator.saveGeneratedFiles=true`**；对外 API 不变，现有基于 Proxy + InvocationHandler 的代码可继续使用。
+- **演变**：自 **Java 8** 基线到 **Java 9+** 的模块、动态模块与 **ProxyGenerator** 内部迁移；保存字节码改用 **`jdk.proxy.ProxyGenerator.saveGeneratedFiles`**；**对外 API 不变**。

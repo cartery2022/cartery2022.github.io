@@ -1,20 +1,18 @@
 ---
-title: ReentrantLock 详解与 Java 8 之后版本相关改动
+title: ReentrantLock 详解与 JDK 演进
 date: 2025-03-02
 tags:
   - java
   - ReentrantLock
-  - AQS
   - 并发
-  - 虚拟线程
 categories:
   - Java
   - 并发
 ---
 
-# ReentrantLock 详解与 Java 8 之后版本相关改动
+# ReentrantLock 详解与 JDK 演进
 
-本文说明 **ReentrantLock** 的定位、与 `synchronized` 的差异、核心 API、底层与 **AbstractQueuedSynchronizer（AQS）** 的关系，以及 **Java 8 之后各版本** 与可重入锁相关的实现与生态变化（VarHandle、AQS 内部实现、虚拟线程与“锁”等）。
+本文说明 **ReentrantLock** 的定位、与 `synchronized` 的差异、核心 API、底层与 **AbstractQueuedSynchronizer（AQS）** 的关系，以及**与实现、运行环境相关**的版本演进（均以 **Java 8 为叙述起点**：该类早于 Java 8 已存在，不再向前追溯）。
 
 ---
 
@@ -113,50 +111,112 @@ try {
 
 ---
 
-## 四、实现原理简述（AQS）
+## 四、源码走读（OpenJDK 主干）
 
-- `ReentrantLock` 内部有一个 `Sync` 继承 **AQS**，用 **state** 表示重入次数：首次获取为 1，同线程再次 `lock` 则 `state++`，`unlock` 时 `state--`，到 0 才真正释放。
-- **非公平**：新来的线程可能插队抢锁（在实现允许的情况下），减少上下文切换，通常更快。
-- **公平**：先检查队列中是否有等待者，尝试减少“饥饿”，但吞吐量可能略低。
+以下与 **`java.util.concurrent.locks.ReentrantLock`**、`NonfairSync` / `FairSync`、**`AbstractQueuedSynchronizer`** 的公开源码结构一致，便于把 API 与实现对应起来（具体行号随 JDK 版本略有差异）。
 
-AQS 使用 **CAS** 更新状态、**CLH 变体队列** 管理等待节点，阻塞时使用 `LockSupport.park`，唤醒用 `unpark`。这些在 Java 8 及以后大方向一致，**JDK 内部的具体原子实现**在 8 之后有演进（见下节）。
+### 4.1 类层次与 `state`
+
+- 对外 **`ReentrantLock`** 只委托内部 **`Sync extends AbstractQueuedSynchronizer`**，再分子类 **`NonfairSync`**、**`FairSync`**。
+- **`state`（volatile int）** 在互斥锁语义下：**0** 表示无占用；若当前**独占线程**是本线程，则 **`state` 为重入次数**（每次 `lock` 对应 `+1`，`unlock` 对应 `-1`，减到 **0** 才完全释放）。
+
+### 4.2 非公平 `lock()`：先 CAS 抢一次
+
+`NonfairSync.lock()` 里典型顺序是：若 **`compareAndSetState(0, 1)`** 成功，则 **`setExclusiveOwnerThread(Thread.currentThread())`** 并返回；否则走 **`acquire(1)`**。这就是“新来的线程**可能插队**”的来源——在未入队前就有机会直接拿到锁，减少 **`park`** / 上下文切换。
+
+公平锁的 `FairSync.lock()` 通常直接 **`acquire(1)`**，把是否允许抢锁交给 **`tryAcquire`**（见下）。
+
+### 4.3 `tryAcquire`：可重入 + 公平队列判断
+
+公平与否的差异集中在 **`tryAcquire(int acquires)`**。公平版在 `state == 0` 时会先 **`hasQueuedPredecessors()`**：若同步队列里已有更早等待的节点，则**不 CAS**，避免饥饿；非公平版在 `state == 0` 时往往**直接 CAS**。  
+两版在 **`current == getExclusiveOwnerThread()`** 时都做 **`setState(c + acquires)`**，实现**可重入**。
+
+```java
+// FairSync.tryAcquire —— 逻辑结构与 OpenJDK 一致（省略溢出检查细节）
+protected final boolean tryAcquire(int acquires) {
+    final Thread current = Thread.currentThread();
+    int c = getState();
+    if (c == 0) {
+        if (!hasQueuedPredecessors() && compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(current);
+            return true;
+        }
+    } else if (current == getExclusiveOwnerThread()) {
+        int nextc = c + acquires;
+        if (nextc < 0)
+            throw new Error("Maximum lock count exceeded");
+        setState(nextc);
+        return true;
+    }
+    return false;
+}
+```
+
+### 4.4 AQS 模板：`acquire` / `release` 与 `LockSupport`
+
+`tryAcquire` 失败则进入 AQS 的公共路径：**入队、自旋再 `park`、被释放方 `unpark`**。
+
+```java
+// AbstractQueuedSynchronizer
+public final void acquire(int arg) {
+    if (!tryAcquire(arg) &&
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        selfInterrupt();
+}
+```
+
+- **`addWaiter`**：当前线程封装为 **`Node`**，挂到 **CLH 风格双向 FIFO 队列**。
+- **`acquireQueued`**：在队列中按需自旋尝试 `tryAcquire`，失败后 **`LockSupport.park`**。
+
+释放时 **`unlock()`** → **`release(1)`**：子类 **`tryRelease`** 把 `state` 减到 0 并 **`setExclusiveOwnerThread(null)`** 返回 true 后，AQS 调用 **`unparkSuccessor`** 唤醒后继。
+
+### 4.5 `state` 的 CAS 实现与后文「知识点演变」
+
+**`compareAndSetState` / `getState` / `setState`** 在较早 JDK 中常基于 **Unsafe**，自 **Java 11** 起在 AQS 内普遍改为 **`VarHandle`**，**对外语义不变**。下节按版本说明这些演进。
 
 ---
 
-## 五、Java 8 之后与 ReentrantLock 相关的改动
+## 五、知识点演变（自 Java 8 起按时间顺序）
 
-下面区分：**对外 API** 与 **JVM/JUC 内部实现**，以及与 **虚拟线程** 的关系。
+`ReentrantLock` / AQS 早于 Java 8 已存在；读者侧约定从 **Java 8** 起按版本发布时间顺序叙述，不向前追溯。
 
-### 5.1 Java 9：VarHandle（JEP 193）铺好底层基础设施
+### 5.1 Java 8
 
-- Java 9 引入 **VarHandle**，提供类型安全、规范化的字段/数组/静态变量的细粒度访问（含 volatile、CAS 等），旨在替代部分 **sun.misc.Unsafe** 用法。
-- **`ReentrantLock` 的公开 API 在 Java 9 未做破坏性变更**；变化主要在 JUC 底层逐步采用更规范的内存访问原语。
+- **公开 API**：`lock` / `tryLock` / `lockInterruptibly`、`Condition`、`公平/非公平` 等与当今用法一致，可视为稳定基线。
+- **并列 API**：**StampedLock**（读写 + 乐观读，**不可重入**、无 `Condition`），与 `ReentrantLock` 场景互补。
+- **底层**：AQS 的 `state` 仍多依赖 **Unsafe** 等路径做 CAS（实现细节随版本而变）。
 
-### 5.2 Java 11：AQS 等同步器内部迁移到 VarHandle（JDK-8149644 等）
+### 5.2 Java 9
 
-- **AbstractQueuedSynchronizer** 等对 **state** 的 CAS、volatile 读写等，在 JDK 11 前后改为通过 **VarHandle** 完成，减少对 Unsafe 的直接依赖，语义更清晰，便于维护与优化。
-- 对应用开发者而言：**调用方式不变**，**行为与内存模型语义仍与 JLS 监视器/锁规则一致**；可能带来实现层面的性能微调，但一般无需改代码。
+- **VarHandle**（JEP 193）进入标准库，为后续用规范原子 API 替代部分 Unsafe 用法铺路。
+- **`ReentrantLock` 对外 API 无破坏性变更**。
 
-### 5.3 Java 8 已存在、常与 ReentrantLock 对比的 API：StampedLock
+### 5.3 Java 11
 
-- **StampedLock**（Java 8 引入）不是 `ReentrantLock` 的替代品提供互斥的简单升级版，而是**读写 + 乐观读**的另一套模型；**不可重入**，且无 `Condition`。
-- **读多写少**且能接受更复杂用法时，可考虑 `StampedLock`；**需要可重入或 Condition** 时仍用 `ReentrantLock` / `ReentrantReadWriteLock`。
+- **AQS** 对 **`state`** 的访问普遍改为 **VarHandle**（如 JDK-8149644），减少直接依赖 `sun.misc.Unsafe`；**语义与使用方式不变**。
 
-### 5.4 Java 21：虚拟线程（JEP 444）与锁
+### 5.4 Java 12～15
 
-- **虚拟线程**在阻塞时（包括通过 JUC 锁等待）使用 **pinning 较少** 的路径时，由运行时调度到 `LockSupport.park`，可释放底层载体线程给其它虚拟线程使用。
-- **`synchronized` 在 JDK 21 中仍可能导致虚拟线程“钉住”（pin）平台线程**，高并发阻塞在监视器上会压缩虚拟线程优势；在虚拟线程环境下，**需要长时间持锁或复杂阻塞时，更倾向使用 `ReentrantLock` 等 `java.util.concurrent` 锁**，这也是官方文档与实践中常提到的差异之一。
-- **JEP 491（JDK 24 起）**：改进 **synchronized** 与虚拟线程的配合，减少 pin；**不替代**按需使用 `ReentrantLock` 的场景，但缩小了“只用 JVM 监视器”的劣势。
+- 以 **AQS / 锁相关 bug 修复与实现整理**为主（中断、cancel 竞态、队列一致性等），**不扩展新的锁 API 模型**。
 
-### 5.5 小结表（对应用代码的含义）
+### 5.5 Java 21
 
-| 版本区间 | 与 ReentrantLock 最相关的内容 |
-|----------|-------------------------------|
-| **Java 8** | API 形态稳定；与 `StampedLock` 并存 |
-| **Java 9** | VarHandle 引入，为后续 JUC 内部改写奠基 |
-| **Java 11** | AQS 等内部广泛使用 VarHandle，**API 不变** |
-| **Java 21** | 虚拟线程：**JUC 锁**与 `synchronized` 对虚拟线程的友好度差异需纳入设计 |
-| **JDK 24+** | `synchronized` 与虚拟线程行为改进（JEP 491），策略上可多评估是否仍需显式 Lock |
+- **虚拟线程**（JEP 444）：阻塞在 **JUC 锁**上的等待路径与运行时调度较好配合；**`synchronized`** 仍易 **pin** 平台线程，高压场景下 **`ReentrantLock` 与短临界区** 常被优先讨论。
+
+### 5.6 JDK 24 及以后
+
+- **JEP 491**：改进 **`synchronized` 与虚拟线程**的配合，减轻 pin；与是否继续使用 `ReentrantLock` 的架构选择并行存在。
+
+### 5.7 小结表
+
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 8** | API 基线；`StampedLock` 并存 |
+| ② | **Java 9** | VarHandle 基础设施 |
+| ③ | **Java 11** | AQS `state` 等走 VarHandle |
+| ④ | **12～15** | 正确性为主的小步修复 |
+| ⑤ | **Java 21** | 虚拟线程与锁选型 |
+| ⑥ | **24+** | `synchronized` 与虚拟线程改进（JEP 491） |
 
 ---
 
@@ -172,4 +232,4 @@ AQS 使用 **CAS** 更新状态、**CLH 变体队列** 管理等待节点，阻�
 
 ## 七、小结
 
-**ReentrantLock** 提供可重入互斥、可中断与定时获取、多 `Condition`，底层由 **AQS** 实现。Java 8 之后**公开 API 保持稳定**；**Java 9–11** 一代主要改进是 **VarHandle 与 AQS 内部实现**；**Java 21+** 在**虚拟线程**场景下，`ReentrantLock` 等 JUC 锁与 `synchronized` 的取舍成为架构关注点；**JDK 24+** 通过 **JEP 491** 缓解 `synchronized` 与虚拟线程的 pin 问题。掌握显式锁的用法与这些演进，有助于写出更安全、可维护的并发代码。
+**ReentrantLock** 提供可重入互斥、可中断与定时获取、多 `Condition`，底层由 **AQS** 实现。自 **Java 8** 起对外 API 已稳定；随后 **9～11** 主要是 **AQS 用 VarHandle 管理状态** 等实现层变化；**21** 起 **虚拟线程** 使 JUC 锁与 `synchronized` 的选型更受关注；**24+** 的 **JEP 491** 改善了 `synchronized` 与虚拟线程的配合。写作顺序上：以 Java 8 为起点，按版本递增理解即可。

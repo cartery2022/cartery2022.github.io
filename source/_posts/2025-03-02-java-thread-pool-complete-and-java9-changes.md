@@ -75,6 +75,38 @@ ThreadPoolExecutor(
 因此：**先占满核心线程 → 再填队列 → 再开非核心线程 → 再拒绝**。  
 使用**无界队列**时，不会走到“队列满”，也就不会创建非核心线程，maximumPoolSize 形同虚设。
 
+### 3.1 源码：`ThreadPoolExecutor.execute`（OpenJDK 主干）
+
+**`ctl`** 是高 3 位的**运行状态**与低 29 位的**工作线程数**的 **`AtomicInteger` 打包字段**；**`workerCountOf`** / **`runStateOf`** 从中解码。下面摘录与面试常背顺序**一一对应**：
+
+```java
+public void execute(Runnable command) {
+    if (command == null)
+        throw new NullPointerException();
+    int c = ctl.get();
+    if (workerCountOf(c) < corePoolSize) {
+        if (addWorker(command, true))
+            return;
+        c = ctl.get();
+    }
+    if (isRunning(c) && workQueue.offer(command)) {
+        int recheck = ctl.get();
+        if (!isRunning(recheck) && remove(command))
+            reject(command);
+        else if (workerCountOf(recheck) == 0)
+            addWorker(null, false);
+    }
+    else if (!addWorker(command, false))
+        reject(command);
+}
+```
+
+- **第一支**：`workerCount < core` 时 **`addWorker(command, true)`**（`true` 表示占用**核心**名额）；失败则重新读 **`ctl`**（并发下别的线程可能已改池状态）。
+- **第二支**：已至少 **`core`** 个 worker 时 **`workQueue.offer`**；入队成功后 **double-check**：若池已 **SHUTDOWN** 等则 **`remove` 任务并 `reject`**；若此时 **worker 数为 0**（例如刚被回收完）要 **`addWorker(null, false)`** 保证有线程去拉队列。
+- **第三支**：队列 **`offer` 失败**（有界队列满）时 **`addWorker(command, false)`** 尝试以**非核心**身份起线程；仍失败则 **`reject(command)`**。
+
+**`addWorker`** 内部会 **`new Worker(firstTask)`**、**`workers` 集合登记**、**`t.start()`**，Worker 的 **`run`** 里调 **`runWorker`** 循环从队列 **`getTask`** 取作业执行。
+
 ---
 
 ## 四、任务队列（workQueue）常见类型
@@ -164,25 +196,25 @@ if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
 
 ---
 
-## 十一、Java 9 及以后对线程池相关 API 的改动
+## 十一、知识点演变（自 Java 8 起按时间顺序）
 
-### 11.1 CompletableFuture 增强（Java 9）
+`ThreadPoolExecutor` 等早于 Java 8 已存在；本节从 **Java 8** 起按版本发布时间叙述与**线程池 + 异步**最相关的 API 变化，不向前追溯。
 
-- **completeOnTimeout(value, timeout, unit)**：超时未完成则用给定值完成。
-- **orTimeout(timeout, unit)**：超时未完成则以 **TimeoutException** 异常完成。
-- **defaultExecutor()**：子类可重写，自定义默认执行器，不必每次传 Executor。
-- **newIncompleteFuture()**：工厂方法，便于子类扩展。
-- **completedStage()** / **failedStage()** / **failedFuture()** 等：创建已完成或已失败的 CompletableFuture/CompletionStage。
+### 11.1 Java 8
 
-这些改动不改变“线程池”本身，但让异步任务与超时、默认 Executor 的配合更灵活。
+- **Lambda** 与 **`CompletableFuture`** 进入标准库，“提交到 **`ExecutorService`** + 链式异步”成为常见写法。
 
-### 11.2 虚拟线程与 Executor（Java 21）
+### 11.2 Java 9
 
-- **Executors.newVirtualThreadPerTaskExecutor()**：为**每个任务**创建一个**虚拟线程**，任务结束后虚拟线程可被回收；适合“一任务一线程”的模型，无需再维护传统线程池的队列与最大线程数上限。
-- **Executors.newThreadPerTaskExecutor(ThreadFactory)**：按给定 **ThreadFactory** 为每个任务创建新线程；若传入 **Thread.ofVirtual().factory()**，效果与上面类似（虚拟线程）。
-- 虚拟线程由 JVM 调度，可创建大量虚拟线程而只占少量平台线程，适合高并发 I/O；**现有 ExecutorService 接口不变**，只是实现从“固定线程+队列”变为“每任务一虚拟线程”。
+- **JPMS**：`java.util.concurrent` 归入 **java.base**，对典型应用**无破坏性迁移**。
+- **CompletableFuture** 增强：**completeOnTimeout**、**orTimeout**、可重写的 **defaultExecutor()** /**newIncompleteFuture()**、**completedStage** / **failedStage** / **failedFuture** 等。
+- **`ThreadPoolExecutor` 等行为保持稳定**；改动侧重**异步编排与超时**。
 
-示例：
+### 11.3 Java 21
+
+- **Executors.newVirtualThreadPerTaskExecutor()**：每任务一**虚拟线程**，适合高并发 I/O、“一任务一线程”模型。
+- **Executors.newThreadPerTaskExecutor(ThreadFactory)**：配合 **`Thread.ofVirtual().factory()`** 同上思路。
+- **`ExecutorService` 接口不变**；实现从传统“固定平台线程 + 队列”扩展到虚拟线程调度。
 
 ```java
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -195,10 +227,13 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-### 11.3 其它版本
+### 11.4 小结表
 
-- **Java 8**：Lambda、CompletableFuture 的引入使“异步 + 线程池”成为标配。
-- **Java 9+**：模块化后 `java.util.concurrent` 仍在 java.base，无 API 破坏性变更；线程池本身行为稳定，改动主要集中在 CompletableFuture（9）和虚拟线程 Executor（21）。
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 8** | Lambda + CompletableFuture + 线程池标配用法 |
+| ② | **Java 9** | CompletableFuture 超时与工厂方法 |
+| ③ | **Java 21** | 虚拟线程 Executor |
 
 ---
 

@@ -4,7 +4,6 @@ date: 2025-03-02
 tags:
   - java
   - AQS
-  - AbstractQueuedSynchronizer
   - 并发
   - JUC
 categories:
@@ -57,7 +56,7 @@ categories:
 | **独占（Exclusive）** | 互斥锁 | `acquire` / `release` |
 | **共享（Shared）** | 信号量、读锁（阶段） | `acquireShared` / `releaseShared` |
 
-子类实现对应的 **`tryAcquire` / `tryRelease`**** 或 **`tryAcquireShared` / `tryReleaseShared`**，返回是否成功；AQS 负责排队、阻塞与唤醒传播（共享模式下可能连续唤醒多个后继）。
+子类实现对应的 **`tryAcquire` / `tryRelease`** 或 **`tryAcquireShared` / `tryReleaseShared`**，返回是否成功；AQS 负责排队、阻塞与唤醒传播（共享模式下可能连续唤醒多个后继）。
 
 ### 2.4 条件队列：ConditionObject
 
@@ -85,49 +84,83 @@ categories:
 
 **共享模式**还会在释放后做 **传播（propagate）**，使多个等待线程在许可充足时依次通过。
 
-（具体源码分支、中断、取消 `CANCELLED` 节点清理等细节较长，本文不展开到每一行。）
+### 3.1 源码：`acquire` 与 `addWaiter`（独占）
+
+`AbstractQueuedSynchronizer.acquire` 把**快速路径**留给子类 **`tryAcquire`**，失败则**入队 + 阻塞**：
+
+```java
+public final void acquire(int arg) {
+    if (!tryAcquire(arg) &&
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        selfInterrupt();
+}
+```
+
+- **`tryAcquire`**：`ReentrantLock.Sync`、`Semaphore.Sync` 等子类实现；成功则直接返回，**不**经过队列。
+- **`addWaiter(Node mode)`**：为当前线程创建 **`Node`**（含 **`Thread` 引用、`waitStatus`、`prev`/`next`**），以 CAS 方式拼到 **`tail`**，形成**双向 FIFO**。**`head`** 常作哑节点，真正等待的多从 **`head.next`** 开始参与竞争。
+- **`acquireQueued`**：节点入队后，在循环里再次 **`tryAcquire`**；仍失败则 **`shouldParkAfterFailedAcquire`** 决定前驱 **`SIGNAL`** 等状态后，调用 **`LockSupport.park(this)`**；被 **`unpark`** 或中断后醒来再次尝试。
+
+### 3.2 源码：`release` 与唤醒后继
+
+```java
+public final boolean release(int arg) {
+    if (tryRelease(arg)) {
+        Node h = head;
+        if (h != null && h.waitStatus != 0)
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+```
+
+- **`tryRelease`**：子类实现；**互斥锁**里典型语义是把 **`state`** 还原到 0 并 **`setExclusiveOwnerThread(null)`**。
+- **`unparkSuccessor`**：从 **`head`** 向后找**有效后继**（跳过 **`CANCELLED`**），对其 **`Thread`** 调用 **`LockSupport.unpark`**。
+
+### 3.3 `state` 的更新（与 JDK 版本）
+
+**`getState` / `setState` / `compareAndSetState`** 是队列外**可见性与原子性**的根基；现代 OpenJDK 在 `AbstractQueuedSynchronizer` 内对 **`state`** 使用 **`VarHandle`（如 `STATE`）** 做 volatile 读/写与 CAS（**Java 11** 前后从 **Unsafe** 迁出，语义不变）。读懂上述三个方法，`ReentrantLock` / `Semaphore` 的 **`tryAcquire`/`tryRelease`** 只是在这套队列协议上**解释 `state` 的含义**。
+
+### 3.4 共享模式与条件队列（点到为止）
+
+- **共享**：`acquireShared` / `releaseShared` 使用 **`Node.SHARED`**，释放后可能 **`doReleaseShared`** **连续 propagate**，多个等待线程在许可足够时依次通过（如 **`Semaphore`**）。
+- **`ConditionObject`**：**`await`** 会 **`fullyRelease`** 释放 **`state`** 并进入**条件单向链表**；**`signal`** 把节点转回**同步队列**尾部，之后走与普通 `acquire` 相同的 **`acquireQueued`** 路径。
 
 ---
 
-## 四、JDK 演进：AQS「之后的变化」
+## 四、知识点演变（自 Java 8 起按时间顺序）
 
-对外 API（`acquire` / `release` / `Condition` 等）**长期保持稳定**；变化主要集中在 **状态的原子实现**、**队列/中断/取消** 的健壮性与微优化。
+AQS 早于 Java 8 已存在；本节从 **Java 8** 起按版本发布时间叙述，不向前追溯。对外 API（`acquire` / `release` / `Condition` 等）**长期保持稳定**；变化主要在 **状态的原子实现** 与 **队列/中断/取消** 的健壮性。
 
-### 4.1 Java 8 及更早
+### 4.1 Java 8
 
-- 使用 **Unsafe** 或底层原子原语对 **`state` 字段**做 CAS（`compareAndSwapInt` 等）。
-- AQS 框架形态已是：**state + CLH 风格队列 + `LockSupport`**。
+- **`state`** 多通过 **Unsafe** 等做 CAS；框架形态：**state + CLH 风格队列 + `LockSupport`**。
 
-### 4.2 Java 11：**VarHandle 重写状态访问（重要）**
+### 4.2 Java 9
 
-- **`compareAndSetState` / `getState` / `setState`** 等改为通过 **`java.lang.invoke.VarHandle`** 访问 **`state`**，取代对 **`sun.misc.Unsafe`** 的直接依赖（与 **JDK-8149644** 等变更相关）。
-- **语义不变**：仍满足 JMM 对同步器的要求；**子类与 `ReentrantLock` 等公共 API 无需修改**。
-- **动机**：更安全、更规范的原子访问 API，便于维护与 JVM 优化；与 **JEP 193（VarHandle）** 路线一致。
+- **VarHandle**（JEP 193）进入标准库，为后续规范 **`state`** 访问铺路。
 
-### 4.3 Java 12～15 附近：修复与“刷新”
+### 4.3 Java 11
 
-OpenJDK 变更记录中可见多例仅针对 AQS 或其子类交互的缺陷修复，例如：
+- **`compareAndSetState` / `getState` / `setState`** 等改为通过 **VarHandle** 访问 **`state`**（JDK-8149644 等），**语义与公共 API 不变**。
 
-- **中断与 `tryAcquire` 抛异常** 时的处理（8191937）。
-- **cancel 节点** 相关的竞态与队列一致性（8191483）。
-- 未持锁就 **await** 导致队列损坏等问题（8187408）。
-- **8229442**：对 AQS 与相关 lock 类的一批刷新/整理（实现层，非破坏性 API）。
+### 4.4 Java 12～15
 
-这些版本**不增加新的 AQS 抽象模式**，而是提高 **正确性与边界行为**。
+- **中断与 `tryAcquire`**（8191937）、**cancel 节点** 竞态（8191483）、未持锁 **await**（8187408）、**8229442** 等对 AQS 与相关 lock 的 **bugfix / 刷新**；**不新增抽象模式**。
 
-### 4.4 Java 17～21 及以后
+### 4.5 Java 21 及以后
 
-- AQS 作为稳定核心，随 **LTS** 继续接受小修复与性能相关微调（以各版本 **Release Notes / JDK Issue** 为准）。
-- **虚拟线程（Java 21）**：阻塞在 `LockSupport.park` 上的锁等待路径与虚拟线程调度模型配合；**`synchronized`** 在早期虚拟线程上易产生 **pin**，而 **基于 AQS 的 `ReentrantLock`** 常作为替代讨论对象——这是**使用侧**的架构选择，不一定改变 AQS 类签名，但说明了 AQS 在运行时仍承担大量阻塞同步。
+- **虚拟线程**：基于 **`LockSupport.park`** 的 JUC 锁等待与运行时配合；**`synchronized`** 的 pin 问题使 **`ReentrantLock`（AQS）** 常被对比讨论。**JDK 24+ JEP 491** 改善 `synchronized` 与虚拟线程的配合。
 
-### 4.5 小结表
+### 4.6 小结表
 
-| 阶段 | AQS 相关变化要点 |
-|------|------------------|
-| **≤ JDK 10** | `state` 多通过 Unsafe 类原子操作 |
-| **JDK 11** | **`state` 通过 VarHandle** 更新；对齐标准 JMM API |
-| **JDK 12+** | 以 **bugfix、队列/中断一致性、微调** 为主 |
-| **JDK 21+** | 与 **虚拟线程** 生态协同；AQS 仍是 JUC 锁/同步器底座 |
+| 顺序 | 版本 | 要点 |
+|------|------|------|
+| ① | **Java 8** | Unsafe 管 `state`；队列形态定型 |
+| ② | **Java 9** | VarHandle 基础设施 |
+| ③ | **Java 11** | `state` 迁 VarHandle |
+| ④ | **12～15** | 正确性与实现整理 |
+| ⑤ | **21+** | 虚拟线程与锁选型；24+ 同步改进 |
 
 ---
 
@@ -141,4 +174,4 @@ OpenJDK 变更记录中可见多例仅针对 AQS 或其子类交互的缺陷修�
 
 ## 六、小结
 
-**AbstractQueuedSynchronizer** 用 **`volatile int state` + FIFO 等待队列 + LockSupport** 统一实现阻塞式同步；**独占/共享**与 **Condition** 覆盖大部分 JUC 锁与门闩类。**JDK 11** 起用 **VarHandle** 管理 **`state`**，是 **Java 8 之后最明显的实现层变化**；其后版本以**正确性修复与细节优化**为主，公共模板 API 保持稳定。理解 AQS 有助于深入掌握 **Java 并发与锁实现**。
+**AbstractQueuedSynchronizer** 用 **`volatile int state` + FIFO 等待队列 + LockSupport** 统一实现阻塞式同步；**独占/共享**与 **Condition** 覆盖大部分 JUC 锁与门闩类。自 **Java 8** 起可视为稳定基线；**11** 起 **`state` 经 VarHandle 更新**；**12～15** 多为正确性修复；**21+** 与虚拟线程、`synchronized` 选型相关。公共模板 API 保持稳定。理解 AQS 有助于深入掌握 **Java 并发与锁实现**。

@@ -185,7 +185,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -196,7 +196,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-count">60</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -213,6 +213,141 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/" class="post-title-link" itemprop="url">设计模式（十三）责任链模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="责任链模式chain-of-responsibility"><a class="markdownIt-Anchor" href="#责任链模式chain-of-responsibility"></a> 责任链模式（Chain of Responsibility）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>责任链模式</strong>使多个对象都有机会处理请求，将这些对象连成一条链，并沿链传递请求，直到有对象处理为止。</p>
+<p><strong>解决的问题</strong>：请求的发送者与多个处理者解耦，处理者可动态组合、顺序可调，且可随时增删节点。</p>
+<p><strong>定义</strong>：将请求的发送者和接收者解耦，使多个对象都有机会处理该请求；将这些对象连成链，并沿链传递请求。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Handler</strong>：抽象处理者，定义处理接口并持有后继者（next），在 handle 中可选地调用 next.handle()。</li>
+<li><strong>ConcreteHandler</strong>：具体处理者，能处理则处理并返回，否则交给后继。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">protected</span> Handler next;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setNext</span><span class="params">(Handler next)</span> { <span class="built_in">this</span>.next = next; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">HandlerA</span> <span class="keyword">extends</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span> {</span><br><span class="line">        <span class="keyword">if</span> (canHandle(req)) { <span class="comment">/* 处理 */</span> <span class="keyword">return</span>; }</span><br><span class="line">        <span class="keyword">if</span> (next != <span class="literal">null</span>) next.handle(req);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">canHandle</span><span class="params">(Request req)</span> { <span class="keyword">return</span> <span class="literal">true</span>; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Filter 链（Servlet / Spring Security）</strong>：请求依次经过多个 Filter，每个 Filter 可决定是否放行、是否继续链；Spring Security 的 FilterChainProxy 编排多个 SecurityFilter，是责任链。</li>
+<li><strong>HandlerInterceptor</strong>：Spring MVC 中 preHandle/postHandle/afterCompletion 构成 “拦截链”，多个 Interceptor 按顺序执行，任一 preHandle 返回 false 可中断。</li>
+<li><strong>AOP 的 Advice 链</strong>：多个 Advisor / Advice 组成拦截链，按顺序执行，可视为责任链。</li>
+<li><strong>异常解析链</strong>：HandlerExceptionResolver 有多个实现，按顺序尝试解析异常，直到某个能处理为止。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>多级审批、工作流</strong>：请求按 “一级 → 二级 → 三级” 传递，每级能处理则处理并结束，否则交给下一级。</li>
+<li><strong>请求预处理 / 后处理</strong>：如鉴权 → 限流 → 日志 → 业务，每步可中断或放行。</li>
+<li><strong>异常 / 错误处理</strong>：多种异常处理器按顺序尝试，直到某个能处理（转换、记录、返回统一格式）。</li>
+<li><strong>管道式处理</strong>：数据经多道 “处理器”（校验、转换、丰富、落库），每道可选处理或跳过。</li>
+</ul>
+<p><strong>不适用</strong>：请求必然只由一个固定对象处理、或处理逻辑无 “链式传递” 需求时。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>责任链模式通过 “处理者持有后继 + 沿链传递请求” 实现发送者与多个处理者解耦；Spring 中 <strong>Filter/FilterChain</strong>、<strong>HandlerInterceptor</strong>、<strong>AOP 链</strong>、<strong>HandlerExceptionResolver</strong> 是典型应用。业务上适用于<strong>多级审批、请求预处理链、异常解析链、管道处理</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -258,7 +393,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -359,6 +494,143 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-09-decorator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-09-decorator/" class="post-title-link" itemprop="url">设计模式（九）装饰器模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="装饰器模式decorator"><a class="markdownIt-Anchor" href="#装饰器模式decorator"></a> 装饰器模式（Decorator）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>装饰器模式</strong>动态地给对象增加职责，比继承更灵活；装饰器与被装饰对象实现同一接口，内部持有被装饰对象，在调用前后增加行为。</p>
+<p><strong>解决的问题</strong>：需要在不修改原类的前提下，为对象增加额外行为（如日志、缓存、加密）；若用继承，每种组合一个子类会爆炸，装饰器可任意叠放。</p>
+<p><strong>与代理的区别</strong>：装饰器强调 “增强、包装”，代理常强调 “控制访问、延迟”；实现上类似，都是 “实现同一接口 + 持有目标 + 前后增强”。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Component</strong>：抽象组件，被装饰对象与装饰器的共同接口。</li>
+<li><strong>ConcreteComponent</strong>：具体被装饰对象。</li>
+<li><strong>Decorator</strong>：装饰器，实现 Component 并持有 Component，通常将请求转发给被装饰对象并在前后加逻辑。</li>
+<li><strong>ConcreteDecorator</strong>：具体装饰器，增加具体职责。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Component</span> { String <span class="title function_">operation</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteComponent</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> <span class="string">"data"</span>; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Decorator</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> Component target;</span><br><span class="line">    Decorator(Component target) { <span class="built_in">this</span>.target = target; }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> target.operation(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LogDecorator</span> <span class="keyword">extends</span> <span class="title class_">Decorator</span> {</span><br><span class="line">    LogDecorator(Component target) { <span class="built_in">super</span>(target); }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"before"</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">r</span> <span class="operator">=</span> target.operation();</span><br><span class="line">        System.out.println(<span class="string">"after"</span>);</span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>TransactionAwareCacheDecorator</strong>：对 <code>Cache</code> 做装饰，在事务提交 / 回滚时再写缓存或清理，使缓存与事务语义一致。</li>
+<li><strong>BeanWrapper 与 属性编辑器</strong>：对 Bean 的包装与编辑可视为对 “对象行为” 的装饰。</li>
+<li><strong>InputStream / OutputStream 装饰</strong>：Java I / O 中 <code>BufferedInputStream</code> 装饰 <code>InputStream</code> 等；Spring 的 <code>Resource</code> 包装（如 <code>EncodedResource</code>）也是装饰思想。</li>
+<li><strong>AOP 切面</strong>：从效果上，对 Bean 方法加事务、日志、权限，相当于对 “方法调用” 做多层装饰，Spring 用代理实现而非手写装饰类。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>动态叠加能力</strong>：如对 “读数据” 叠加缓存、日志、限流、脱敏，可任意组合且不修改原类。</li>
+<li><strong>与事务 / 生命周期挂钩</strong>：如 “缓存在事务提交后写入”，用装饰器包装原有 Cache 实现。</li>
+<li><strong>兼容老接口</strong>：老接口返回的数据需要在新逻辑里做一层包装（如加版本、加元数据），用装饰器包装返回值。</li>
+<li><strong>流式 / 管道处理</strong>：数据流经多道处理（压缩、加密、校验），每道用装饰器包装上一级流。</li>
+</ul>
+<p><strong>不适用</strong>：行为固定、不需要多种组合增强时，直接继承或一个工具类即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>装饰器模式通过 “实现同一接口 + 持有被装饰对象 + 前后增强” 动态增加职责；Spring 中 <strong>TransactionAwareCacheDecorator</strong>、<strong>Resource 包装</strong>、<strong>AOP 增强</strong> 体现了装饰思想。业务上适用于<strong>动态叠加能力、与事务 / 生命周期挂钩、兼容老接口、流式处理</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-15-interpreter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -395,7 +667,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -417,7 +689,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>1.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -532,7 +804,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -554,7 +826,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>1.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -635,6 +907,142 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-17-mediator/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-17-mediator/" class="post-title-link" itemprop="url">设计模式（十七）中介者模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="中介者模式mediator"><a class="markdownIt-Anchor" href="#中介者模式mediator"></a> 中介者模式（Mediator）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>中介者模式</strong>用一个中介对象封装一系列对象交互，使各对象不需要显式相互引用，从而降低耦合。</p>
+<p><strong>解决的问题</strong>：多个对象之间两两通信会导致关系网状化、难以维护；引入中介者后，对象只与中介者通信，由中介者协调多方，结构变为星形。</p>
+<p><strong>定义</strong>：用一个中介对象封装一系列对象交互；中介者使各对象不需要显式相互引用，从而使其耦合松散。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Mediator</strong>：中介者接口，定义与各 Colleague 通信的方法（如 send (message, from)）。</li>
+<li><strong>ConcreteMediator</strong>：具体中介者，持有所有 Colleague 的引用，实现协调逻辑，负责把消息路由到目标 Colleague。</li>
+<li><strong>Colleague</strong>：同事类，各 Colleague 只依赖 Mediator，不直接引用其他 Colleague；需要通知他人时调用 mediator.send()。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteMediator</span> <span class="keyword">implements</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">private</span> Colleague a, b;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColleagues</span><span class="params">(Colleague a, Colleague b)</span> { <span class="built_in">this</span>.a = a; <span class="built_in">this</span>.b = b; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span> {</span><br><span class="line">        <span class="keyword">if</span> (from == a) b.receive(msg); <span class="keyword">else</span> a.receive(msg);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Colleague</span> {</span><br><span class="line">    <span class="keyword">protected</span> Mediator mediator;</span><br><span class="line">    Colleague(Mediator m) { <span class="built_in">this</span>.mediator = m; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">receive</span><span class="params">(String msg)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>MVC 中的 Controller</strong>：Controller 作为 “中介”，接收请求后协调 Model（服务 / 数据）与 View（渲染）；不直接让 View 与 Model 互相引用，降低耦合。</li>
+<li><strong>事件与 ApplicationEventMulticaster</strong>：多个监听器与事件发布者不直接引用，通过 ApplicationContext（或 Multicaster）作为中介广播事件，监听器只订阅 “某类事件”。</li>
+<li><strong>消息中间件</strong>：MQ 作为中介，生产者与消费者不直接引用，通过 Topic / Queue 通信，可视为 “消息中介者”。</li>
+<li><strong>网关 / API 网关</strong>：网关作为中介，协调认证、路由、限流与后端服务，各服务不直接互调。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>多对象需协调</strong>：如 “订单创建” 涉及库存、支付、消息、积分等多模块，由 “订单服务” 或 “领域协调器” 作为中介，统一调用各模块，模块之间不直接依赖。</li>
+<li><strong>聊天室 / 协作</strong>：多个用户 / 组件只与 “房间” 或 “会话” 通信，由中介者把消息分发给其他人。</li>
+<li><strong>表单 / UI 组件联动</strong>：多个输入框、下拉框相互联动（如省市区、品类与规格），由表单中介者统一处理变更并更新其他组件。</li>
+<li><strong>工作流 / 审批流</strong>：节点之间不直接引用，由流程引擎作为中介推进流程、分配任务。</li>
+</ul>
+<p><strong>不适用</strong>：对象之间关系简单、只有一对一或少量交互时，不必引入中介者。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>中介者模式通过 “中介者集中协调、同事只依赖中介者” 将网状交互变为星形；Spring 中 <strong>MVC Controller</strong>、<strong>事件广播</strong>、<strong>消息 / 网关</strong> 体现了中介思想。业务上适用于<strong>多对象协调、聊天 / 协作、表单联动、工作流</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-16-iterator/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -671,7 +1079,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -773,144 +1181,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-19-observer/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-19-observer/" class="post-title-link" itemprop="url">设计模式（十九）观察者模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="观察者模式observer"><a class="markdownIt-Anchor" href="#观察者模式observer"></a> 观察者模式（Observer）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>观察者模式</strong>定义对象间的一对多依赖，当一个对象状态改变时，其所有依赖者都会收到通知并自动更新。</p>
-<p><strong>解决的问题</strong>：一个主题（被观察者）状态变化时，需要通知多个订阅者且不与之强耦合；主题只负责发布 “我变了”，观察者自行订阅与处理。</p>
-<p><strong>定义</strong>：定义对象间的一种一对多依赖关系，使得每当一个对象状态发生改变时，其相关依赖对象皆得到通知并自动更新。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Subject</strong>：主题，维护观察者列表，提供 attach / detach，状态变化时 notify 所有观察者。</li>
-<li><strong>Observer</strong>：观察者接口，定义 update ()（或 onEvent），供主题调用。</li>
-<li><strong>ConcreteSubject</strong>：具体主题，状态改变时调用 notify。</li>
-<li><strong>ConcreteObserver</strong>：具体观察者，实现 update () 以响应通知。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Observer</span> { <span class="keyword">void</span> <span class="title function_">update</span><span class="params">(String state)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Subject</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Observer&gt; observers = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">attach</span><span class="params">(Observer o)</span> { observers.add(o); }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(String state)</span> {</span><br><span class="line">        <span class="built_in">this</span>.state = state;</span><br><span class="line">        observers.forEach(o -&gt; o.update(state));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>Spring 事件机制</strong>：<code>ApplicationEventPublisher.publishEvent(event)</code> 发布事件，实现 <code>ApplicationListener&lt;E&gt;</code> 或使用 <code>@EventListener</code> 的 Bean 作为观察者被自动调用；主题是 ApplicationContext（或事件发布者），观察者是各 Listener。</li>
-<li><strong>ContextRefreshedEvent、RequestHandledEvent 等</strong>：容器刷新完成、请求处理完毕等生命周期节点发布事件，监听器可做初始化、统计、清理等，与核心逻辑解耦。</li>
-<li><strong>自定义业务事件</strong>：继承 <code>ApplicationEvent</code>，在业务中 publish，多个监听器分别处理（发消息、记日志、更新缓存等），是观察者模式的直接应用。</li>
-<li><strong>@TransactionalEventListener</strong>：在事务提交后等阶段再触发监听器，仍属 “事件 → 观察者” 模型。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>事件驱动、解耦通知</strong>：如 “订单支付成功” 后需要更新库存、发短信、送积分、记审计，支付模块只发布 “支付成功” 事件，各处理方订阅即可，支付模块不依赖具体处理逻辑。</li>
-<li><strong>配置 / 数据变更通知</strong>：配置中心推送变更，多个服务订阅并刷新本地配置；缓存失效时通知多个节点。</li>
-<li><strong>UI 与数据同步</strong>：MVC 中 Model 变化后通知 View 更新；前端也常用观察者 / 订阅发布（如 Rx、EventBus）。</li>
-<li><strong>日志、监控、审计</strong>：核心业务发布 “关键操作” 事件，日志/监控/审计监听器统一处理，业务代码不写这些横切逻辑。</li>
-<li><strong>生命周期钩子</strong>：容器启动/关闭、请求开始/结束发布事件，便于做统一初始化或清理。</li>
-</ul>
-<p><strong>不适用</strong>：通知方与接收方严格一对一、且逻辑稳定不变时，直接调用即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>观察者模式通过 “主题维护观察者列表 + 状态变化时通知” 实现一对多解耦；Spring 中 <strong>ApplicationEvent/ApplicationListener</strong>、<strong>@EventListener</strong>、<strong>@TransactionalEventListener</strong> 是典型实现。业务上适用于<strong>事件驱动、配置/缓存通知、UI 同步、日志/监控/审计、生命周期钩子</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-18-memento/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -947,7 +1217,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -969,7 +1239,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>1.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1048,414 +1318,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-17-mediator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-17-mediator/" class="post-title-link" itemprop="url">设计模式（十七）中介者模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="中介者模式mediator"><a class="markdownIt-Anchor" href="#中介者模式mediator"></a> 中介者模式（Mediator）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>中介者模式</strong>用一个中介对象封装一系列对象交互，使各对象不需要显式相互引用，从而降低耦合。</p>
-<p><strong>解决的问题</strong>：多个对象之间两两通信会导致关系网状化、难以维护；引入中介者后，对象只与中介者通信，由中介者协调多方，结构变为星形。</p>
-<p><strong>定义</strong>：用一个中介对象封装一系列对象交互；中介者使各对象不需要显式相互引用，从而使其耦合松散。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Mediator</strong>：中介者接口，定义与各 Colleague 通信的方法（如 send (message, from)）。</li>
-<li><strong>ConcreteMediator</strong>：具体中介者，持有所有 Colleague 的引用，实现协调逻辑，负责把消息路由到目标 Colleague。</li>
-<li><strong>Colleague</strong>：同事类，各 Colleague 只依赖 Mediator，不直接引用其他 Colleague；需要通知他人时调用 mediator.send()。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteMediator</span> <span class="keyword">implements</span> <span class="title class_">Mediator</span> {</span><br><span class="line">    <span class="keyword">private</span> Colleague a, b;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setColleagues</span><span class="params">(Colleague a, Colleague b)</span> { <span class="built_in">this</span>.a = a; <span class="built_in">this</span>.b = b; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">send</span><span class="params">(String msg, Colleague from)</span> {</span><br><span class="line">        <span class="keyword">if</span> (from == a) b.receive(msg); <span class="keyword">else</span> a.receive(msg);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Colleague</span> {</span><br><span class="line">    <span class="keyword">protected</span> Mediator mediator;</span><br><span class="line">    Colleague(Mediator m) { <span class="built_in">this</span>.mediator = m; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">receive</span><span class="params">(String msg)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>MVC 中的 Controller</strong>：Controller 作为 “中介”，接收请求后协调 Model（服务 / 数据）与 View（渲染）；不直接让 View 与 Model 互相引用，降低耦合。</li>
-<li><strong>事件与 ApplicationEventMulticaster</strong>：多个监听器与事件发布者不直接引用，通过 ApplicationContext（或 Multicaster）作为中介广播事件，监听器只订阅 “某类事件”。</li>
-<li><strong>消息中间件</strong>：MQ 作为中介，生产者与消费者不直接引用，通过 Topic / Queue 通信，可视为 “消息中介者”。</li>
-<li><strong>网关 / API 网关</strong>：网关作为中介，协调认证、路由、限流与后端服务，各服务不直接互调。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>多对象需协调</strong>：如 “订单创建” 涉及库存、支付、消息、积分等多模块，由 “订单服务” 或 “领域协调器” 作为中介，统一调用各模块，模块之间不直接依赖。</li>
-<li><strong>聊天室 / 协作</strong>：多个用户 / 组件只与 “房间” 或 “会话” 通信，由中介者把消息分发给其他人。</li>
-<li><strong>表单 / UI 组件联动</strong>：多个输入框、下拉框相互联动（如省市区、品类与规格），由表单中介者统一处理变更并更新其他组件。</li>
-<li><strong>工作流 / 审批流</strong>：节点之间不直接引用，由流程引擎作为中介推进流程、分配任务。</li>
-</ul>
-<p><strong>不适用</strong>：对象之间关系简单、只有一对一或少量交互时，不必引入中介者。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>中介者模式通过 “中介者集中协调、同事只依赖中介者” 将网状交互变为星形；Spring 中 <strong>MVC Controller</strong>、<strong>事件广播</strong>、<strong>消息 / 网关</strong> 体现了中介思想。业务上适用于<strong>多对象协调、聊天 / 协作、表单联动、工作流</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-10-facade/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-10-facade/" class="post-title-link" itemprop="url">设计模式（十）外观模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="外观模式facade"><a class="markdownIt-Anchor" href="#外观模式facade"></a> 外观模式（Facade）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>外观模式</strong>为子系统中的一组接口提供一个统一的高层接口，使子系统更易使用。</p>
-<p><strong>解决的问题</strong>：子系统内类多、接口复杂，客户若直接依赖多个类则耦合高、调用繁琐；外观提供一个 “门面”，把常用流程封装成简单接口。</p>
-<p><strong>定义</strong>：为子系统中的一组接口提供一个一致的界面，Facade 定义了一个高层接口，使子系统更易使用。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Facade</strong>：外观类，持有子系统若干模块的引用，提供少量高层方法，内部编排对子系统的调用。</li>
-<li><strong>Subsystem classes</strong>：子系统中的多个类，各自负责一部分功能；客户可通过 Facade 间接使用，也可直接使用（若需要细粒度控制）。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleA</span> { <span class="keyword">void</span> <span class="title function_">doA</span><span class="params">()</span> {} }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleB</span> { <span class="keyword">void</span> <span class="title function_">doB</span><span class="params">()</span> {} }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleC</span> { <span class="keyword">void</span> <span class="title function_">doC</span><span class="params">()</span> {} }</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Facade</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleA</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleA</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleB</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleB</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleC</span> <span class="variable">c</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleC</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doOneThing</span><span class="params">()</span> {</span><br><span class="line">        a.doA();</span><br><span class="line">        b.doB();</span><br><span class="line">        c.doC();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>SpringMVC 的 DispatcherServlet</strong>：对请求处理流程的统一入口，内部编排 HandlerMapping、HandlerAdapter、ViewResolver 等，对 “一次 HTTP 请求” 提供 “查 Handler → 适配执行 → 解析视图” 的简化视图，是典型外观。</li>
-<li><strong>JdbcTemplate</strong>：对 JDBC 的 Connection/Statement/ResultSet 的获取、异常转换、资源关闭做封装，对外提供 <code>query/update</code> 等简单 API，降低直接使用 JDBC 的复杂度。</li>
-<li><strong>Spring Boot 的自动配置与 Starter</strong>：如 <code>spring-boot-starter-web</code> 对外暴露 “开箱即用” 的 Web 能力，背后整合 Tomcat、MVC、Jackson 等，可视为 “模块组” 的外观。</li>
-<li><strong>Tomcat 的 RequestFacade / ResponseFacade</strong>：对 ServletRequest / ServletResponse 的封装，隐藏内部实现细节，避免用户拿到内部对象后误操作。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>简化子系统使用</strong>：如 “下单” 涉及库存、订单、支付、消息等多个服务，对外提供 <code>OrderFacade.placeOrder()</code>，内部编排调用，减少调用方对多模块的依赖。</li>
-<li><strong>统一入口与流程</strong>：如 “报表生成” 需查库、计算、导出，用 ReportFacade 封装步骤，调用方只调一个方法。</li>
-<li><strong>降低升级影响</strong>：子系统内部重构时，只要外观接口不变，调用方无需改动。</li>
-<li><strong>为第三方 / 遗留系统提供简版 API</strong>：把复杂、难用的 API 包一层，只暴露业务需要的少量方法。</li>
-</ul>
-<p><strong>不适用</strong>：调用方需要细粒度控制子系统每一步、或子系统本身很简单时，不必强行加外观。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>外观模式通过 “统一高层接口 + 内部编排子系统” 降低使用复杂度；Spring 中 <strong>DispatcherServlet</strong>、<strong>JdbcTemplate</strong>、<strong>Boot Starter</strong>、<strong>RequestFacade/ResponseFacade</strong> 都是外观思想的体现。业务上适用于<strong>简化多模块调用、统一流程入口、隔离变化、包装复杂 API</strong> 等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-09-decorator/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-09-decorator/" class="post-title-link" itemprop="url">设计模式（九）装饰器模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="装饰器模式decorator"><a class="markdownIt-Anchor" href="#装饰器模式decorator"></a> 装饰器模式（Decorator）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>装饰器模式</strong>动态地给对象增加职责，比继承更灵活；装饰器与被装饰对象实现同一接口，内部持有被装饰对象，在调用前后增加行为。</p>
-<p><strong>解决的问题</strong>：需要在不修改原类的前提下，为对象增加额外行为（如日志、缓存、加密）；若用继承，每种组合一个子类会爆炸，装饰器可任意叠放。</p>
-<p><strong>与代理的区别</strong>：装饰器强调 “增强、包装”，代理常强调 “控制访问、延迟”；实现上类似，都是 “实现同一接口 + 持有目标 + 前后增强”。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Component</strong>：抽象组件，被装饰对象与装饰器的共同接口。</li>
-<li><strong>ConcreteComponent</strong>：具体被装饰对象。</li>
-<li><strong>Decorator</strong>：装饰器，实现 Component 并持有 Component，通常将请求转发给被装饰对象并在前后加逻辑。</li>
-<li><strong>ConcreteDecorator</strong>：具体装饰器，增加具体职责。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Component</span> { String <span class="title function_">operation</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteComponent</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> <span class="string">"data"</span>; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Decorator</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> Component target;</span><br><span class="line">    Decorator(Component target) { <span class="built_in">this</span>.target = target; }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> target.operation(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LogDecorator</span> <span class="keyword">extends</span> <span class="title class_">Decorator</span> {</span><br><span class="line">    LogDecorator(Component target) { <span class="built_in">super</span>(target); }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"before"</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">r</span> <span class="operator">=</span> target.operation();</span><br><span class="line">        System.out.println(<span class="string">"after"</span>);</span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>TransactionAwareCacheDecorator</strong>：对 <code>Cache</code> 做装饰，在事务提交 / 回滚时再写缓存或清理，使缓存与事务语义一致。</li>
-<li><strong>BeanWrapper 与 属性编辑器</strong>：对 Bean 的包装与编辑可视为对 “对象行为” 的装饰。</li>
-<li><strong>InputStream / OutputStream 装饰</strong>：Java I / O 中 <code>BufferedInputStream</code> 装饰 <code>InputStream</code> 等；Spring 的 <code>Resource</code> 包装（如 <code>EncodedResource</code>）也是装饰思想。</li>
-<li><strong>AOP 切面</strong>：从效果上，对 Bean 方法加事务、日志、权限，相当于对 “方法调用” 做多层装饰，Spring 用代理实现而非手写装饰类。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>动态叠加能力</strong>：如对 “读数据” 叠加缓存、日志、限流、脱敏，可任意组合且不修改原类。</li>
-<li><strong>与事务 / 生命周期挂钩</strong>：如 “缓存在事务提交后写入”，用装饰器包装原有 Cache 实现。</li>
-<li><strong>兼容老接口</strong>：老接口返回的数据需要在新逻辑里做一层包装（如加版本、加元数据），用装饰器包装返回值。</li>
-<li><strong>流式 / 管道处理</strong>：数据流经多道处理（压缩、加密、校验），每道用装饰器包装上一级流。</li>
-</ul>
-<p><strong>不适用</strong>：行为固定、不需要多种组合增强时，直接继承或一个工具类即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>装饰器模式通过 “实现同一接口 + 持有被装饰对象 + 前后增强” 动态增加职责；Spring 中 <strong>TransactionAwareCacheDecorator</strong>、<strong>Resource 包装</strong>、<strong>AOP 增强</strong> 体现了装饰思想。业务上适用于<strong>动态叠加能力、与事务 / 生命周期挂钩、兼容老接口、流式处理</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-20-state/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1492,7 +1354,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1514,7 +1376,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
+      <span>1.4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1585,8 +1447,146 @@
 
 
 
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-21-strategy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-21-strategy/" class="post-title-link" itemprop="url">设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="策略模式strategy"><a class="markdownIt-Anchor" href="#策略模式strategy"></a> 策略模式（Strategy）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>策略模式</strong>定义一系列算法，将每个算法封装起来并使它们可互换；策略使算法独立于使用它的客户而变化。</p>
+<p><strong>解决的问题</strong>：同一类问题有多种解法（如多种排序、多种支付、多种校验），若用 if-else 堆砌会难以扩展；把每种解法抽成独立策略类，客户依赖策略接口，运行时注入不同实现即可切换。</p>
+<p><strong>定义</strong>：定义一系列算法，把它们一个个封装起来，并且使它们可以相互替换；策略模式使算法独立于使用它的客户。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Strategy</strong>：策略接口，定义算法方法（如 execute (data)）。</li>
+<li><strong>ConcreteStrategy</strong>：具体策略，实现不同算法。</li>
+<li><strong>Context</strong>：上下文，持有 Strategy，将客户请求委托给当前策略；可在构造或 setter 中注入策略。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Strategy</span> { <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a + b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Multiply</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a * b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> Strategy strategy;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrategy</span><span class="params">(Strategy s)</span> { <span class="built_in">this</span>.strategy = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">execute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> strategy.compute(a, b); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>ResourceLoader / 资源加载策略</strong>：根据 URL 前缀（file:、classpath:、http:）选择不同 Resource 实现，可视为 “按前缀选择加载策略”；Spring 内置多种 Resource 实现，由 ResourceLoader 路由。</li>
+<li><strong>AOP 代理策略</strong>：JdkDynamicAopProxy 与 Cglib2AopProxy 是两种 “生成代理” 的策略，根据目标是否实现接口选择其一。</li>
+<li><strong>PlatformTransactionManager 与具体实现</strong>：事务管理是抽象，DataSourceTransactionManager、HibernateTransactionManager 等是不同策略，由配置或自动装配决定使用哪种。</li>
+<li><strong>MessageConverter</strong>：HTTP 消息的序列化 / 反序列化有多种策略（JSON、XML 等），根据 Content-Type 或配置选择不同 Converter。</li>
+<li><strong>CacheManager</strong>：缓存抽象，Redis、Caffeine、Simple 等是不同策略，通过配置切换。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>多种算法 / 规则可替换</strong>：如支付（微信/支付宝/银联）、运费计算（按重量/按体积/固定）、折扣（满减/会员价/券），每种一种策略，便于新增与测试。</li>
+<li><strong>多数据源 / 多协议</strong>：根据配置或路由键选择不同数据源、不同 RPC 协议，客户只依赖 “获取连接 / 发请求” 的接口。</li>
+<li><strong>多格式解析 / 序列化</strong>：同一业务数据支持 JSON/XML/二进制等多种格式，每种格式一个策略。</li>
+<li><strong>多验证规则</strong>：校验逻辑有多种（格式、黑名单、风控），可组合或按场景选不同策略。</li>
+<li><strong>多通知渠道</strong>：发送通知支持短信/邮件/站内信/推送，每种渠道一个策略，由配置或业务选择。</li>
+</ul>
+<p><strong>不适用</strong>：算法唯一或很少变化时，直接实现即可。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>策略模式通过 “策略接口 + 多种实现 + 上下文委托” 使算法可替换、易扩展；Spring 中 <strong>ResourceLoader</strong>、<strong>AOP 代理选择</strong>、<strong>事务管理器</strong>、<strong>MessageConverter</strong>、<strong>CacheManager</strong> 都是策略思想的体现。业务上适用于<strong>多种支付/计算/校验、多数据源/多协议、多格式、多通知渠道</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
@@ -1608,13 +1608,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">110k</span>
+    <span title="站点总字数">119k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:40</span>
+    <span title="站点阅读时长">1:48</span>
   </span>
 </div>
 <div class="busuanzi-count">

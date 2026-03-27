@@ -30,7 +30,7 @@
 <meta property="og:description" content="AbstractQueuedSynchronizer（AQS）详解与 JDK 演进 本文说明 AbstractQueuedSynchronizer（AQS） 的定位、核心结构、独占 &#x2F; 共享模式与条件队列，并梳理 JDK 各版本 中与 AQS 相关的重要实现变化与缺陷修复（尤其是 Java 11 起用 VarHandle 管理状态 及后续维护性更新）。   一、AQS 是什么 AQS 位于 ja">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-27T07:42:13.775Z">
+<meta property="article:modified_time" content="2026-03-27T08:04:38.709Z">
 <meta property="article:author" content="cartery">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="JUC">
@@ -194,7 +194,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -205,7 +205,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-count">60</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -268,7 +268,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -297,7 +297,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.9k</span>
+      <span>4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -491,8 +491,8 @@
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/java/" rel="tag"># java</a>
-              <a href="/tags/AQS/" rel="tag"># AQS</a>
               <a href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag"># 并发</a>
+              <a href="/tags/AQS/" rel="tag"># AQS</a>
               <a href="/tags/JUC/" rel="tag"># JUC</a>
           </div>
 
@@ -500,13 +500,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-cglib-dynamic-proxy/" rel="prev" title="CGLIB 动态代理原理与使用">
-                  <i class="fa fa-angle-left"></i> CGLIB 动态代理原理与使用
+                <a href="/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/" rel="prev" title="Java 动态代理原理与 Java 9+ 改动">
+                  <i class="fa fa-angle-left"></i> Java 动态代理原理与 Java 9+ 改动
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-design-pattern-21-strategy/" rel="next" title="设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景">
-                  设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景 <i class="fa fa-angle-right"></i>
+                <a href="/2025/03/01/2025-03-02-java-cglib-dynamic-proxy/" rel="next" title="CGLIB 动态代理原理与使用">
+                  CGLIB 动态代理原理与使用 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -538,13 +538,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">110k</span>
+    <span title="站点总字数">119k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:40</span>
+    <span title="站点阅读时长">1:48</span>
   </span>
 </div>
 <div class="busuanzi-count">

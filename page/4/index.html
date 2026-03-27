@@ -185,7 +185,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-count">41</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -196,7 +196,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-count">60</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -213,6 +213,275 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-spi-spring-cross-project/" class="post-title-link" itemprop="url">SPI 机制与跨项目实现（含 Spring 与完整示例）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="spi-机制与跨项目实现含-spring-与完整示例"><a class="markdownIt-Anchor" href="#spi-机制与跨项目实现含-spring-与完整示例"></a> SPI 机制与跨项目实现（含 Spring 与完整示例）</h1>
+<p>本文说明 <strong>SPI（Service Provider Interface）</strong> 是什么、如何在<strong>跨项目 / 多模块</strong>下实现，以及如何与 <strong>Spring</strong> 结合使用，并给出可运行的示例（含目录结构）。</p>
+<hr>
+<h2 id="一-什么是-spi"><a class="markdownIt-Anchor" href="#一-什么是-spi"></a> 一、什么是 SPI</h2>
+<p><strong>SPI（Service Provider Interface）</strong> 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与加载” 的机制。</p>
+<ul>
+<li><strong>接口方</strong>：定义标准接口（如 <code>javax.sql.Driver</code>、日志门面 API），不绑定具体实现。</li>
+<li><strong>实现方</strong>：提供具体实现类，并按约定在 <code>META-INF/services/</code> 下声明 “接口全限定名 → 实现类全限定名”。</li>
+<li><strong>使用方</strong>：通过 <strong>ServiceLoader</strong> 或 <strong>SpringFactoriesLoader</strong> 加载当前 classpath 下所有实现，无需硬编码实现类名。</li>
+</ul>
+<p><strong>典型用途</strong>：驱动加载（JDBC、日志）、插件化、多实现可替换（如多种加密、多种序列化）。</p>
+<hr>
+<h2 id="二-java-原生-spiserviceloader"><a class="markdownIt-Anchor" href="#二-java-原生-spiserviceloader"></a> 二、Java 原生 SPI：ServiceLoader</h2>
+<h3 id="21-约定"><a class="markdownIt-Anchor" href="#21-约定"></a> 2.1 约定</h3>
+<ul>
+<li>在 <strong>META-INF/services/</strong> 下新建文件，<strong>文件名为接口的全限定类名</strong>。</li>
+<li>文件内容为<strong>实现类的全限定类名</strong>，一行一个；<code>#</code> 开头为注释。</li>
+<li>实现类必须有<strong>无参构造器</strong>（ServiceLoader 通过反射实例化）。</li>
+</ul>
+<h3 id="22-使用方式"><a class="markdownIt-Anchor" href="#22-使用方式"></a> 2.2 使用方式</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;MyService&gt; loader = ServiceLoader.load(MyService.class);</span><br><span class="line"><span class="keyword">for</span> (MyService impl : loader) {</span><br><span class="line">    impl.doSomething();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>或：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Iterator&lt;MyService&gt; it = ServiceLoader.load(MyService.class).iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) {</span><br><span class="line">    <span class="type">MyService</span> <span class="variable">impl</span> <span class="operator">=</span> it.next();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>注意</strong>：<code>ServiceLoader.load(Class, ClassLoader)</code> 使用传入的 ClassLoader（通常为当前线程上下文类加载器）加载实现类；跨项目时需保证接口与实现都在同一 classpath 或可被同一 ClassLoader 看到。</p>
+<hr>
+<h2 id="三-跨项目-多模块实现-spi"><a class="markdownIt-Anchor" href="#三-跨项目-多模块实现-spi"></a> 三、跨项目 / 多模块实现 SPI</h2>
+<h3 id="31-模块划分"><a class="markdownIt-Anchor" href="#31-模块划分"></a> 3.1 模块划分</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>api</strong></td>
+<td>定义 SPI 接口（及可选常量、异常），供 “使用方” 和 “实现方” 依赖</td>
+</tr>
+<tr>
+<td><strong>impl-a / impl-b</strong></td>
+<td>实现接口，并在本模块 resources 下提供 <code>META-INF/services/接口全限定名</code></td>
+</tr>
+<tr>
+<td><strong>app</strong></td>
+<td>业务应用，依赖 api + 若干 impl 模块（或通过依赖传递 / 插件包引入），通过 ServiceLoader 加载实现</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-目录与文件示例"><a class="markdownIt-Anchor" href="#32-目录与文件示例"></a> 3.2 目录与文件示例</h3>
+<p>假设接口为 <code>com.example.spi.Greeter</code>，两个实现为 <code>com.example.impl.HelloGreeter</code> 和 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>api 模块</strong>（只含接口）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">api/</span><br><span class="line">  src/main/java/com/example/spi/Greeter.java</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-a 模块</strong>（实现 + 声明）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">impl-a/</span><br><span class="line">  src/main/java/com/example/impl/HelloGreeter.java</span><br><span class="line">  src/main/resources/META-INF/services/com.example.spi.Greeter</span><br></pre></td></tr></tbody></table></figure>
+<p><code>HelloGreeter.java</code>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloGreeter</span> <span class="keyword">implements</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">greet</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><code>META-INF/services/com.example.spi.Greeter</code> 文件内容（仅一行）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.impl.HelloGreeter</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>impl-b 模块</strong>：同理，实现类如 <code>HiGreeter</code>，并在 <code>META-INF/services/com.example.spi.Greeter</code> 中写 <code>com.example.impl.HiGreeter</code>。</p>
+<p><strong>app 模块</strong>：依赖 api 以及需要启用的 impl-a / impl-b，主类中：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;Greeter&gt; loader = ServiceLoader.load(Greeter.class);</span><br><span class="line">loader.forEach(g -&gt; System.out.println(g.greet(<span class="string">"World"</span>)));</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>依赖关系</strong>：app 依赖 api + impl-a（或 impl-a、impl-b 都依赖）；<strong>谁在 classpath 谁就会被 ServiceLoader 发现</strong>。因此 “跨项目” 只需：接口在 api 工程，实现在各自工程并带好 <code>META-INF/services</code>，使用方工程通过 Maven / Gradle 依赖需要的实现模块即可。</p>
+<hr>
+<h2 id="四-spring-中的-spi-形态"><a class="markdownIt-Anchor" href="#四-spring-中的-spi-形态"></a> 四、Spring 中的 SPI 形态</h2>
+<h3 id="41-springfactoriesloaderspringfactories"><a class="markdownIt-Anchor" href="#41-springfactoriesloaderspringfactories"></a> 4.1 SpringFactoriesLoader（spring.factories）</h3>
+<p>Spring 在 <code>spring-core</code> 中提供 <strong>SpringFactoriesLoader</strong>，约定从 <strong>META-INF/spring.factories</strong> 读取配置，格式为：</p>
+<figure class="highlight properties"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key 为接口或抽象类全限定名，value 为实现类全限定名列表（逗号/换行分隔）</span></span><br><span class="line"><span class="attr">com.example.MyFactory</span>=<span class="string">\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl1,\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl2</span></span><br></pre></td></tr></tbody></table></figure>
+<p><strong>加载方式</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;MyFactory&gt; list = SpringFactoriesLoader.loadFactories(MyFactory.class, classLoader);</span><br></pre></td></tr></tbody></table></figure>
+<p>常用于 <strong>Spring Boot 自动配置</strong>：key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code>，value 为各 <code>@Configuration</code> / <code>@AutoConfiguration</code> 类。</p>
+<h3 id="42-spring-boot-2x-与-3x-的差异"><a class="markdownIt-Anchor" href="#42-spring-boot-2x-与-3x-的差异"></a> 4.2 Spring Boot 2.x 与 3.x 的差异</h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>自动配置声明位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spring Boot 2.x</strong></td>
+<td><code>META-INF/spring.factories</code>，key：<code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code></td>
+</tr>
+<tr>
+<td><strong>Spring Boot 3.x</strong></td>
+<td><strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong>，每行一个配置类全限定名</td>
+</tr>
+</tbody>
+</table>
+<p>Boot 3 仍支持在 <code>spring.factories</code> 里写其他 key（如自定义 Factory），但 <strong>EnableAutoConfiguration</strong> 已改为从 <code>.imports</code> 读取。</p>
+<p><strong>Boot 3 示例</strong>（<code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.mystarter.MyAutoConfiguration</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-在-spring-中集成-java-spi-实现"><a class="markdownIt-Anchor" href="#五-在-spring-中集成-java-spi-实现"></a> 五、在 Spring 中集成 Java SPI 实现</h2>
+<p>若实现是通过 <strong>Java SPI</strong>（META - INF / services）提供的，可以在 Spring 里统一加载并注册为 Bean，供注入使用。</p>
+<h3 id="51-将-serviceloader-结果注册为-bean"><a class="markdownIt-Anchor" href="#51-将-serviceloader-结果注册为-bean"></a> 5.1 将 ServiceLoader 结果注册为 Bean</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>业务代码中直接 <code>@Autowired List&lt;Greeter&gt; greeters</code> 使用即可。</p>
+<h3 id="52-按类型注入单个实现当只有一个时"><a class="markdownIt-Anchor" href="#52-按类型注入单个实现当只有一个时"></a> 5.2 按类型注入单个实现（当只有一个时）</h3>
+<p>若 classpath 下仅有一个 SPI 实现，可封装为单 Bean：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConditionalOnSingleCandidate(Greeter.class)</span></span><br><span class="line">    <span class="keyword">public</span> Greeter <span class="title function_">greeter</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(Greeter.class).findFirst()</span><br><span class="line">            .orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"No Greeter implementation found"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="53-与-spring-boot-starter-结合"><a class="markdownIt-Anchor" href="#53-与-spring-boot-starter-结合"></a> 5.3 与 Spring Boot Starter 结合</h3>
+<p>自定义 Starter 时，通常用 <strong>Spring 的 SPI</strong>（spring.factories 或 Boot 3 的 .imports）声明自动配置类；在自动配置类里再按需使用 <strong>Java ServiceLoader</strong> 加载你的 SPI 实现并注册为 Bean。例如：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AutoConfiguration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAutoConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>并在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 中写上该类全限定名，这样引入你的 Starter 即可自动注册这些 Bean。</p>
+<hr>
+<h2 id="六-完整示例三模块-spring-boot"><a class="markdownIt-Anchor" href="#六-完整示例三模块-spring-boot"></a> 六、完整示例：三模块 + Spring Boot</h2>
+<h3 id="61-项目结构maven"><a class="markdownIt-Anchor" href="#61-项目结构maven"></a> 6.1 项目结构（Maven）</h3>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">spi-demo/</span><br><span class="line">  api/           # 接口</span><br><span class="line">  impl-hello/   # 实现 Hello</span><br><span class="line">  impl-hi/      # 实现 Hi</span><br><span class="line">  app/          # Spring Boot 主应用，依赖 api + impl-hello + impl-hi</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="62-api-模块"><a class="markdownIt-Anchor" href="#62-api-模块"></a> 6.2 api 模块</h3>
+<p><strong>pom.xml</strong>：仅需 <code>junit</code> 等（或无依赖）。</p>
+<p><strong>Greeter.java</strong>（同上）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="63-impl-hello-模块"><a class="markdownIt-Anchor" href="#63-impl-hello-模块"></a> 6.3 impl-hello 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HelloGreeter.java</strong> 实现 <code>Greeter</code>（同上）。</li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HelloGreeter</code>（注意 impl-hello 里包名可为 <code>com.example.impl</code>，与 impl-hi 若同包则类名不可重复，如改为 <code>com.example.impl.hello.HelloGreeter</code> 更稳妥）。</li>
+</ul>
+<h3 id="64-impl-hi-模块"><a class="markdownIt-Anchor" href="#64-impl-hi-模块"></a> 6.4 impl-hi 模块</h3>
+<ul>
+<li>依赖 <strong>api</strong>。</li>
+<li><strong>HiGreeter.java</strong>：<code>return "Hi, " + name;</code></li>
+<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HiGreeter</code>（或 <code>com.example.impl.hi.HiGreeter</code>）。</li>
+</ul>
+<h3 id="65-app-模块spring-boot"><a class="markdownIt-Anchor" href="#65-app-模块spring-boot"></a> 6.5 app 模块（Spring Boot）</h3>
+<p><strong>pom.xml</strong>：依赖 <code>api</code>、<code>impl-hello</code>、<code>impl-hi</code> 以及 <code>spring-boot-starter</code>。</p>
+<p><strong>SpiConfiguration.java</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ServiceLoader;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>AppRunner.java</strong>（或 Controller）：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppRunner</span> <span class="keyword">implements</span> <span class="title class_">CommandLineRunner</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Greeter&gt; greeters;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AppRunner</span><span class="params">(List&lt;Greeter&gt; greeters)</span> {</span><br><span class="line">        <span class="built_in">this</span>.greeters = greeters;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(String... args)</span> {</span><br><span class="line">        greeters.forEach(g -&gt; System.out.println(g.greet(<span class="string">"SPI"</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>运行后控制台会输出两类问候（来自 HelloGreeter 与 HiGreeter），说明跨模块 SPI 已被 Spring 加载并注入。</p>
+<hr>
+<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
+<table>
+<thead>
+<tr>
+<th>要点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Java SPI</strong></td>
+<td>接口 + META - INF/services/接口全限定名 文件（内容为实现类全限定名），通过 <strong>ServiceLoader</strong> 加载</td>
+</tr>
+<tr>
+<td><strong>跨项目</strong></td>
+<td>接口放在 api 模块，各实现放在不同模块并各自提供 META - INF / services；使用方依赖 api 与需要的实现模块，classpath 中有谁就加载谁</td>
+</tr>
+<tr>
+<td><strong>Spring 的 SPI</strong></td>
+<td><strong>SpringFactoriesLoader</strong> + <code>spring.factories</code>；Boot 3 自动配置改用 <strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong></td>
+</tr>
+<tr>
+<td><strong>Spring 中用 Java SPI</strong></td>
+<td>在 <code>@Configuration</code> 里用 <strong>ServiceLoader.load(接口)</strong> 得到实现列表，注册为 List Bean 或单 Bean，即可 <code>@Autowired</code> 使用</td>
+</tr>
+<tr>
+<td><strong>Starter</strong></td>
+<td>自动配置类中可同时使用 Spring 的 SPI（声明配置类）和 Java SPI（加载业务实现并注册 Bean）</td>
+</tr>
+</tbody>
+</table>
+<p>按上述方式即可在跨项目场景下实现 SPI，并在 Spring / Spring Boot 中统一使用这些实现。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -258,7 +527,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -280,14 +549,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>6k</span>
+      <span>6.2k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
+      <span>6 分钟</span>
     </span>
 </div>
 
@@ -603,7 +872,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -625,7 +894,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.6k</span>
+      <span>3.7k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -831,6 +1100,405 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/" class="post-title-link" itemprop="url">Java 线程池知识点与 Java 9+ 改动</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">并发</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-线程池知识点与-java-9-改动"><a class="markdownIt-Anchor" href="#java-线程池知识点与-java-9-改动"></a> Java 线程池知识点与 Java 9+ 改动</h1>
+<p>本文梳理 <strong>Java 线程池</strong> 的完整知识点：体系结构、核心参数、任务流程、拒绝策略、Executors 工厂方法、ForkJoinPool 与定时任务，以及 <strong>Java 9 及以后版本</strong> 对线程池与相关 API 的改动（CompletableFuture 增强、虚拟线程 Executor 等）。</p>
+<hr>
+<h2 id="一-体系结构"><a class="markdownIt-Anchor" href="#一-体系结构"></a> 一、体系结构</h2>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Executor（接口）</span><br><span class="line">    └── ExecutorService（接口）</span><br><span class="line">            └── AbstractExecutorService（抽象类）</span><br><span class="line">                    ├── ThreadPoolExecutor（通用线程池）</span><br><span class="line">                    ├── ScheduledThreadPoolExecutor（定时/周期任务）</span><br><span class="line">                    └── ForkJoinPool（分治/工作窃取）</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>Executor</strong>：只定义 <code>void execute(Runnable command)</code>，表示 “执行任务”。</li>
+<li><strong>ExecutorService</strong>：扩展了提交任务（submit 返回 Future）、关闭（shutdown/shutdownNow）、批量执行（invokeAll/invokeAny）等。</li>
+<li><strong>ThreadPoolExecutor</strong>：最常用的实现，通过<strong>核心线程数、最大线程数、队列、拒绝策略</strong>等控制行为。</li>
+</ul>
+<hr>
+<h2 id="二-threadpoolexecutor-核心参数"><a class="markdownIt-Anchor" href="#二-threadpoolexecutor-核心参数"></a> 二、ThreadPoolExecutor 核心参数</h2>
+<p>构造方法（7 个参数）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ThreadPoolExecutor(</span><br><span class="line">    int corePoolSize,</span><br><span class="line">    int maximumPoolSize,</span><br><span class="line">    long keepAliveTime,</span><br><span class="line">    TimeUnit unit,</span><br><span class="line">    BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">    ThreadFactory threadFactory,</span><br><span class="line">    RejectedExecutionHandler handler</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>corePoolSize</strong></td>
+<td>核心线程数，常驻池中，空闲时默认不回收（除非开启 allowCoreThreadTimeOut）</td>
+</tr>
+<tr>
+<td><strong>maximumPoolSize</strong></td>
+<td>最大线程数，池中线程总数上限</td>
+</tr>
+<tr>
+<td><strong>keepAliveTime</strong></td>
+<td>非核心线程空闲超过该时间会被回收；单位由 unit 指定</td>
+</tr>
+<tr>
+<td><strong>unit</strong></td>
+<td>keepAliveTime 的时间单位</td>
+</tr>
+<tr>
+<td><strong>workQueue</strong></td>
+<td>任务队列，存放尚未被线程执行的任务</td>
+</tr>
+<tr>
+<td><strong>threadFactory</strong></td>
+<td>创建新线程的工厂，可自定义线程名、优先级等</td>
+</tr>
+<tr>
+<td><strong>handler</strong></td>
+<td>当 “线程数已达 maximum 且队列已满” 时的拒绝策略</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三-任务提交流程"><a class="markdownIt-Anchor" href="#三-任务提交流程"></a> 三、任务提交流程</h2>
+<p><code>execute(Runnable command)</code> 的大致逻辑：</p>
+<ol>
+<li><strong>当前线程数 &lt; corePoolSize</strong>：创建新<strong>核心线程</strong>执行该任务。</li>
+<li><strong>当前线程数 ≥ corePoolSize</strong>：尝试将任务<strong>放入 workQueue</strong>。</li>
+<li><strong>队列已满</strong>：尝试创建<strong>非核心线程</strong>（不超过 maximumPoolSize）执行该任务。</li>
+<li><strong>无法创建新线程</strong>（已达 maximum 且队列满）：执行 <strong>RejectedExecutionHandler</strong>（拒绝策略）。</li>
+</ol>
+<p>因此：<strong>先占满核心线程 → 再填队列 → 再开非核心线程 → 再拒绝</strong>。<br>
+使用<strong>无界队列</strong>时，不会走到 “队列满”，也就不会创建非核心线程，maximumPoolSize 形同虚设。</p>
+<h3 id="31-源码threadpoolexecutorexecuteopenjdk-主干"><a class="markdownIt-Anchor" href="#31-源码threadpoolexecutorexecuteopenjdk-主干"></a> 3.1 源码：<code>ThreadPoolExecutor.execute</code>（OpenJDK 主干）</h3>
+<p><strong><code>ctl</code></strong> 是高 3 位的<strong>运行状态</strong>与低 29 位的<strong>工作线程数</strong>的 <strong><code>AtomicInteger</code> 打包字段</strong>；<strong><code>workerCountOf</code></strong> / <strong><code>runStateOf</code></strong> 从中解码。下面摘录与面试常背顺序<strong>一一对应</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">(Runnable command)</span> {</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NullPointerException</span>();</span><br><span class="line">    <span class="type">int</span> <span class="variable">c</span> <span class="operator">=</span> ctl.get();</span><br><span class="line">    <span class="keyword">if</span> (workerCountOf(c) &lt; corePoolSize) {</span><br><span class="line">        <span class="keyword">if</span> (addWorker(command, <span class="literal">true</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        c = ctl.get();</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">recheck</span> <span class="operator">=</span> ctl.get();</span><br><span class="line">        <span class="keyword">if</span> (!isRunning(recheck) &amp;&amp; remove(command))</span><br><span class="line">            reject(command);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (workerCountOf(recheck) == <span class="number">0</span>)</span><br><span class="line">            addWorker(<span class="literal">null</span>, <span class="literal">false</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!addWorker(command, <span class="literal">false</span>))</span><br><span class="line">        reject(command);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>第一支</strong>：<code>workerCount &lt; core</code> 时 <strong><code>addWorker(command, true)</code></strong>（<code>true</code> 表示占用<strong>核心</strong>名额）；失败则重新读 <strong><code>ctl</code></strong>（并发下别的线程可能已改池状态）。</li>
+<li><strong>第二支</strong>：已至少 <strong><code>core</code></strong> 个 worker 时 <strong><code>workQueue.offer</code></strong>；入队成功后 <strong>double-check</strong>：若池已 <strong>SHUTDOWN</strong> 等则 <strong><code>remove</code> 任务并 <code>reject</code></strong>；若此时 <strong>worker 数为 0</strong>（例如刚被回收完）要 <strong><code>addWorker(null, false)</code></strong> 保证有线程去拉队列。</li>
+<li><strong>第三支</strong>：队列 <strong><code>offer</code> 失败</strong>（有界队列满）时 <strong><code>addWorker(command, false)</code></strong> 尝试以<strong>非核心</strong>身份起线程；仍失败则 <strong><code>reject(command)</code></strong>。</li>
+</ul>
+<p><strong><code>addWorker</code></strong> 内部会 <strong><code>new Worker(firstTask)</code></strong>、<strong><code>workers</code> 集合登记</strong>、<strong><code>t.start()</code></strong>，Worker 的 <strong><code>run</code></strong> 里调 <strong><code>runWorker</code></strong> 循环从队列 <strong><code>getTask</code></strong> 取作业执行。</p>
+<hr>
+<h2 id="四-任务队列workqueue常见类型"><a class="markdownIt-Anchor" href="#四-任务队列workqueue常见类型"></a> 四、任务队列（workQueue）常见类型</h2>
+<table>
+<thead>
+<tr>
+<th>队列类型</th>
+<th>特点</th>
+<th>典型用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LinkedBlockingQueue</strong>（无界）</td>
+<td>容量可视为无限，不触发拒绝</td>
+<td>任务量可控、希望 “削峰” 时</td>
+</tr>
+<tr>
+<td><strong>ArrayBlockingQueue</strong>（有界）</td>
+<td>固定容量，满则走非核心 / 拒绝</td>
+<td>需要限制排队数量时</td>
+</tr>
+<tr>
+<td><strong>SynchronousQueue</strong></td>
+<td>不存元素，移交即被取走</td>
+<td>配合 “大 maximumPoolSize” 做直接交接</td>
+</tr>
+<tr>
+<td><strong>DelayQueue</strong></td>
+<td>按延迟时间取出</td>
+<td>延迟任务（也可用 ScheduledExecutorService）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-拒绝策略rejectedexecutionhandler"><a class="markdownIt-Anchor" href="#五-拒绝策略rejectedexecutionhandler"></a> 五、拒绝策略（RejectedExecutionHandler）</h2>
+<p>当 “线程数 = maximumPoolSize 且 workQueue 满” 时触发。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AbortPolicy</strong>（默认）</td>
+<td>抛出 <strong>RejectedExecutionException</strong></td>
+</tr>
+<tr>
+<td><strong>CallerRunsPolicy</strong></td>
+<td>由<strong>提交任务的线程</strong>直接执行该任务，相当于 “调用者自己跑”</td>
+</tr>
+<tr>
+<td><strong>DiscardPolicy</strong></td>
+<td>静默丢弃任务，不抛异常</td>
+</tr>
+<tr>
+<td><strong>DiscardOldestPolicy</strong></td>
+<td>丢弃队列中<strong>最早</strong>的一个任务，再把当前任务入队</td>
+</tr>
+</tbody>
+</table>
+<p>可自定义实现 <strong>RejectedExecutionHandler</strong>，做打日志、入库、转存等。</p>
+<hr>
+<h2 id="六-executors-工厂方法及注意点"><a class="markdownIt-Anchor" href="#六-executors-工厂方法及注意点"></a> 六、Executors 工厂方法及注意点</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>内部实现要点</th>
+<th>常见问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>newFixedThreadPool(n)</strong></td>
+<td>核心 = 最大 = n，<strong>无界</strong> LinkedBlockingQueue</td>
+<td>任务过多时队列无限增长，易 OOM</td>
+</tr>
+<tr>
+<td><strong>newCachedThreadPool()</strong></td>
+<td>核心 = 0，最大 = Integer.MAX_VALUE，<strong>SynchronousQueue</strong></td>
+<td>任务多时线程数暴增，易耗尽资源</td>
+</tr>
+<tr>
+<td><strong>newSingleThreadExecutor()</strong></td>
+<td>核心 = 最大 = 1，无界队列</td>
+<td>同上，队列无界</td>
+</tr>
+<tr>
+<td><strong>newScheduledThreadPool(n)</strong></td>
+<td>定时任务线程池，DelayedWorkQueue</td>
+<td>核心线程数可设为 0 或较小，需结合业务</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议</strong>：生产环境尽量用 <strong>ThreadPoolExecutor 构造器</strong> 显式指定有界队列、合理 maximum、自定义 ThreadFactory 和拒绝策略，避免直接用上述 “无界” 工厂。</p>
+<hr>
+<h2 id="七-关闭shutdown-与-shutdownnow"><a class="markdownIt-Anchor" href="#七-关闭shutdown-与-shutdownnow"></a> 七、关闭：shutdown 与 shutdownNow</h2>
+<ul>
+<li><strong>shutdown()</strong>：不再接受新任务，已提交的任务会继续执行完；池不会立刻退出。</li>
+<li><strong>shutdownNow()</strong>：不再接受新任务，并<strong>尝试中断</strong>正在执行的任务，返回<strong>尚未执行的任务列表</strong>；对不响应中断的任务无法强制停止。</li>
+<li><strong>awaitTermination(long timeout, TimeUnit unit)</strong>：阻塞当前线程，直到池关闭或超时；常与 shutdown 配合使用，先 shutdown 再 awaitTermination 等待一段时间。</li>
+</ul>
+<p>典型用法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">executor.shutdown();</span><br><span class="line"><span class="keyword">if</span> (!executor.awaitTermination(<span class="number">60</span>, TimeUnit.SECONDS)) {</span><br><span class="line">    executor.shutdownNow();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="八-扩展点与其它配置"><a class="markdownIt-Anchor" href="#八-扩展点与其它配置"></a> 八、扩展点与其它配置</h2>
+<ul>
+<li><strong>allowCoreThreadTimeOut(boolean)</strong>：为 true 时，核心线程在空闲 keepAliveTime 后也会被回收；默认 false。</li>
+<li><strong>beforeExecute(Thread t, Runnable r)</strong> / <strong>afterExecute(Runnable r, Throwable t)</strong>：子类可重写，在任务执行前后打日志、统计等。</li>
+<li><strong>setCorePoolSize</strong> / <strong>setMaximumPoolSize</strong>：运行时可动态调整（需注意与当前队列、线程数的关系）。</li>
+</ul>
+<hr>
+<h2 id="九-forkjoinpool-与-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#九-forkjoinpool-与-scheduledexecutorservice"></a> 九、ForkJoinPool 与 ScheduledExecutorService</h2>
+<h3 id="91-forkjoinpool"><a class="markdownIt-Anchor" href="#91-forkjoinpool"></a> 9.1 ForkJoinPool</h3>
+<ul>
+<li>面向<strong>分治、可递归拆分的任务</strong>（如大数组并行计算），使用 <strong>work-stealing</strong>：空闲线程从其它线程的队列尾部 “偷” 任务。</li>
+<li><strong>ForkJoinPool.commonPool()</strong>：JVM 内共享的通用池，默认线程数约 CPU 核数 - 1；<strong>CompletableFuture</strong> 默认使用该池，不适合大量 I / O 或阻塞任务，建议显式传入自定义 Executor。</li>
+</ul>
+<h3 id="92-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#92-scheduledexecutorservice"></a> 9.2 ScheduledExecutorService</h3>
+<ul>
+<li><strong>schedule(command, delay, unit)</strong>：延迟一次执行。</li>
+<li><strong>scheduleAtFixedRate</strong> / <strong>scheduleWithFixedDelay</strong>：周期执行。</li>
+<li>实现类 <strong>ScheduledThreadPoolExecutor</strong> 继承 ThreadPoolExecutor，使用 <strong>DelayedWorkQueue</strong>；核心线程数可设为 0 或较小，一般不建议对调度池开启 allowCoreThreadTimeOut，以免无线程可用。</li>
+</ul>
+<hr>
+<h2 id="十-completablefuture-与线程池"><a class="markdownIt-Anchor" href="#十-completablefuture-与线程池"></a> 十、CompletableFuture 与线程池</h2>
+<ul>
+<li><strong>CompletableFuture.supplyAsync(supplier)</strong> / <strong>runAsync(runnable)</strong> 等<strong>不传 Executor</strong> 时，使用 <strong>ForkJoinPool.commonPool()</strong>。</li>
+<li>commonPool 线程数少，且针对 CPU 密集型设计；<strong>I / O 多或阻塞多</strong>时易成为瓶颈，甚至低核数机器上退化为 “每任务一线程”。</li>
+<li><strong>建议</strong>：<strong>始终传入业务专用线程池</strong>，例如 <code>CompletableFuture.supplyAsync(supplier, customExecutor)</code>，且 thenApplyAsync 等也尽量传同一 Executor，避免混用 commonPool。</li>
+</ul>
+<hr>
+<h2 id="十一-知识点演变自-java-8-起按时间顺序"><a class="markdownIt-Anchor" href="#十一-知识点演变自-java-8-起按时间顺序"></a> 十一、知识点演变（自 Java 8 起按时间顺序）</h2>
+<p><code>ThreadPoolExecutor</code> 等早于 Java 8 已存在；本节从 <strong>Java 8</strong> 起按版本发布时间叙述与<strong>线程池 + 异步</strong>最相关的 API 变化，不向前追溯。</p>
+<h3 id="111-java-8"><a class="markdownIt-Anchor" href="#111-java-8"></a> 11.1 Java 8</h3>
+<ul>
+<li><strong>Lambda</strong> 与 <strong><code>CompletableFuture</code></strong> 进入标准库，“提交到 <strong><code>ExecutorService</code></strong> + 链式异步” 成为常见写法。</li>
+</ul>
+<h3 id="112-java-9"><a class="markdownIt-Anchor" href="#112-java-9"></a> 11.2 Java 9</h3>
+<ul>
+<li><strong>JPMS</strong>：<code>java.util.concurrent</code> 归入 <strong>java.base</strong>，对典型应用<strong>无破坏性迁移</strong>。</li>
+<li><strong>CompletableFuture</strong> 增强：<strong>completeOnTimeout</strong>、<strong>orTimeout</strong>、可重写的 <strong>defaultExecutor()</strong> /<strong>newIncompleteFuture()</strong>、<strong>completedStage</strong> / <strong>failedStage</strong> / <strong>failedFuture</strong> 等。</li>
+<li><strong><code>ThreadPoolExecutor</code> 等行为保持稳定</strong>；改动侧重<strong>异步编排与超时</strong>。</li>
+</ul>
+<h3 id="113-java-21"><a class="markdownIt-Anchor" href="#113-java-21"></a> 11.3 Java 21</h3>
+<ul>
+<li><strong>Executors.newVirtualThreadPerTaskExecutor()</strong>：每任务一<strong>虚拟线程</strong>，适合高并发 I / O、“一任务一线程” 模型。</li>
+<li><strong>Executors.newThreadPerTaskExecutor(ThreadFactory)</strong>：配合 <strong><code>Thread.ofVirtual().factory()</code></strong> 同上思路。</li>
+<li><strong><code>ExecutorService</code> 接口不变</strong>；实现从传统 “固定平台线程 + 队列” 扩展到虚拟线程调度。</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()) {</span><br><span class="line">    IntStream.range(<span class="number">0</span>, <span class="number">10_000</span>).forEach(i -&gt;</span><br><span class="line">        executor.submit(() -&gt; {</span><br><span class="line">            Thread.sleep(Duration.ofSeconds(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        })</span><br><span class="line">    );</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="114-小结表"><a class="markdownIt-Anchor" href="#114-小结表"></a> 11.4 小结表</h3>
+<table>
+<thead>
+<tr>
+<th>顺序</th>
+<th>版本</th>
+<th>要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>①</td>
+<td><strong>Java 8</strong></td>
+<td>Lambda + CompletableFuture + 线程池标配用法</td>
+</tr>
+<tr>
+<td>②</td>
+<td><strong>Java 9</strong></td>
+<td>CompletableFuture 超时与工厂方法</td>
+</tr>
+<tr>
+<td>③</td>
+<td><strong>Java 21</strong></td>
+<td>虚拟线程 Executor</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="十二-小结"><a class="markdownIt-Anchor" href="#十二-小结"></a> 十二、小结</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>体系</strong></td>
+<td>Executor → ExecutorService → ThreadPoolExecutor / ScheduledThreadPoolExecutor / ForkJoinPool</td>
+</tr>
+<tr>
+<td><strong>核心参数</strong></td>
+<td>corePoolSize、maximumPoolSize、keepAliveTime、workQueue、threadFactory、handler</td>
+</tr>
+<tr>
+<td><strong>流程</strong></td>
+<td>先占满核心线程 → 再入队 → 再开非核心线程 → 再拒绝</td>
+</tr>
+<tr>
+<td><strong>队列</strong></td>
+<td>无界队列易 OOM；有界队列 + 合理 maximum + 拒绝策略更稳妥</td>
+</tr>
+<tr>
+<td><strong>拒绝策略</strong></td>
+<td>AbortPolicy、CallerRunsPolicy、DiscardPolicy、DiscardOldestPolicy 及自定义</td>
+</tr>
+<tr>
+<td><strong>关闭</strong></td>
+<td>shutdown + awaitTermination，必要时 shutdownNow</td>
+</tr>
+<tr>
+<td><strong>CompletableFuture</strong></td>
+<td>务必传自定义 Executor，避免 commonPool；Java 9 增加超时与默认 Executor 扩展</td>
+</tr>
+<tr>
+<td><strong>Java 21</strong></td>
+<td>newVirtualThreadPerTaskExecutor、newThreadPerTaskExecutor (ThreadFactory) 支持虚拟线程，适合高并发 I / O 场景</td>
+</tr>
+</tbody>
+</table>
+<p>掌握以上内容即可覆盖日常开发与面试中对 Java 线程池的要求，并在 Java 9+ 中正确使用 CompletableFuture 与虚拟线程 Executor。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java11-features-summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -867,7 +1535,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -889,14 +1557,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.7k</span>
+      <span>4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>3 分钟</span>
+      <span>4 分钟</span>
     </span>
 </div>
 
@@ -1059,6 +1727,228 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java21-features-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java21-features-summary/" class="post-title-link" itemprop="url">Java 21 新特性总结与示例</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-21-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-21-新特性总结与示例"></a> Java 21 新特性总结与示例</h1>
+<p>Java 21 于 <strong>2023 年 9 月 19 日</strong> 正式发布，是 <strong>当前最新的 LTS（长期支持）版本</strong>，支持至 2031 年 9 月。本文按语言、API、并发、GC 等分类梳理主要新特性，并配有示例（基于 JDK 21）。</p>
+<hr>
+<h2 id="一-虚拟线程virtual-threadsjep-444"><a class="markdownIt-Anchor" href="#一-虚拟线程virtual-threadsjep-444"></a> 一、虚拟线程（Virtual Threads，JEP 444）</h2>
+<p><strong>作用</strong>：由 JVM 管理的轻量级线程，用少量 OS 线程承载大量虚拟线程，适合 “一请求一线程” 的高吞吐场景，无需改业务逻辑，只需改变线程创建方式。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.*;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.IntStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">VirtualThreadDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="comment">// 创建虚拟线程</span></span><br><span class="line">        <span class="type">Thread</span> <span class="variable">vt</span> <span class="operator">=</span> Thread.ofVirtual().start(() -&gt; System.out.println(<span class="string">"Virtual: "</span> + Thread.currentThread()));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()) {</span><br><span class="line">            IntStream.range(<span class="number">0</span>, <span class="number">5</span>).forEach(i -&gt;</span><br><span class="line">                executor.submit(() -&gt; {</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">" -&gt; "</span> + i);</span><br><span class="line">                    <span class="keyword">return</span> i;</span><br><span class="line">                })</span><br><span class="line">            );</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        vt.join();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>输出中可见线程名为 <code>VirtualThread[...]</code>，且可创建大量线程而不会像平台线程那样占满系统资源。</p>
+<hr>
+<h2 id="二-记录模式record-patternsjep-440"><a class="markdownIt-Anchor" href="#二-记录模式record-patternsjep-440"></a> 二、记录模式（Record Patterns，JEP 440）</h2>
+<p><strong>作用</strong>：在 <code>instanceof</code> 和 <code>switch</code> 中直接对 record 做模式匹配并解构出组件，避免先强转再 getter。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">record</span> <span class="title class_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> {}</span><br><span class="line"><span class="keyword">record</span> <span class="title class_">Line</span><span class="params">(Point p1, Point p2)</span> {}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RecordPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">print</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> <span class="title function_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span>) {</span><br><span class="line">            System.out.println(<span class="string">"Point: "</span> + x + <span class="string">", "</span> + y);</span><br><span class="line">        } <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> <span class="title function_">Line</span><span class="params">(Point(<span class="type">int</span> x1, <span class="type">int</span> y1)</span>, Point(<span class="type">int</span> x2, <span class="type">int</span> y2))) {</span><br><span class="line">            System.out.println(<span class="string">"Line: ("</span> + x1 + <span class="string">","</span> + y1 + <span class="string">") -&gt; ("</span> + x2 + <span class="string">","</span> + y2 + <span class="string">")"</span>);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> <span class="title function_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> -&gt; <span class="string">"Point("</span> + x + <span class="string">","</span> + y + <span class="string">")"</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="title function_">Line</span><span class="params">(Point a, Point b)</span> -&gt; <span class="string">"Line("</span> + a + <span class="string">","</span> + b + <span class="string">")"</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; obj.toString();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        print(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line">        print(<span class="keyword">new</span> <span class="title class_">Line</span>(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">0</span>, <span class="number">0</span>), <span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">1</span>, <span class="number">1</span>)));</span><br><span class="line">        System.out.println(formatter(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">3</span>, <span class="number">4</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>需要补上 <code>import java.util.stream.IntStream;</code> 若使用上面 VirtualThreadDemo 里的 IntStream。</p>
+<hr>
+<h2 id="三-switch-模式匹配jep-441转正"><a class="markdownIt-Anchor" href="#三-switch-模式匹配jep-441转正"></a> 三、Switch 模式匹配（JEP 441，转正）</h2>
+<p><strong>作用</strong>：与 Java 17 的预览一脉相承，在 switch 的 case 中使用类型模式、null 分支、守卫条件等，并支持穷尽性检查（尤其配合密封类）。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">describe</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> String s <span class="keyword">when</span> s.length() &gt; <span class="number">5</span> -&gt; <span class="string">"long string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> String s -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; <span class="string">"other: "</span> + obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(describe(<span class="string">"hello"</span>));</span><br><span class="line">        System.out.println(describe(<span class="string">"hello world"</span>));</span><br><span class="line">        System.out.println(describe(<span class="number">42</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="四-有序集合接口sequencedcollectionjep-431"><a class="markdownIt-Anchor" href="#四-有序集合接口sequencedcollectionjep-431"></a> 四、有序集合接口（SequencedCollection，JEP 431）</h2>
+<p><strong>作用</strong>：为 “有顺序” 的集合定义统一接口，提供 <code>getFirst()</code>、<code>getLast()</code>、<code>reversed()</code>、<code>addFirst</code>/<code>addLast</code> 等，便于编写通用顺序敏感代码。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SequencedDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        SequencedCollection&lt;String&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(List.of(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>));</span><br><span class="line">        System.out.println(list.getFirst());   <span class="comment">// a</span></span><br><span class="line">        System.out.println(list.getLast());     <span class="comment">// c</span></span><br><span class="line">        System.out.println(list.reversed());   <span class="comment">// [c, b, a]</span></span><br><span class="line"></span><br><span class="line">        SequencedMap&lt;String, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;(Map.of(<span class="string">"x"</span>, <span class="number">1</span>, <span class="string">"y"</span>, <span class="number">2</span>));</span><br><span class="line">        System.out.println(map.firstEntry());  <span class="comment">// x=1</span></span><br><span class="line">        System.out.println(map.lastEntry());   <span class="comment">// y=2</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-未命名类与实例-main-方法jep-445预览"><a class="markdownIt-Anchor" href="#五-未命名类与实例-main-方法jep-445预览"></a> 五、未命名类与实例 main 方法（JEP 445，预览）</h2>
+<p><strong>作用</strong>：允许没有显式类声明的单文件程序，以及实例方法形式的 <code>main</code>，降低入门门槛。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 无需 public class，可直接写顶层代码；main 也可以是实例方法</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">main</span><span class="params">()</span> {</span><br><span class="line">    System.out.println(<span class="string">"Hello, Java 21!"</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>需用 <code>java --enable-preview --source 21 UnnamedMain.java</code> 运行（文件名随意）。</p>
+<hr>
+<h2 id="六-作用域值scoped-valuesjep-446预览"><a class="markdownIt-Anchor" href="#六-作用域值scoped-valuesjep-446预览"></a> 六、作用域值（Scoped Values，JEP 446，预览）</h2>
+<p><strong>作用</strong>：可替代部分 ThreadLocal 场景，在线程内不可变、可继承地传递上下文，更适合虚拟线程。</p>
+<hr>
+<h2 id="七-字符串模板jep-430预览"><a class="markdownIt-Anchor" href="#七-字符串模板jep-430预览"></a> 七、字符串模板（JEP 430，预览）</h2>
+<p><strong>作用</strong>：简化字符串插值，使用 STR 等模板处理器。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预览特性，需 --enable-preview --source 21</span></span><br><span class="line"><span class="comment">// String name = "Java";</span></span><br><span class="line"><span class="comment">// String msg = STR."Hello, \{name}!";</span></span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="八-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#八-其它重要-jep-概览"></a> 八、其它重要 JEP 概览</h2>
+<table>
+<thead>
+<tr>
+<th>JEP</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>439</strong></td>
+<td>分代式 ZGC，降低 GC 开销</td>
+</tr>
+<tr>
+<td><strong>442</strong></td>
+<td>外部函数与内存 API（第三次预览）</td>
+</tr>
+<tr>
+<td><strong>443</strong></td>
+<td>未命名模式与变量（预览）</td>
+</tr>
+<tr>
+<td><strong>448</strong></td>
+<td>向量 API（第六轮孵化）</td>
+</tr>
+<tr>
+<td><strong>452</strong></td>
+<td>密钥封装机制 API</td>
+</tr>
+<tr>
+<td><strong>453</strong></td>
+<td>结构化并发（预览）</td>
+</tr>
+<tr>
+<td><strong>449</strong></td>
+<td>弃用 Windows 32-bit x86 移植</td>
+</tr>
+<tr>
+<td><strong>451</strong></td>
+<td>准备禁用代理的动态加载（安全）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="九-小结"><a class="markdownIt-Anchor" href="#九-小结"></a> 九、小结</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>特性</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>并发</td>
+<td>虚拟线程</td>
+<td>轻量线程，一请求一线程模型友好</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>记录模式</td>
+<td>instanceof / switch 中解构 record</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>Switch 模式匹配</td>
+<td>case 类型模式、null、守卫，穷尽检查</td>
+</tr>
+<tr>
+<td>API</td>
+<td>有序集合</td>
+<td>getFirst/getLast/reversed 等统一接口</td>
+</tr>
+<tr>
+<td>语言 / 预览</td>
+<td>未命名类与 main、作用域值、字符串模板</td>
+<td>简化入门与上下文传递</td>
+</tr>
+<tr>
+<td>GC / 安全</td>
+<td>分代 ZGC、KEM、平台与代理</td>
+<td>性能与安全增强</td>
+</tr>
+</tbody>
+</table>
+<p>以上示例在 JDK 21 下可运行（预览特性需加 <code>--enable-preview --source 21</code>）。Java 21 是当前首选 LTS，虚拟线程与模式匹配是升级的最大动力。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java17-features-summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1095,7 +1985,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1117,7 +2007,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>2.2k</span>
+      <span>2.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1275,7 +2165,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java21-features-summary/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java25-features-summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1293,7 +2183,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java21-features-summary/" class="post-title-link" itemprop="url">Java 21 新特性总结与示例</a>
+          <a href="/2025/03/01/2025-03-02-java25-features-summary/" class="post-title-link" itemprop="url">Java 25 新特性总结与示例</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1311,7 +2201,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1333,14 +2223,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.5k</span>
+      <span>2.2k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>3 分钟</span>
+      <span>2 分钟</span>
     </span>
 </div>
 
@@ -1351,40 +2241,36 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="java-21-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-21-新特性总结与示例"></a> Java 21 新特性总结与示例</h1>
-<p>Java 21 于 <strong>2023 年 9 月 19 日</strong> 正式发布，是 <strong>当前最新的 LTS（长期支持）版本</strong>，支持至 2031 年 9 月。本文按语言、API、并发、GC 等分类梳理主要新特性，并配有示例（基于 JDK 21）。</p>
+          <h1 id="java-25-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-25-新特性总结与示例"></a> Java 25 新特性总结与示例</h1>
+<p>Java 25 于 <strong>2025 年 9 月 16 日</strong> 正式发布，是 <strong>新的长期支持（LTS）版本</strong>。本文按语言、API、并发、GC 与平台等分类梳理主要新特性，并配有示例（基于 JDK 25）。</p>
 <hr>
-<h2 id="一-虚拟线程virtual-threadsjep-444"><a class="markdownIt-Anchor" href="#一-虚拟线程virtual-threadsjep-444"></a> 一、虚拟线程（Virtual Threads，JEP 444）</h2>
-<p><strong>作用</strong>：由 JVM 管理的轻量级线程，用少量 OS 线程承载大量虚拟线程，适合 “一请求一线程” 的高吞吐场景，无需改业务逻辑，只需改变线程创建方式。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.*;</span><br><span class="line"><span class="keyword">import</span> java.util.stream.IntStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">VirtualThreadDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="comment">// 创建虚拟线程</span></span><br><span class="line">        <span class="type">Thread</span> <span class="variable">vt</span> <span class="operator">=</span> Thread.ofVirtual().start(() -&gt; System.out.println(<span class="string">"Virtual: "</span> + Thread.currentThread()));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()) {</span><br><span class="line">            IntStream.range(<span class="number">0</span>, <span class="number">5</span>).forEach(i -&gt;</span><br><span class="line">                executor.submit(() -&gt; {</span><br><span class="line">                    System.out.println(Thread.currentThread() + <span class="string">" -&gt; "</span> + i);</span><br><span class="line">                    <span class="keyword">return</span> i;</span><br><span class="line">                })</span><br><span class="line">            );</span><br><span class="line">        }</span><br><span class="line"></span><br><span class="line">        vt.join();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>输出中可见线程名为 <code>VirtualThread[...]</code>，且可创建大量线程而不会像平台线程那样占满系统资源。</p>
+<h2 id="一-语言层面"><a class="markdownIt-Anchor" href="#一-语言层面"></a> 一、语言层面</h2>
+<h3 id="11-模式中的基本类型jep-507第三轮预览"><a class="markdownIt-Anchor" href="#11-模式中的基本类型jep-507第三轮预览"></a> 1.1 模式中的基本类型（JEP 507，第三轮预览）</h3>
+<p><strong>作用</strong>：在 <code>instanceof</code> 和 <code>switch</code> 的模式中直接支持基本类型，避免不必要的装箱 / 拆箱。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PrimitivePatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">describe</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> <span class="type">int</span> i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">long</span> l -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">double</span> d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">boolean</span> b -&gt; <span class="string">"boolean: "</span> + b;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; <span class="string">"other: "</span> + obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(describe(<span class="number">42</span>));</span><br><span class="line">        System.out.println(describe(<span class="number">3.14</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>（实际语法以 JDK 25 最终规范为准，可能需 <code>--enable-preview</code>。）</p>
+<h3 id="12-模块导入声明jep-511预览"><a class="markdownIt-Anchor" href="#12-模块导入声明jep-511预览"></a> 1.2 模块导入声明（JEP 511，预览）</h3>
+<p><strong>作用</strong>：使用 <code>import module</code> 一次性导入某模块导出的所有包，简化模块化库的复用。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预览特性示例（语法以最终规范为准）</span></span><br><span class="line"><span class="comment">// import module java.sql;</span></span><br></pre></td></tr></tbody></table></figure>
+<h3 id="13-紧凑源文件与实例-main-方法jep-512转正"><a class="markdownIt-Anchor" href="#13-紧凑源文件与实例-main-方法jep-512转正"></a> 1.3 紧凑源文件与实例 main 方法（JEP 512，转正）</h3>
+<p><strong>作用</strong>：无显式类声明的顶层代码、实例 main 方法成为正式特性；<code>IO</code> 类用于控制台 I / O，位于 <code>java.lang</code> 并隐式导入，便于入门与脚本式程序。</p>
+<h3 id="14-灵活的构造器体jep-513转正"><a class="markdownIt-Anchor" href="#14-灵活的构造器体jep-513转正"></a> 1.4 灵活的构造器体（JEP 513，转正）</h3>
+<p><strong>作用</strong>：允许在显式 <code>super()</code> 或 <code>this()</code> 调用之前执行语句，放宽构造器体的书写顺序，便于做参数校验或辅助计算后再调用父类或本类构造器。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FlexibleConstructorDemo</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">FlexibleConstructorDemo</span><span class="params">(<span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="comment">// 可在 super()/this() 前执行逻辑</span></span><br><span class="line">        <span class="keyword">if</span> (value &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">"value &gt;= 0"</span>);</span><br><span class="line">        <span class="built_in">this</span>.value = value;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
-<h2 id="二-记录模式record-patternsjep-440"><a class="markdownIt-Anchor" href="#二-记录模式record-patternsjep-440"></a> 二、记录模式（Record Patterns，JEP 440）</h2>
-<p><strong>作用</strong>：在 <code>instanceof</code> 和 <code>switch</code> 中直接对 record 做模式匹配并解构出组件，避免先强转再 getter。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">record</span> <span class="title class_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> {}</span><br><span class="line"><span class="keyword">record</span> <span class="title class_">Line</span><span class="params">(Point p1, Point p2)</span> {}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RecordPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">print</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> <span class="title function_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span>) {</span><br><span class="line">            System.out.println(<span class="string">"Point: "</span> + x + <span class="string">", "</span> + y);</span><br><span class="line">        } <span class="keyword">else</span> <span class="keyword">if</span> (obj <span class="keyword">instanceof</span> <span class="title function_">Line</span><span class="params">(Point(<span class="type">int</span> x1, <span class="type">int</span> y1)</span>, Point(<span class="type">int</span> x2, <span class="type">int</span> y2))) {</span><br><span class="line">            System.out.println(<span class="string">"Line: ("</span> + x1 + <span class="string">","</span> + y1 + <span class="string">") -&gt; ("</span> + x2 + <span class="string">","</span> + y2 + <span class="string">")"</span>);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> <span class="title function_">Point</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> -&gt; <span class="string">"Point("</span> + x + <span class="string">","</span> + y + <span class="string">")"</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="title function_">Line</span><span class="params">(Point a, Point b)</span> -&gt; <span class="string">"Line("</span> + a + <span class="string">","</span> + b + <span class="string">")"</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; obj.toString();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        print(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">1</span>, <span class="number">2</span>));</span><br><span class="line">        print(<span class="keyword">new</span> <span class="title class_">Line</span>(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">0</span>, <span class="number">0</span>), <span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">1</span>, <span class="number">1</span>)));</span><br><span class="line">        System.out.println(formatter(<span class="keyword">new</span> <span class="title class_">Point</span>(<span class="number">3</span>, <span class="number">4</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>需要补上 <code>import java.util.stream.IntStream;</code> 若使用上面 VirtualThreadDemo 里的 IntStream。</p>
+<h2 id="二-api-与并发"><a class="markdownIt-Anchor" href="#二-api-与并发"></a> 二、API 与并发</h2>
+<h3 id="21-作用域值scoped-valuesjep-506转正"><a class="markdownIt-Anchor" href="#21-作用域值scoped-valuesjep-506转正"></a> 2.1 作用域值（Scoped Values，JEP 506，转正）</h3>
+<p><strong>作用</strong>：线程内不可变的、可继承的上下文传递，替代部分 ThreadLocal 场景，更适合虚拟线程。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ScopedValueDemo</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ScopedValue&lt;String&gt; USER = ScopedValue.newInstance();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        ScopedValue.where(USER, <span class="string">"alice"</span>).run(() -&gt; {</span><br><span class="line">            System.out.println(USER.get());  <span class="comment">// alice</span></span><br><span class="line">        });</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="22-密钥派生函数-apijep-510转正"><a class="markdownIt-Anchor" href="#22-密钥派生函数-apijep-510转正"></a> 2.2 密钥派生函数 API（JEP 510，转正）</h3>
+<p><strong>作用</strong>：提供标准化的密钥派生（KDF）API，用于密钥拉伸、从密码派生密钥等密码学场景。</p>
+<h3 id="23-结构化并发jep-505第五轮预览"><a class="markdownIt-Anchor" href="#23-结构化并发jep-505第五轮预览"></a> 2.3 结构化并发（JEP 505，第五轮预览）</h3>
+<p><strong>作用</strong>：用结构化方式管理并发任务的生命周期和异常传播，与虚拟线程配合使用，代码更清晰。</p>
 <hr>
-<h2 id="三-switch-模式匹配jep-441转正"><a class="markdownIt-Anchor" href="#三-switch-模式匹配jep-441转正"></a> 三、Switch 模式匹配（JEP 441，转正）</h2>
-<p><strong>作用</strong>：与 Java 17 的预览一脉相承，在 switch 的 case 中使用类型模式、null 分支、守卫条件等，并支持穷尽性检查（尤其配合密封类）。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">describe</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> String s <span class="keyword">when</span> s.length() &gt; <span class="number">5</span> -&gt; <span class="string">"long string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> String s -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; <span class="string">"other: "</span> + obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(describe(<span class="string">"hello"</span>));</span><br><span class="line">        System.out.println(describe(<span class="string">"hello world"</span>));</span><br><span class="line">        System.out.println(describe(<span class="number">42</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="三-向量-apijep-508第十轮孵化"><a class="markdownIt-Anchor" href="#三-向量-apijep-508第十轮孵化"></a> 三、向量 API（JEP 508，第十轮孵化）</h2>
+<p><strong>作用</strong>：与平台无关的 SIMD 风格向量运算 API，便于利用 CPU 向量指令做高性能计算（仍为孵化 API，包名可能含 <code>incubator</code>）。</p>
 <hr>
-<h2 id="四-有序集合接口sequencedcollectionjep-431"><a class="markdownIt-Anchor" href="#四-有序集合接口sequencedcollectionjep-431"></a> 四、有序集合接口（SequencedCollection，JEP 431）</h2>
-<p><strong>作用</strong>：为 “有顺序” 的集合定义统一接口，提供 <code>getFirst()</code>、<code>getLast()</code>、<code>reversed()</code>、<code>addFirst</code>/<code>addLast</code> 等，便于编写通用顺序敏感代码。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SequencedDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        SequencedCollection&lt;String&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;(List.of(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>));</span><br><span class="line">        System.out.println(list.getFirst());   <span class="comment">// a</span></span><br><span class="line">        System.out.println(list.getLast());     <span class="comment">// c</span></span><br><span class="line">        System.out.println(list.reversed());   <span class="comment">// [c, b, a]</span></span><br><span class="line"></span><br><span class="line">        SequencedMap&lt;String, Integer&gt; map = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;(Map.of(<span class="string">"x"</span>, <span class="number">1</span>, <span class="string">"y"</span>, <span class="number">2</span>));</span><br><span class="line">        System.out.println(map.firstEntry());  <span class="comment">// x=1</span></span><br><span class="line">        System.out.println(map.lastEntry());   <span class="comment">// y=2</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="五-未命名类与实例-main-方法jep-445预览"><a class="markdownIt-Anchor" href="#五-未命名类与实例-main-方法jep-445预览"></a> 五、未命名类与实例 main 方法（JEP 445，预览）</h2>
-<p><strong>作用</strong>：允许没有显式类声明的单文件程序，以及实例方法形式的 <code>main</code>，降低入门门槛。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 无需 public class，可直接写顶层代码；main 也可以是实例方法</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">main</span><span class="params">()</span> {</span><br><span class="line">    System.out.println(<span class="string">"Hello, Java 21!"</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>需用 <code>java --enable-preview --source 21 UnnamedMain.java</code> 运行（文件名随意）。</p>
-<hr>
-<h2 id="六-作用域值scoped-valuesjep-446预览"><a class="markdownIt-Anchor" href="#六-作用域值scoped-valuesjep-446预览"></a> 六、作用域值（Scoped Values，JEP 446，预览）</h2>
-<p><strong>作用</strong>：可替代部分 ThreadLocal 场景，在线程内不可变、可继承地传递上下文，更适合虚拟线程。</p>
-<hr>
-<h2 id="七-字符串模板jep-430预览"><a class="markdownIt-Anchor" href="#七-字符串模板jep-430预览"></a> 七、字符串模板（JEP 430，预览）</h2>
-<p><strong>作用</strong>：简化字符串插值，使用 STR 等模板处理器。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预览特性，需 --enable-preview --source 21</span></span><br><span class="line"><span class="comment">// String name = "Java";</span></span><br><span class="line"><span class="comment">// String msg = STR."Hello, \{name}!";</span></span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="八-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#八-其它重要-jep-概览"></a> 八、其它重要 JEP 概览</h2>
+<h2 id="四-gc-与运行时"><a class="markdownIt-Anchor" href="#四-gc-与运行时"></a> 四、GC 与运行时</h2>
 <table>
 <thead>
 <tr>
@@ -1394,41 +2280,25 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>439</strong></td>
-<td>分代式 ZGC，降低 GC 开销</td>
+<td><strong>521</strong></td>
+<td>分代式 Shenandoah（转正），优化 GC 行为</td>
 </tr>
 <tr>
-<td><strong>442</strong></td>
-<td>外部函数与内存 API（第三次预览）</td>
+<td><strong>519</strong></td>
+<td>紧凑对象头（转正），减少对象内存占用</td>
 </tr>
 <tr>
-<td><strong>443</strong></td>
-<td>未命名模式与变量（预览）</td>
+<td><strong>520</strong></td>
+<td>JFR 方法计时与追踪（转正），增强 profiling 能力</td>
 </tr>
 <tr>
-<td><strong>448</strong></td>
-<td>向量 API（第六轮孵化）</td>
-</tr>
-<tr>
-<td><strong>452</strong></td>
-<td>密钥封装机制 API</td>
-</tr>
-<tr>
-<td><strong>453</strong></td>
-<td>结构化并发（预览）</td>
-</tr>
-<tr>
-<td><strong>449</strong></td>
-<td>弃用 Windows 32-bit x86 移植</td>
-</tr>
-<tr>
-<td><strong>451</strong></td>
-<td>准备禁用代理的动态加载（安全）</td>
+<td><strong>503</strong></td>
+<td>移除 32-bit x86 移植，平台瘦身</td>
 </tr>
 </tbody>
 </table>
 <hr>
-<h2 id="九-小结"><a class="markdownIt-Anchor" href="#九-小结"></a> 九、小结</h2>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
 <table>
 <thead>
 <tr>
@@ -1439,38 +2309,33 @@
 </thead>
 <tbody>
 <tr>
-<td>并发</td>
-<td>虚拟线程</td>
-<td>轻量线程，一请求一线程模型友好</td>
+<td>语言</td>
+<td>模式中的基本类型</td>
+<td>instanceof / switch 直接匹配基本类型</td>
 </tr>
 <tr>
 <td>语言</td>
-<td>记录模式</td>
-<td>instanceof / switch 中解构 record</td>
+<td>模块导入、紧凑源文件、灵活构造器</td>
+<td>模块化与语法便利</td>
 </tr>
 <tr>
-<td>语言</td>
-<td>Switch 模式匹配</td>
-<td>case 类型模式、null、守卫，穷尽检查</td>
+<td>并发 / API</td>
+<td>作用域值、结构化并发</td>
+<td>上下文传递与并发结构规范化</td>
 </tr>
 <tr>
-<td>API</td>
-<td>有序集合</td>
-<td>getFirst/getLast/reversed 等统一接口</td>
+<td>安全 / API</td>
+<td>密钥派生函数</td>
+<td>标准化 KDF</td>
 </tr>
 <tr>
-<td>语言 / 预览</td>
-<td>未命名类与 main、作用域值、字符串模板</td>
-<td>简化入门与上下文传递</td>
-</tr>
-<tr>
-<td>GC / 安全</td>
-<td>分代 ZGC、KEM、平台与代理</td>
-<td>性能与安全增强</td>
+<td>性能 / 平台</td>
+<td>向量 API、分代 Shenandoah、紧凑对象头、JFR、移除 32-bit</td>
+<td>性能与可观测性、平台精简</td>
 </tr>
 </tbody>
 </table>
-<p>以上示例在 JDK 21 下可运行（预览特性需加 <code>--enable-preview --source 21</code>）。Java 21 是当前首选 LTS，虚拟线程与模式匹配是升级的最大动力。</p>
+<p>以上示例在 JDK 25 下可运行（预览 / 孵化特性需相应编译与运行参数）。Java 25 作为新 LTS，适合作为新一轮升级与长期支持的目标版本。</p>
 
       
     </div>
@@ -1533,7 +2398,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1555,7 +2420,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>7.6k</span>
+      <span>8.2k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1775,749 +2640,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-spi-spring-cross-project/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java-spi-spring-cross-project/" class="post-title-link" itemprop="url">SPI 机制与跨项目实现（含 Spring 与完整示例）</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>6.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>6 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="spi-机制与跨项目实现含-spring-与完整示例"><a class="markdownIt-Anchor" href="#spi-机制与跨项目实现含-spring-与完整示例"></a> SPI 机制与跨项目实现（含 Spring 与完整示例）</h1>
-<p>本文说明 <strong>SPI（Service Provider Interface）</strong> 是什么、如何在<strong>跨项目 / 多模块</strong>下实现，以及如何与 <strong>Spring</strong> 结合使用，并给出可运行的示例（含目录结构）。</p>
-<hr>
-<h2 id="一-什么是-spi"><a class="markdownIt-Anchor" href="#一-什么是-spi"></a> 一、什么是 SPI</h2>
-<p><strong>SPI（Service Provider Interface）</strong> 是 “接口由一方定义，实现由多方提供，在运行时通过约定方式被发现与加载” 的机制。</p>
-<ul>
-<li><strong>接口方</strong>：定义标准接口（如 <code>javax.sql.Driver</code>、日志门面 API），不绑定具体实现。</li>
-<li><strong>实现方</strong>：提供具体实现类，并按约定在 <code>META-INF/services/</code> 下声明 “接口全限定名 → 实现类全限定名”。</li>
-<li><strong>使用方</strong>：通过 <strong>ServiceLoader</strong> 或 <strong>SpringFactoriesLoader</strong> 加载当前 classpath 下所有实现，无需硬编码实现类名。</li>
-</ul>
-<p><strong>典型用途</strong>：驱动加载（JDBC、日志）、插件化、多实现可替换（如多种加密、多种序列化）。</p>
-<hr>
-<h2 id="二-java-原生-spiserviceloader"><a class="markdownIt-Anchor" href="#二-java-原生-spiserviceloader"></a> 二、Java 原生 SPI：ServiceLoader</h2>
-<h3 id="21-约定"><a class="markdownIt-Anchor" href="#21-约定"></a> 2.1 约定</h3>
-<ul>
-<li>在 <strong>META-INF/services/</strong> 下新建文件，<strong>文件名为接口的全限定类名</strong>。</li>
-<li>文件内容为<strong>实现类的全限定类名</strong>，一行一个；<code>#</code> 开头为注释。</li>
-<li>实现类必须有<strong>无参构造器</strong>（ServiceLoader 通过反射实例化）。</li>
-</ul>
-<h3 id="22-使用方式"><a class="markdownIt-Anchor" href="#22-使用方式"></a> 2.2 使用方式</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;MyService&gt; loader = ServiceLoader.load(MyService.class);</span><br><span class="line"><span class="keyword">for</span> (MyService impl : loader) {</span><br><span class="line">    impl.doSomething();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>或：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Iterator&lt;MyService&gt; it = ServiceLoader.load(MyService.class).iterator();</span><br><span class="line"><span class="keyword">while</span> (it.hasNext()) {</span><br><span class="line">    <span class="type">MyService</span> <span class="variable">impl</span> <span class="operator">=</span> it.next();</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>注意</strong>：<code>ServiceLoader.load(Class, ClassLoader)</code> 使用传入的 ClassLoader（通常为当前线程上下文类加载器）加载实现类；跨项目时需保证接口与实现都在同一 classpath 或可被同一 ClassLoader 看到。</p>
-<hr>
-<h2 id="三-跨项目-多模块实现-spi"><a class="markdownIt-Anchor" href="#三-跨项目-多模块实现-spi"></a> 三、跨项目 / 多模块实现 SPI</h2>
-<h3 id="31-模块划分"><a class="markdownIt-Anchor" href="#31-模块划分"></a> 3.1 模块划分</h3>
-<table>
-<thead>
-<tr>
-<th>模块</th>
-<th>职责</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>api</strong></td>
-<td>定义 SPI 接口（及可选常量、异常），供 “使用方” 和 “实现方” 依赖</td>
-</tr>
-<tr>
-<td><strong>impl-a / impl-b</strong></td>
-<td>实现接口，并在本模块 resources 下提供 <code>META-INF/services/接口全限定名</code></td>
-</tr>
-<tr>
-<td><strong>app</strong></td>
-<td>业务应用，依赖 api + 若干 impl 模块（或通过依赖传递 / 插件包引入），通过 ServiceLoader 加载实现</td>
-</tr>
-</tbody>
-</table>
-<h3 id="32-目录与文件示例"><a class="markdownIt-Anchor" href="#32-目录与文件示例"></a> 3.2 目录与文件示例</h3>
-<p>假设接口为 <code>com.example.spi.Greeter</code>，两个实现为 <code>com.example.impl.HelloGreeter</code> 和 <code>com.example.impl.HiGreeter</code>。</p>
-<p><strong>api 模块</strong>（只含接口）：</p>
-<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">api/</span><br><span class="line">  src/main/java/com/example/spi/Greeter.java</span><br></pre></td></tr></tbody></table></figure>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>impl-a 模块</strong>（实现 + 声明）：</p>
-<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">impl-a/</span><br><span class="line">  src/main/java/com/example/impl/HelloGreeter.java</span><br><span class="line">  src/main/resources/META-INF/services/com.example.spi.Greeter</span><br></pre></td></tr></tbody></table></figure>
-<p><code>HelloGreeter.java</code>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HelloGreeter</span> <span class="keyword">implements</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">greet</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><code>META-INF/services/com.example.spi.Greeter</code> 文件内容（仅一行）：</p>
-<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.impl.HelloGreeter</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>impl-b 模块</strong>：同理，实现类如 <code>HiGreeter</code>，并在 <code>META-INF/services/com.example.spi.Greeter</code> 中写 <code>com.example.impl.HiGreeter</code>。</p>
-<p><strong>app 模块</strong>：依赖 api 以及需要启用的 impl-a / impl-b，主类中：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;Greeter&gt; loader = ServiceLoader.load(Greeter.class);</span><br><span class="line">loader.forEach(g -&gt; System.out.println(g.greet(<span class="string">"World"</span>)));</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>依赖关系</strong>：app 依赖 api + impl-a（或 impl-a、impl-b 都依赖）；<strong>谁在 classpath 谁就会被 ServiceLoader 发现</strong>。因此 “跨项目” 只需：接口在 api 工程，实现在各自工程并带好 <code>META-INF/services</code>，使用方工程通过 Maven / Gradle 依赖需要的实现模块即可。</p>
-<hr>
-<h2 id="四-spring-中的-spi-形态"><a class="markdownIt-Anchor" href="#四-spring-中的-spi-形态"></a> 四、Spring 中的 SPI 形态</h2>
-<h3 id="41-springfactoriesloaderspringfactories"><a class="markdownIt-Anchor" href="#41-springfactoriesloaderspringfactories"></a> 4.1 SpringFactoriesLoader（spring.factories）</h3>
-<p>Spring 在 <code>spring-core</code> 中提供 <strong>SpringFactoriesLoader</strong>，约定从 <strong>META-INF/spring.factories</strong> 读取配置，格式为：</p>
-<figure class="highlight properties"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key 为接口或抽象类全限定名，value 为实现类全限定名列表（逗号/换行分隔）</span></span><br><span class="line"><span class="attr">com.example.MyFactory</span>=<span class="string">\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl1,\</span></span><br><span class="line"><span class="string">com.example.impl.MyFactoryImpl2</span></span><br></pre></td></tr></tbody></table></figure>
-<p><strong>加载方式</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;MyFactory&gt; list = SpringFactoriesLoader.loadFactories(MyFactory.class, classLoader);</span><br></pre></td></tr></tbody></table></figure>
-<p>常用于 <strong>Spring Boot 自动配置</strong>：key 为 <code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code>，value 为各 <code>@Configuration</code> / <code>@AutoConfiguration</code> 类。</p>
-<h3 id="42-spring-boot-2x-与-3x-的差异"><a class="markdownIt-Anchor" href="#42-spring-boot-2x-与-3x-的差异"></a> 4.2 Spring Boot 2.x 与 3.x 的差异</h3>
-<table>
-<thead>
-<tr>
-<th>版本</th>
-<th>自动配置声明位置</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Spring Boot 2.x</strong></td>
-<td><code>META-INF/spring.factories</code>，key：<code>org.springframework.boot.autoconfigure.EnableAutoConfiguration</code></td>
-</tr>
-<tr>
-<td><strong>Spring Boot 3.x</strong></td>
-<td><strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong>，每行一个配置类全限定名</td>
-</tr>
-</tbody>
-</table>
-<p>Boot 3 仍支持在 <code>spring.factories</code> 里写其他 key（如自定义 Factory），但 <strong>EnableAutoConfiguration</strong> 已改为从 <code>.imports</code> 读取。</p>
-<p><strong>Boot 3 示例</strong>（<code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>）：</p>
-<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com.example.mystarter.MyAutoConfiguration</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="五-在-spring-中集成-java-spi-实现"><a class="markdownIt-Anchor" href="#五-在-spring-中集成-java-spi-实现"></a> 五、在 Spring 中集成 Java SPI 实现</h2>
-<p>若实现是通过 <strong>Java SPI</strong>（META - INF / services）提供的，可以在 Spring 里统一加载并注册为 Bean，供注入使用。</p>
-<h3 id="51-将-serviceloader-结果注册为-bean"><a class="markdownIt-Anchor" href="#51-将-serviceloader-结果注册为-bean"></a> 5.1 将 ServiceLoader 结果注册为 Bean</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>业务代码中直接 <code>@Autowired List&lt;Greeter&gt; greeters</code> 使用即可。</p>
-<h3 id="52-按类型注入单个实现当只有一个时"><a class="markdownIt-Anchor" href="#52-按类型注入单个实现当只有一个时"></a> 5.2 按类型注入单个实现（当只有一个时）</h3>
-<p>若 classpath 下仅有一个 SPI 实现，可封装为单 Bean：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConditionalOnSingleCandidate(Greeter.class)</span></span><br><span class="line">    <span class="keyword">public</span> Greeter <span class="title function_">greeter</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> ServiceLoader.load(Greeter.class).findFirst()</span><br><span class="line">            .orElseThrow(() -&gt; <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">"No Greeter implementation found"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="53-与-spring-boot-starter-结合"><a class="markdownIt-Anchor" href="#53-与-spring-boot-starter-结合"></a> 5.3 与 Spring Boot Starter 结合</h3>
-<p>自定义 Starter 时，通常用 <strong>Spring 的 SPI</strong>（spring.factories 或 Boot 3 的 .imports）声明自动配置类；在自动配置类里再按需使用 <strong>Java ServiceLoader</strong> 加载你的 SPI 实现并注册为 Bean。例如：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@AutoConfiguration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyAutoConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>并在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 中写上该类全限定名，这样引入你的 Starter 即可自动注册这些 Bean。</p>
-<hr>
-<h2 id="六-完整示例三模块-spring-boot"><a class="markdownIt-Anchor" href="#六-完整示例三模块-spring-boot"></a> 六、完整示例：三模块 + Spring Boot</h2>
-<h3 id="61-项目结构maven"><a class="markdownIt-Anchor" href="#61-项目结构maven"></a> 6.1 项目结构（Maven）</h3>
-<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">spi-demo/</span><br><span class="line">  api/           # 接口</span><br><span class="line">  impl-hello/   # 实现 Hello</span><br><span class="line">  impl-hi/      # 实现 Hi</span><br><span class="line">  app/          # Spring Boot 主应用，依赖 api + impl-hello + impl-hi</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="62-api-模块"><a class="markdownIt-Anchor" href="#62-api-模块"></a> 6.2 api 模块</h3>
-<p><strong>pom.xml</strong>：仅需 <code>junit</code> 等（或无依赖）。</p>
-<p><strong>Greeter.java</strong>（同上）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.spi;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Greeter</span> {</span><br><span class="line">    String <span class="title function_">greet</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="63-impl-hello-模块"><a class="markdownIt-Anchor" href="#63-impl-hello-模块"></a> 6.3 impl-hello 模块</h3>
-<ul>
-<li>依赖 <strong>api</strong>。</li>
-<li><strong>HelloGreeter.java</strong> 实现 <code>Greeter</code>（同上）。</li>
-<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HelloGreeter</code>（注意 impl-hello 里包名可为 <code>com.example.impl</code>，与 impl-hi 若同包则类名不可重复，如改为 <code>com.example.impl.hello.HelloGreeter</code> 更稳妥）。</li>
-</ul>
-<h3 id="64-impl-hi-模块"><a class="markdownIt-Anchor" href="#64-impl-hi-模块"></a> 6.4 impl-hi 模块</h3>
-<ul>
-<li>依赖 <strong>api</strong>。</li>
-<li><strong>HiGreeter.java</strong>：<code>return "Hi, " + name;</code></li>
-<li><strong>META-INF/services/com.example.spi.Greeter</strong> 内容：<code>com.example.impl.HiGreeter</code>（或 <code>com.example.impl.hi.HiGreeter</code>）。</li>
-</ul>
-<h3 id="65-app-模块spring-boot"><a class="markdownIt-Anchor" href="#65-app-模块spring-boot"></a> 6.5 app 模块（Spring Boot）</h3>
-<p><strong>pom.xml</strong>：依赖 <code>api</code>、<code>impl-hello</code>、<code>impl-hi</code> 以及 <code>spring-boot-starter</code>。</p>
-<p><strong>SpiConfiguration.java</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.ServiceLoader;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpiConfiguration</span> {</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Greeter&gt; <span class="title function_">greeters</span><span class="params">()</span> {</span><br><span class="line">        List&lt;Greeter&gt; list = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">        ServiceLoader.load(Greeter.class).forEach(list::add);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>AppRunner.java</strong>（或 Controller）：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.app;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.spi.Greeter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AppRunner</span> <span class="keyword">implements</span> <span class="title class_">CommandLineRunner</span> {</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Greeter&gt; greeters;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AppRunner</span><span class="params">(List&lt;Greeter&gt; greeters)</span> {</span><br><span class="line">        <span class="built_in">this</span>.greeters = greeters;</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">(String... args)</span> {</span><br><span class="line">        greeters.forEach(g -&gt; System.out.println(g.greet(<span class="string">"SPI"</span>)));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>运行后控制台会输出两类问候（来自 HelloGreeter 与 HiGreeter），说明跨模块 SPI 已被 Spring 加载并注入。</p>
-<hr>
-<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
-<table>
-<thead>
-<tr>
-<th>要点</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Java SPI</strong></td>
-<td>接口 + META - INF/services/接口全限定名 文件（内容为实现类全限定名），通过 <strong>ServiceLoader</strong> 加载</td>
-</tr>
-<tr>
-<td><strong>跨项目</strong></td>
-<td>接口放在 api 模块，各实现放在不同模块并各自提供 META - INF / services；使用方依赖 api 与需要的实现模块，classpath 中有谁就加载谁</td>
-</tr>
-<tr>
-<td><strong>Spring 的 SPI</strong></td>
-<td><strong>SpringFactoriesLoader</strong> + <code>spring.factories</code>；Boot 3 自动配置改用 <strong>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</strong></td>
-</tr>
-<tr>
-<td><strong>Spring 中用 Java SPI</strong></td>
-<td>在 <code>@Configuration</code> 里用 <strong>ServiceLoader.load(接口)</strong> 得到实现列表，注册为 List Bean 或单 Bean，即可 <code>@Autowired</code> 使用</td>
-</tr>
-<tr>
-<td><strong>Starter</strong></td>
-<td>自动配置类中可同时使用 Spring 的 SPI（声明配置类）和 Java SPI（加载业务实现并注册 Bean）</td>
-</tr>
-</tbody>
-</table>
-<p>按上述方式即可在跨项目场景下实现 SPI，并在 Spring / Spring Boot 中统一使用这些实现。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java25-features-summary/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java25-features-summary/" class="post-title-link" itemprop="url">Java 25 新特性总结与示例</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>2k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="java-25-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-25-新特性总结与示例"></a> Java 25 新特性总结与示例</h1>
-<p>Java 25 于 <strong>2025 年 9 月 16 日</strong> 正式发布，是 <strong>新的长期支持（LTS）版本</strong>。本文按语言、API、并发、GC 与平台等分类梳理主要新特性，并配有示例（基于 JDK 25）。</p>
-<hr>
-<h2 id="一-语言层面"><a class="markdownIt-Anchor" href="#一-语言层面"></a> 一、语言层面</h2>
-<h3 id="11-模式中的基本类型jep-507第三轮预览"><a class="markdownIt-Anchor" href="#11-模式中的基本类型jep-507第三轮预览"></a> 1.1 模式中的基本类型（JEP 507，第三轮预览）</h3>
-<p><strong>作用</strong>：在 <code>instanceof</code> 和 <code>switch</code> 的模式中直接支持基本类型，避免不必要的装箱 / 拆箱。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PrimitivePatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">describe</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> <span class="type">int</span> i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">long</span> l -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">double</span> d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> <span class="type">boolean</span> b -&gt; <span class="string">"boolean: "</span> + b;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span> -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span> -&gt; <span class="string">"other: "</span> + obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(describe(<span class="number">42</span>));</span><br><span class="line">        System.out.println(describe(<span class="number">3.14</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>（实际语法以 JDK 25 最终规范为准，可能需 <code>--enable-preview</code>。）</p>
-<h3 id="12-模块导入声明jep-511预览"><a class="markdownIt-Anchor" href="#12-模块导入声明jep-511预览"></a> 1.2 模块导入声明（JEP 511，预览）</h3>
-<p><strong>作用</strong>：使用 <code>import module</code> 一次性导入某模块导出的所有包，简化模块化库的复用。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 预览特性示例（语法以最终规范为准）</span></span><br><span class="line"><span class="comment">// import module java.sql;</span></span><br></pre></td></tr></tbody></table></figure>
-<h3 id="13-紧凑源文件与实例-main-方法jep-512转正"><a class="markdownIt-Anchor" href="#13-紧凑源文件与实例-main-方法jep-512转正"></a> 1.3 紧凑源文件与实例 main 方法（JEP 512，转正）</h3>
-<p><strong>作用</strong>：无显式类声明的顶层代码、实例 main 方法成为正式特性；<code>IO</code> 类用于控制台 I / O，位于 <code>java.lang</code> 并隐式导入，便于入门与脚本式程序。</p>
-<h3 id="14-灵活的构造器体jep-513转正"><a class="markdownIt-Anchor" href="#14-灵活的构造器体jep-513转正"></a> 1.4 灵活的构造器体（JEP 513，转正）</h3>
-<p><strong>作用</strong>：允许在显式 <code>super()</code> 或 <code>this()</code> 调用之前执行语句，放宽构造器体的书写顺序，便于做参数校验或辅助计算后再调用父类或本类构造器。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FlexibleConstructorDemo</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> value;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">FlexibleConstructorDemo</span><span class="params">(<span class="type">int</span> value)</span> {</span><br><span class="line">        <span class="comment">// 可在 super()/this() 前执行逻辑</span></span><br><span class="line">        <span class="keyword">if</span> (value &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">"value &gt;= 0"</span>);</span><br><span class="line">        <span class="built_in">this</span>.value = value;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="二-api-与并发"><a class="markdownIt-Anchor" href="#二-api-与并发"></a> 二、API 与并发</h2>
-<h3 id="21-作用域值scoped-valuesjep-506转正"><a class="markdownIt-Anchor" href="#21-作用域值scoped-valuesjep-506转正"></a> 2.1 作用域值（Scoped Values，JEP 506，转正）</h3>
-<p><strong>作用</strong>：线程内不可变的、可继承的上下文传递，替代部分 ThreadLocal 场景，更适合虚拟线程。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ScopedValueDemo</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ScopedValue&lt;String&gt; USER = ScopedValue.newInstance();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        ScopedValue.where(USER, <span class="string">"alice"</span>).run(() -&gt; {</span><br><span class="line">            System.out.println(USER.get());  <span class="comment">// alice</span></span><br><span class="line">        });</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="22-密钥派生函数-apijep-510转正"><a class="markdownIt-Anchor" href="#22-密钥派生函数-apijep-510转正"></a> 2.2 密钥派生函数 API（JEP 510，转正）</h3>
-<p><strong>作用</strong>：提供标准化的密钥派生（KDF）API，用于密钥拉伸、从密码派生密钥等密码学场景。</p>
-<h3 id="23-结构化并发jep-505第五轮预览"><a class="markdownIt-Anchor" href="#23-结构化并发jep-505第五轮预览"></a> 2.3 结构化并发（JEP 505，第五轮预览）</h3>
-<p><strong>作用</strong>：用结构化方式管理并发任务的生命周期和异常传播，与虚拟线程配合使用，代码更清晰。</p>
-<hr>
-<h2 id="三-向量-apijep-508第十轮孵化"><a class="markdownIt-Anchor" href="#三-向量-apijep-508第十轮孵化"></a> 三、向量 API（JEP 508，第十轮孵化）</h2>
-<p><strong>作用</strong>：与平台无关的 SIMD 风格向量运算 API，便于利用 CPU 向量指令做高性能计算（仍为孵化 API，包名可能含 <code>incubator</code>）。</p>
-<hr>
-<h2 id="四-gc-与运行时"><a class="markdownIt-Anchor" href="#四-gc-与运行时"></a> 四、GC 与运行时</h2>
-<table>
-<thead>
-<tr>
-<th>JEP</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>521</strong></td>
-<td>分代式 Shenandoah（转正），优化 GC 行为</td>
-</tr>
-<tr>
-<td><strong>519</strong></td>
-<td>紧凑对象头（转正），减少对象内存占用</td>
-</tr>
-<tr>
-<td><strong>520</strong></td>
-<td>JFR 方法计时与追踪（转正），增强 profiling 能力</td>
-</tr>
-<tr>
-<td><strong>503</strong></td>
-<td>移除 32-bit x86 移植，平台瘦身</td>
-</tr>
-</tbody>
-</table>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<table>
-<thead>
-<tr>
-<th>类别</th>
-<th>特性</th>
-<th>一句话</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>语言</td>
-<td>模式中的基本类型</td>
-<td>instanceof / switch 直接匹配基本类型</td>
-</tr>
-<tr>
-<td>语言</td>
-<td>模块导入、紧凑源文件、灵活构造器</td>
-<td>模块化与语法便利</td>
-</tr>
-<tr>
-<td>并发 / API</td>
-<td>作用域值、结构化并发</td>
-<td>上下文传递与并发结构规范化</td>
-</tr>
-<tr>
-<td>安全 / API</td>
-<td>密钥派生函数</td>
-<td>标准化 KDF</td>
-</tr>
-<tr>
-<td>性能 / 平台</td>
-<td>向量 API、分代 Shenandoah、紧凑对象头、JFR、移除 32-bit</td>
-<td>性能与可观测性、平台精简</td>
-</tr>
-</tbody>
-</table>
-<p>以上示例在 JDK 25 下可运行（预览 / 孵化特性需相应编译与运行参数）。Java 25 作为新 LTS，适合作为新一轮升级与长期支持的目标版本。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-langchain4j-text-splitter/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/01/29/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter 实现说明</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00+08:00">2025-01-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>2.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
-<ul>
-<li>包文档：<a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
-</ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
-</ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>按段落</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>按行</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>按词</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>层级分割基类</td>
-</tr>
-</tbody>
-</table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
-<ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
-</ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>分隔符自身长度</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>当前正在拼的段内容</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>当前段长度</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
-<ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
-</ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-python-recursive-character-text-splitter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2554,7 +2676,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 16:04:38" itemprop="dateModified" datetime="2026-03-27T16:04:38+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2580,14 +2702,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.8k</span>
+      <span>3.9k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>3 分钟</span>
+      <span>4 分钟</span>
     </span>
 </div>
 
@@ -2810,7 +2932,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
@@ -2832,13 +2954,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">110k</span>
+    <span title="站点总字数">119k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:40</span>
+    <span title="站点阅读时长">1:48</span>
   </span>
 </div>
 <div class="busuanzi-count">

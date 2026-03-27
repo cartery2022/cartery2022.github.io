@@ -222,7 +222,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -240,7 +240,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/" class="post-title-link" itemprop="url">String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</a>
+          <a href="/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/" class="post-title-link" itemprop="url">Java 动态代理原理与 Java 9+ 改动</a>
         </h2>
 
         <div class="post-meta-container">
@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -280,14 +280,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>5.1k</span>
+      <span>3.9k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
+      <span>4 分钟</span>
     </span>
 </div>
 
@@ -298,137 +298,86 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="string-stringbuffer-stringbuilder-源码解读与-java-9-改动"><a class="markdownIt-Anchor" href="#string-stringbuffer-stringbuilder-源码解读与-java-9-改动"></a> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</h1>
-<p>本文从 JDK 源码出发，说明 <strong>String</strong>、<strong>StringBuffer</strong>、<strong>StringBuilder</strong> 三者的实现结构、核心逻辑与使用场景，并单独梳理 <strong>Java 9 及以后版本</strong> 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。</p>
+          <h1 id="java-动态代理原理与-java-9-改动"><a class="markdownIt-Anchor" href="#java-动态代理原理与-java-9-改动"></a> Java 动态代理原理与 Java 9+ 改动</h1>
+<p>本文说明 <strong>JDK 动态代理</strong>（<code>java.lang.reflect.Proxy</code> + <code>InvocationHandler</code>）的原理、用法与限制，并单独梳理 <strong>Java 9 及以后版本</strong> 对动态代理的改动（模块化、代理类包与可见性、ProxyGenerator 位置等）。</p>
 <hr>
-<h2 id="一-三者关系与定位"><a class="markdownIt-Anchor" href="#一-三者关系与定位"></a> 一、三者关系与定位</h2>
+<h2 id="一-什么是动态代理"><a class="markdownIt-Anchor" href="#一-什么是动态代理"></a> 一、什么是动态代理</h2>
+<p><strong>动态代理</strong>：在运行时动态生成 “代理类” 的字节码并加载，由代理类把方法调用统一转交给一个 <strong>InvocationHandler</strong> 处理，从而在不改业务类的前提下做增强（日志、事务、权限等）。</p>
+<p>JDK 自带的动态代理基于 <strong>接口</strong>：只能为 “实现了若干接口” 的目标生成代理，代理对象实现相同接口，方法调用最终进入 <code>InvocationHandler.invoke()</code>。</p>
+<hr>
+<h2 id="二-核心-api"><a class="markdownIt-Anchor" href="#二-核心-api"></a> 二、核心 API</h2>
+<h3 id="21-proxy"><a class="markdownIt-Anchor" href="#21-proxy"></a> 2.1 Proxy</h3>
+<ul>
+<li><strong>Proxy.newProxyInstance(ClassLoader loader, Class&lt;?&gt;[] interfaces, InvocationHandler h)</strong><br>
+在运行时生成并加载代理类，返回实现 <code>interfaces</code> 的代理实例，该实例上所有接口方法调用都会交给 <code>h</code> 处理。</li>
+</ul>
+<h3 id="22-invocationhandler"><a class="markdownIt-Anchor" href="#22-invocationhandler"></a> 2.2 InvocationHandler</h3>
+<ul>
+<li><strong>Object invoke(Object proxy, Method method, Object[] args)</strong><br>
+代理实例上 “对接口方法的调用” 都会转发到这里。
+<ul>
+<li><code>proxy</code>：代理对象本身（不要用它在 handler 里再调接口方法，否则会递归进 handler）。</li>
+<li><code>method</code>：被调用的方法。</li>
+<li><code>args</code>：方法参数。<br>
+返回值作为该次方法调用的结果。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="三-使用示例"><a class="markdownIt-Anchor" href="#三-使用示例"></a> 三、使用示例</h2>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.reflect.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">Hello</span> {</span><br><span class="line">    String <span class="title function_">say</span><span class="params">(String name)</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">HelloImpl</span> <span class="keyword">implements</span> <span class="title class_">Hello</span> {</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">say</span><span class="params">(String name)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello, "</span> + name;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ProxyDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">Hello</span> <span class="variable">target</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HelloImpl</span>();</span><br><span class="line">        <span class="type">InvocationHandler</span> <span class="variable">handler</span> <span class="operator">=</span> (proxy, method, args) -&gt; {</span><br><span class="line">            System.out.println(<span class="string">"Before: "</span> + method.getName());</span><br><span class="line">            <span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> method.invoke(target, args);</span><br><span class="line">            System.out.println(<span class="string">"After: "</span> + method.getName());</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        };</span><br><span class="line"></span><br><span class="line">        <span class="type">Hello</span> <span class="variable">proxy</span> <span class="operator">=</span> (Hello) Proxy.newProxyInstance(</span><br><span class="line">            Hello.class.getClassLoader(),</span><br><span class="line">            <span class="keyword">new</span> <span class="title class_">Class</span>&lt;?&gt;[]{Hello.class},</span><br><span class="line">            handler</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        System.out.println(proxy.say(<span class="string">"World"</span>));</span><br><span class="line">        <span class="comment">// Before: say</span></span><br><span class="line">        <span class="comment">// After: say</span></span><br><span class="line">        <span class="comment">// Hello, World</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>目标类必须 <strong>实现接口</strong>，代理的是 “接口类型”，实际调用仍转发到 <code>target</code>。</li>
+<li>若要对 “没有接口的类” 做代理，需用 <strong>CGLIB</strong> 等基于子类的方案，见后文对比。</li>
+</ul>
+<hr>
+<h2 id="四-工作原理源码层面"><a class="markdownIt-Anchor" href="#四-工作原理源码层面"></a> 四、工作原理（源码层面）</h2>
+<h3 id="41-newproxyinstance-流程概要"><a class="markdownIt-Anchor" href="#41-newproxyinstance-流程概要"></a> 4.1 newProxyInstance 流程概要</h3>
+<ol>
+<li>校验：<code>loader</code>、<code>interfaces</code> 非空，接口均为接口类型且由同一 loader 加载等。</li>
+<li><strong>查找或生成代理类</strong>：以 <code>(loader, interfaces)</code> 为 key 查缓存；若无则用 <strong>ProxyGenerator</strong>（或内部等价实现）生成代理类字节码，再通过 <code>Unsafe.defineClass</code> 或 <code>ClassLoader.defineClass</code> 加载。</li>
+<li><strong>实例化</strong>：取代理类的唯一构造器，参数类型为 <code>InvocationHandler</code>，传入 <code>h</code>，<code>newInstance(h)</code> 得到代理实例。</li>
+<li>返回该实例。</li>
+</ol>
+<h3 id="42-生成的代理类长什么样"><a class="markdownIt-Anchor" href="#42-生成的代理类长什么样"></a> 4.2 生成的代理类长什么样</h3>
+<ul>
+<li>类名：通常为 <strong>com.sun.proxy.$ProxyN</strong>（N 为递增数字），Java 9+ 在模块化下可能处于 “动态模块”，见第五节。</li>
+<li><strong>继承</strong>：<code>extends java.lang.reflect.Proxy</code>（因此代理类也实现 <code>Serializable</code>）。</li>
+<li><strong>实现</strong>：你传入的 <code>interfaces</code>。</li>
+<li><strong>字段</strong>：从 Proxy 继承的 <code>protected InvocationHandler h</code>。</li>
+<li><strong>方法</strong>：每个接口方法（以及从 Object 转发的 <code>equals</code>、<code>hashCode</code>、<code>toString</code>）内部都类似：</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> String <span class="title function_">say</span><span class="params">(String name)</span> {</span><br><span class="line">    <span class="keyword">try</span> {</span><br><span class="line">        <span class="keyword">return</span> (String) <span class="built_in">super</span>.h.invoke(<span class="built_in">this</span>, m_say, <span class="keyword">new</span> <span class="title class_">Object</span>[]{name});</span><br><span class="line">    } <span class="keyword">catch</span> (RuntimeException | Error e) {</span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    } <span class="keyword">catch</span> (Throwable t) {</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UndeclaredThrowableException</span>(t);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>即：把调用转给 <code>InvocationHandler.invoke(proxy, method, args)</code>，检查异常后返回或包装为 <code>UndeclaredThrowableException</code>。</p>
+<h3 id="43-重要限制"><a class="markdownIt-Anchor" href="#43-重要限制"></a> 4.3 重要限制</h3>
+<ul>
+<li><strong>只支持接口</strong>：不能指定 “代理某个类”，只能指定若干接口，代理类实现这些接口。</li>
+<li><strong>Object 方法</strong>：<code>equals</code>、<code>hashCode</code>、<code>toString</code> 也会转发到 handler；其他 Object 方法（如 <code>getClass()</code>）不转发，由代理类自身实现。</li>
+</ul>
+<hr>
+<h2 id="五-java-9-及以后对动态代理的改动"><a class="markdownIt-Anchor" href="#五-java-9-及以后对动态代理的改动"></a> 五、Java 9 及以后对动态代理的改动</h2>
+<h3 id="51-模块系统与代理类的包-可见性"><a class="markdownIt-Anchor" href="#51-模块系统与代理类的包-可见性"></a> 5.1 模块系统与代理类的包、可见性</h3>
+<p>Java 9 引入模块后，代理类的 <strong>包与可见性</strong> 受 “代理接口所在包是否被当前模块导出 / 打开” 影响：</p>
 <table>
 <thead>
 <tr>
-<th>类</th>
-<th>可变性</th>
-<th>线程安全</th>
-<th>典型场景</th>
+<th>情况</th>
+<th>代理类所在位置 / 可见性</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>String</strong></td>
-<td>不可变</td>
-<td>天然线程安全</td>
-<td>常量、键、单次赋值</td>
+<td>所有代理接口都在<strong>已导出或已打开</strong>的包中</td>
+<td>代理类在 “未命名包” 或实现定义的包中（如 com.sun.proxy），公共接口时一般为 public</td>
 </tr>
 <tr>
-<td><strong>StringBuffer</strong></td>
-<td>可变</td>
-<td>同步（synchronized）</td>
-<td>多线程下可变的字符序列</td>
-</tr>
-<tr>
-<td><strong>StringBuilder</strong></td>
-<td>可变</td>
-<td>非线程安全</td>
-<td>单线程下大量拼接、构造字符串</td>
+<td>至少一个代理接口在<strong>未导出且未打开</strong>的包中</td>
+<td>代理类在 <strong>动态模块</strong> 中；若通过 <code>Constructor.newInstance()</code> 在代理类上反射创建实例，可能抛 <code>IllegalAccessException</code>，应使用 <strong>Proxy.newProxyInstance()</strong> 创建</td>
 </tr>
 </tbody>
 </table>
-<p><strong>继承关系</strong>：<code>StringBuffer</code> 与 <code>StringBuilder</code> 都继承 <strong>AbstractStringBuilder</strong>，没有继承关系；<code>String</code> 独立实现，与后两者无继承关系。</p>
-<hr>
-<h2 id="二-string-源码解读"><a class="markdownIt-Anchor" href="#二-string-源码解读"></a> 二、String 源码解读</h2>
-<h3 id="21-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#21-内部存储java-8-vs-java-9"></a> 2.1 内部存储（Java 8 vs Java 9+）</h3>
-<p><strong>Java 8 及以前</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">char</span>[] value;   <span class="comment">// UTF-16，每字符 2 字节</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;            <span class="comment">// 缓存 hashCode</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>用 <strong>char[]</strong> 存字符，每个 char 为 UTF-16 码元，占 <strong>2 字节</strong>。</li>
-<li><strong>value 为 final</strong>，引用不变，且对外不暴露可变接口，因此 <strong>String 不可变</strong>。</li>
-</ul>
-<p><strong>Java 9 及以后（JEP 254 Compact Strings）</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span>[] value;  <span class="comment">// 按编码可能是 1 字节/字符 或 2 字节/字符</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span> coder;     <span class="comment">// 0 = LATIN1，1 = UTF16</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>改为 <strong>byte[] + coder</strong>：
-<ul>
-<li><strong>LATIN1（coder=0）</strong>：仅含 Latin-1 范围内字符时，每字符 <strong>1 字节</strong>，节省约一半内存。</li>
-<li><strong>UTF16（coder=1）</strong>：含其它 Unicode 时，每字符 <strong>2 字节</strong>，与原来语义一致。</li>
-</ul>
-</li>
-<li>仍为 <strong>final byte[]</strong>，String 依然 <strong>不可变</strong>。</li>
-<li>可通过 JVM 参数 <code>-XX:-CompactStrings</code> 关闭紧凑字符串（部分版本）。</li>
-<li>内部常量化：<code>static final byte LATIN1 = 0;</code>、<code>static final byte UTF16 = 1;</code>，与 <code>StringLatin1</code>/<code>StringUTF16</code> 工具类配合实现 indexOf、concat 等。</li>
-</ul>
-<h3 id="22-常用构造与-lengthcodepoint"><a class="markdownIt-Anchor" href="#22-常用构造与-lengthcodepoint"></a> 2.2 常用构造与 length / codePoint</h3>
-<ul>
-<li><strong>length()</strong>：返回的是 <strong>字符个数</strong>（对 UTF-16 即 code unit 个数），在 Java 9+ 内部按 coder 从 byte [] 计算。</li>
-<li><strong>codePointCount 等</strong>：按 Unicode 码点处理，与 length 可能不同（存在代理对时）。</li>
-</ul>
-<p>构造时若传入 <code>char[]</code>，在 Java 9+ 会按内容选择 LATIN1 或 UTF16 编码再存入 byte []。</p>
-<h3 id="23-不可变与常量池"><a class="markdownIt-Anchor" href="#23-不可变与常量池"></a> 2.3 不可变与常量池</h3>
-<ul>
-<li>所有 “修改” 操作（concat、replace、trim 等）都 <strong>返回新 String</strong>，不修改原对象。</li>
-<li><strong>字面量</strong> 和 <strong>intern()</strong> 进入 <strong>字符串常量池</strong>，相同内容的 intern 可共享实例，减少重复对象。</li>
-</ul>
-<h3 id="24-string-的-hashcode-是干什么用的"><a class="markdownIt-Anchor" href="#24-string-的-hashcode-是干什么用的"></a> 2.4 String 的 hashCode 是干什么用的</h3>
-<p>源码里 String 有一个字段 <strong><code>private int hash</code></strong>（默认 0），用来<strong>缓存</strong> <code>hashCode()</code> 的返回值。</p>
-<p><strong>作用一：满足 “基于哈希的容器” 的约定</strong></p>
-<ul>
-<li>和 <code>equals</code> 一起用：若 <code>a.equals(b)</code> 为 true，则必须 <code>a.hashCode() == b.hashCode()</code>。</li>
-<li>这样 <strong>HashMap、HashSet、Hashtable</strong> 等才能按 “先算 hash → 再按桶找 → 再 equals” 正确找到同一个逻辑对象。</li>
-</ul>
-<p><strong>作用二：实际用在哪</strong></p>
-<ul>
-<li><strong>HashMap / HashSet</strong>：用 <code>key.hashCode()</code> 算桶下标，减少逐个 <code>equals</code> 比较。</li>
-<li>字符串做 key 时（如 <code>Map&lt;String, User&gt;</code>、<code>Set&lt;String&gt;</code>）都依赖 String 的 hashCode 做快速查找、去重。</li>
-<li>任何用 “对象做 key” 或 “按对象去重” 的哈希结构都会用到该对象的 hashCode，String 是最常用的一种。</li>
-</ul>
-<p><strong>为什么要缓存 <code>hash</code>？</strong></p>
-<ul>
-<li>String <strong>不可变</strong>，算过一次 hashCode 后结果永远不变。</li>
-<li>把结果存进 <code>hash</code>（0 表示 “还没算过”），下次再调 <code>hashCode()</code> 直接返回缓存，<strong>避免重复计算</strong>。</li>
-<li>同一个 String 常会多次参与 HashMap 的 put / get，缓存能明显减少重复计算。</li>
-</ul>
-<p><strong>一句话</strong>：String 的 hashCode 用于在 HashMap、HashSet 等容器里<strong>快速定位和比较</strong>“是不是同一个字符串”；<code>hash</code> 字段用来<strong>缓存</strong>这个值，因为字符串不可变，算一次即可。</p>
-<hr>
-<h2 id="三-abstractstringbuilder-源码解读"><a class="markdownIt-Anchor" href="#三-abstractstringbuilder-源码解读"></a> 三、AbstractStringBuilder 源码解读</h2>
-<p><code>StringBuffer</code> 和 <code>StringBuilder</code> 的公共逻辑都在 <strong>AbstractStringBuilder</strong> 中。</p>
-<h3 id="31-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#31-内部存储java-8-vs-java-9"></a> 3.1 内部存储（Java 8 vs Java 9+）</h3>
-<p><strong>Java 8</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">char</span>[] value;   <span class="comment">// 可扩容，非 final</span></span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 已用字符数（逻辑长度）</span></span><br><span class="line">    <span class="comment">// 容量即 value.length</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p><strong>Java 9+</strong>：与 String 对齐，改为 <strong>byte[] + coder</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">byte</span>[] value;</span><br><span class="line">    <span class="type">byte</span> coder;</span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 字符数（按 code unit 计）</span></span><br><span class="line">    <span class="comment">// 容量为 value.length &gt;&gt; coder 或按字节语义</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li><strong>value 非 final</strong>，可扩容，因此是 <strong>可变</strong> 字符序列。</li>
-<li>扩容、append、getChars 等都会根据 <strong>coder</strong> 走对应实现（如 StringLatin1 / StringUTF16 的静态方法），保证与 String 的 Compact Strings 一致。</li>
-</ul>
-<h3 id="32-初始容量与扩容"><a class="markdownIt-Anchor" href="#32-初始容量与扩容"></a> 3.2 初始容量与扩容</h3>
-<ul>
-<li><strong>无参构造</strong>：初始容量一般为 <strong>16</strong>（字符数）。</li>
-<li><strong>带初始字符串 / 容量构造</strong>：容量 = 字符串长度 + 16 或指定值。</li>
-</ul>
-<p><strong>扩容逻辑</strong>（概念一致，Java 9+ 中按 byte 容量换算）：</p>
-<ol>
-<li>若 <code>count + 待追加长度 &gt; value 容量</code>，则扩容。</li>
-<li>新容量通常为 <strong>旧容量 * 2 + 2</strong>（<code>(capacity &lt;&lt; 1) + 2</code>）。</li>
-<li>若仍不足，则新容量 = 所需最小容量。</li>
-<li>上限约为 <strong>Integer.MAX_VALUE - 8</strong>（或实现定义上限），否则抛 <code>OutOfMemoryError</code>。</li>
-<li>使用 <strong>Arrays.copyOf</strong> 复制到新数组。</li>
-</ol>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 扩容逻辑（伪代码，Java 8 风格便于理解）</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">ensureCapacityInternal</span><span class="params">(<span class="type">int</span> minimumCapacity)</span> {</span><br><span class="line">    <span class="keyword">if</span> (minimumCapacity - value.length &gt; <span class="number">0</span>) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">newCapacity</span> <span class="operator">=</span> (value.length &lt;&lt; <span class="number">1</span>) + <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity - minimumCapacity &lt; <span class="number">0</span>) newCapacity = minimumCapacity;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">OutOfMemoryError</span>();</span><br><span class="line">        value = Arrays.copyOf(value, newCapacity);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<h3 id="33-append-insert-delete"><a class="markdownIt-Anchor" href="#33-append-insert-delete"></a> 3.3 append / insert / delete</h3>
-<ul>
-<li><strong>append(String str)</strong>：先 <strong>ensureCapacity(count + str.length())</strong>，再把 str 的字符（通过 getChars 或等价逻辑）拷贝到 value，更新 count，返回 this。</li>
-<li><strong>insert / delete</strong>：同样先保证容量，再移动区间内元素，更新 count。</li>
-<li>若传入 null，通常当作 <code>"null"</code> 字符串处理（appendNull）。</li>
-</ul>
-<hr>
-<h2 id="四-stringbuffer-与-stringbuilder-的差异"><a class="markdownIt-Anchor" href="#四-stringbuffer-与-stringbuilder-的差异"></a> 四、StringBuffer 与 StringBuilder 的差异</h2>
-<p>两者都继承 AbstractStringBuilder，<strong>API 完全一致</strong>，区别只有 <strong>线程安全</strong>：</p>
-<ul>
-<li><strong>StringBuffer</strong>：对外方法（append、insert、delete、replace 等）都加 <strong>synchronized</strong>，多线程下安全，但存在锁开销。</li>
-<li><strong>StringBuilder</strong>：无同步，单线程下更快，<strong>推荐在单线程场景使用</strong>。</li>
-</ul>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// StringBuffer 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> StringBuffer <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// StringBuilder 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> StringBuilder <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="五-java-9-及以后对三者的改动汇总"><a class="markdownIt-Anchor" href="#五-java-9-及以后对三者的改动汇总"></a> 五、Java 9 及以后对三者的改动汇总</h2>
-<h3 id="51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"><a class="markdownIt-Anchor" href="#51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"></a> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</h3>
+<p>要点：当接口来自未导出包时，代理类被放在 “动态模块” 里，与普通模块的访问规则一致，不能随意反射实例化，必须走 <code>Proxy.newProxyInstance()</code>。</p>
+<h3 id="52-proxygenerator-位置与保存代理类字节码"><a class="markdownIt-Anchor" href="#52-proxygenerator-位置与保存代理类字节码"></a> 5.2 ProxyGenerator 位置与保存代理类字节码</h3>
 <table>
 <thead>
 <tr>
@@ -439,68 +388,65 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>String</strong></td>
-<td><code>char[] value</code>，2 字节 / 字符</td>
-<td><code>byte[] value</code> + <code>byte coder</code>，LATIN1 时 1 字节 / 字符</td>
+<td><strong>ProxyGenerator 所在包</strong></td>
+<td><code>sun.misc.ProxyGenerator</code>（不推荐依赖）</td>
+<td>移至 <strong>jdk.internal</strong>（如 <code>jdk.internal.reflect</code>），非导出 API</td>
 </tr>
 <tr>
-<td><strong>AbstractStringBuilder</strong>（及 StringBuffer / StringBuilder）</td>
-<td><code>char[] value</code></td>
-<td><code>byte[] value</code> + <code>byte coder</code></td>
+<td><strong>保存生成的 .class 文件</strong></td>
+<td><code>-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true</code></td>
+<td><strong><code>-Djdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong></td>
 </tr>
 </tbody>
 </table>
+<p>调试时若要把运行时生成的代理类 dump 到磁盘，Java 9+ 需使用新系统属性 <strong><code>jdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong>；不要依赖 <code>sun.misc.ProxyGenerator</code>，内部实现可能随时调整。</p>
+<h3 id="53-核心-api-保持不变"><a class="markdownIt-Anchor" href="#53-核心-api-保持不变"></a> 5.3 核心 API 保持不变</h3>
 <ul>
-<li><strong>动机</strong>：大量字符串只含 Latin-1 字符，堆上 String 占比高，改为按需 1 字节 / 字符可显著 <strong>降低内存与 GC 压力</strong>。</li>
-<li><strong>对 StringBuffer / StringBuilder</strong>：内部存储与 String 统一，转换与拷贝时无需再在 char [] 与 byte [] 间多做转换，实现更一致。</li>
-</ul>
-<h3 id="52-字符串拼接编译方式jep-280-indify-string-concatenation"><a class="markdownIt-Anchor" href="#52-字符串拼接编译方式jep-280-indify-string-concatenation"></a> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</h3>
-<ul>
-<li><strong>Java 8 及以前</strong>：<code>"a" + b + "c"</code> 编译为 <strong>显式 StringBuilder</strong>：new StringBuilder → 多次 append → toString ()。</li>
-<li><strong>Java 9+</strong>：改为 <strong>invokedynamic</strong>（如 <code>makeConcatWithConstants</code>），由 JVM 在运行时选择拼接策略（可优化为直接使用 byte []、避免中间 StringBuilder 等），<strong>字节码更简洁</strong>，且未来可继续优化而无需重新编译应用。</li>
-<li><strong>注意</strong>：早期版本（如 Java 11–18）存在 “先求值再转字符串” 的顺序与旧行为不一致的 bug，<strong>Java 19 已修复</strong>。</li>
-</ul>
-<p>这主要影响 <strong>编译期</strong> 对 <code>+</code> 拼接的翻译，不改变 String / StringBuilder 的公开 API，但运行时生成的实现会随 JDK 版本演进。</p>
-<h3 id="53-后续版本中的小补充"><a class="markdownIt-Anchor" href="#53-后续版本中的小补充"></a> 5.3 后续版本中的小补充</h3>
-<ul>
-<li><strong>Java 11</strong>：String 增加 <strong>isBlank()、strip()、repeat()、lines()</strong> 等，内部实现基于 byte []+coder。</li>
-<li><strong>Java 17</strong>：<strong>String.format()</strong> 等实现有优化，性能有提升。</li>
-<li><strong>Java 21</strong>：<strong>字符串模板</strong>（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 <strong>可变数组参数</strong> 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。</li>
+<li><strong>Proxy.newProxyInstance(ClassLoader, Class&lt;?&gt;[], InvocationHandler)</strong> 的签名与语义未变。</li>
+<li><strong>InvocationHandler.invoke</strong> 的约定未变。</li>
+<li>代理类仍继承 <code>Proxy</code>、实现指定接口，方法转发到 handler。<br>
+因此 “怎么用” 在 8 与 9+ 一致，变化主要在 “代理类放在哪个模块/包、如何生成与加载” 以及调试/内部实现细节。</li>
 </ul>
 <hr>
-<h2 id="六-使用建议与小结"><a class="markdownIt-Anchor" href="#六-使用建议与小结"></a> 六、使用建议与小结</h2>
+<h2 id="六-与-cglib-的简要对比"><a class="markdownIt-Anchor" href="#六-与-cglib-的简要对比"></a> 六、与 CGLIB 的简要对比</h2>
 <table>
 <thead>
 <tr>
-<th>场景</th>
-<th>推荐</th>
+<th>对比项</th>
+<th>JDK 动态代理</th>
+<th>CGLIB</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>常量、键、单次赋值、不需要修改</td>
-<td><strong>String</strong></td>
+<td><strong>代理对象</strong></td>
+<td>实现指定接口</td>
+<td>继承目标类（子类）</td>
 </tr>
 <tr>
-<td>单线程下多次拼接、构造大字符串</td>
-<td><strong>StringBuilder</strong></td>
+<td><strong>前提</strong></td>
+<td>必须有接口</td>
+<td>无接口也可，目标类 / 方法不能为 final</td>
 </tr>
 <tr>
-<td>多线程下共享可变字符序列</td>
-<td><strong>StringBuffer</strong></td>
+<td><strong>实现方式</strong></td>
+<td>反射 + 运行时生成实现接口的类</td>
+<td>ASM 等字节码生成子类</td>
 </tr>
 <tr>
-<td>简单少量拼接（如 <code>"a"+b</code>）</td>
-<td>直接 <code>+</code>，Java 9+ 由 invokedynamic 优化</td>
+<td><strong>典型用法</strong></td>
+<td>Spring 中 “Bean 实现了接口” 时的默认代理</td>
+<td>Spring 中 “Bean 无接口” 或 <code>proxy-target-class=true</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>源码层面的要点</strong>：</p>
+<p>需要代理 “没有接口的类” 或 “类上的方法” 时，只能用 CGLIB（或类似字节码方案），不能用 JDK Proxy。</p>
+<hr>
+<h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
 <ul>
-<li><strong>String</strong>：不可变，Java 9+ 用 byte []+coder 做紧凑存储；所有 “修改” 都是新对象。</li>
-<li><strong>AbstractStringBuilder</strong>：可变，Java 9+ 同样 byte []+coder，扩容规则 *2 + 2，与 String 编码一致。</li>
-<li><strong>StringBuffer</strong> = AbstractStringBuilder + synchronized；<strong>StringBuilder</strong> = AbstractStringBuilder，无同步。</li>
-<li><strong>Java 9+</strong>：三者存储统一为 byte []+coder（Compact Strings），字符串 <code>+</code> 的编译从 StringBuilder 链式调用改为 invokedynamic，后续版本继续在 format、构造器、模板等方面做增强。</li>
+<li><strong>JDK 动态代理</strong>：通过 <strong>Proxy.newProxyInstance</strong> 传入类加载器、接口数组和 <strong>InvocationHandler</strong>，在运行时生成实现这些接口的代理类，所有接口方法（以及 equals/hashCode/toString）调用都转到 <strong>handler.invoke</strong>，常用于 AOP、RPC 客户端等。</li>
+<li><strong>限制</strong>：只能基于接口；代理类继承 <code>Proxy</code>，由内部 ProxyGenerator 生成字节码并加载。</li>
+<li><strong>Java 9+</strong>：模块化下代理类可能位于 “动态模块”，未导出包中的接口会影响代理类的可访问性；ProxyGenerator 移入 jdk.internal，保存生成文件改用 <strong><code>jdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong>；对外 API 不变，现有基于 Proxy + InvocationHandler 的代码可继续使用。</li>
 </ul>
 
       
@@ -564,7 +510,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -931,7 +877,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1123,222 +1069,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java17-features-summary/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-java17-features-summary/" class="post-title-link" itemprop="url">Java 17 新特性总结与示例</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>2.2k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="java-17-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-17-新特性总结与示例"></a> Java 17 新特性总结与示例</h1>
-<p>Java 17 于 <strong>2021 年 9 月 14 日</strong> 正式发布，是 <strong>继 Java 8 以来重要的长期支持（LTS）版本</strong>，支持至 2029 年 9 月。Spring 6.x / Spring Boot 3.x 的最低支持版本即为 Java 17。本文按语言、API、平台等分类梳理主要新特性，并配有示例（基于 JDK 17）。</p>
-<hr>
-<h2 id="一-密封类sealed-classesjep-409"><a class="markdownIt-Anchor" href="#一-密封类sealed-classesjep-409"></a> 一、密封类（Sealed Classes，JEP 409）</h2>
-<p><strong>作用</strong>：用 <code>sealed</code> + <code>permits</code> 限制 “谁可以继承 / 实现” 当前类或接口，编译器可做穷尽性检查，提高类型安全。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 密封接口：只允许 Circle、Square、Rectangle 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">Shape</span> <span class="keyword">permits</span> Circle, Square, Rectangle {</span><br><span class="line">    <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Circle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> r;</span><br><span class="line">    Circle(<span class="type">double</span> r) { <span class="built_in">this</span>.r = r; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> Math.PI * r * r; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Square</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> side;</span><br><span class="line">    Square(<span class="type">double</span> side) { <span class="built_in">this</span>.side = side; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> side * side; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Rectangle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> w, h;</span><br><span class="line">    Rectangle(<span class="type">double</span> w, <span class="type">double</span> h) { <span class="built_in">this</span>.w = w; <span class="built_in">this</span>.h = h; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> w * h; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>子类必须为 <code>final</code>、<code>sealed</code> 或 <code>non-sealed</code> 之一。与 switch 模式匹配结合时，编译器可检查是否覆盖所有 permitted 类型，无需 default。</p>
-<hr>
-<h2 id="二-switch-模式匹配jep-406预览-后续版本转正"><a class="markdownIt-Anchor" href="#二-switch-模式匹配jep-406预览-后续版本转正"></a> 二、Switch 模式匹配（JEP 406，预览 → 后续版本转正）</h2>
-<p><strong>作用</strong>：在 switch 的 case 中使用类型模式，并可直接绑定变量，简化 “按类型分派” 的代码。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> Long l    -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> Double d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> String s  -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span>      -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span>        -&gt; obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(formatter(<span class="number">1</span>));       <span class="comment">// int: 1</span></span><br><span class="line">        System.out.println(formatter(<span class="string">"hi"</span>));    <span class="comment">// string: hi</span></span><br><span class="line">        System.out.println(formatter(<span class="literal">null</span>));   <span class="comment">// null</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>与密封类结合时，对密封类型的 switch 可做穷尽性检查，无需 default。</p>
-<hr>
-<h2 id="三-强封装-jdk-内部-apijep-403"><a class="markdownIt-Anchor" href="#三-强封装-jdk-内部-apijep-403"></a> 三、强封装 JDK 内部 API（JEP 403）</h2>
-<p>默认不再允许反射访问 JDK 内部 API（如 <code>sun.*</code>），除非使用 <code>--add-opens</code> 等打开模块。目的是提高稳定性和安全性，避免依赖未承诺的内部实现。</p>
-<hr>
-<h2 id="四-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#四-其它重要-jep-概览"></a> 四、其它重要 JEP 概览</h2>
-<table>
-<thead>
-<tr>
-<th>JEP</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>410</strong></td>
-<td>移除实验性 AOT / JIT 编译器</td>
-</tr>
-<tr>
-<td><strong>411</strong></td>
-<td>弃用安全管理器（计划删除）</td>
-</tr>
-<tr>
-<td><strong>407</strong></td>
-<td>移除 RMI 激活机制</td>
-</tr>
-<tr>
-<td><strong>398</strong></td>
-<td>弃用 Applet API</td>
-</tr>
-<tr>
-<td><strong>382</strong></td>
-<td>新 macOS 渲染管道</td>
-</tr>
-<tr>
-<td><strong>391</strong></td>
-<td>macOS / AArch64（Apple Silicon）支持</td>
-</tr>
-<tr>
-<td><strong>306</strong></td>
-<td>恢复 “始终严格” 的浮点语义</td>
-</tr>
-<tr>
-<td><strong>415</strong></td>
-<td>上下文反序列化过滤器（安全）</td>
-</tr>
-<tr>
-<td><strong>412</strong></td>
-<td>外部函数与内存 API（孵化）</td>
-</tr>
-<tr>
-<td><strong>414</strong></td>
-<td>向量 API（第二轮孵化）</td>
-</tr>
-<tr>
-<td><strong>356</strong></td>
-<td>增强的伪随机数生成器</td>
-</tr>
-</tbody>
-</table>
-<hr>
-<h2 id="五-伪随机数生成器jep-356"><a class="markdownIt-Anchor" href="#五-伪随机数生成器jep-356"></a> 五、伪随机数生成器（JEP 356）</h2>
-<p>新 API 位于 <code>java.util.random</code>，提供 <code>RandomGenerator</code> 接口及多种算法实现（如 <code>L32X64MixRandom</code>），便于在测试与生产中选择可复现或高性能的随机源。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.random.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RandomDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">RandomGenerator</span> <span class="variable">gen</span> <span class="operator">=</span> RandomGenerator.of(<span class="string">"L32X64MixRandom"</span>);</span><br><span class="line">        System.out.println(gen.nextInt(<span class="number">100</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="六-小结"><a class="markdownIt-Anchor" href="#六-小结"></a> 六、小结</h2>
-<table>
-<thead>
-<tr>
-<th>类别</th>
-<th>特性</th>
-<th>一句话</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>语言</td>
-<td>密封类</td>
-<td>限制子类型，便于穷尽 switch</td>
-</tr>
-<tr>
-<td>语言</td>
-<td>Switch 模式匹配</td>
-<td>case 中类型模式 + 绑定变量</td>
-</tr>
-<tr>
-<td>平台</td>
-<td>强封装、移除 / 弃用</td>
-<td>内部 API 不可随意反射，RMI 激活 / Applet 等移除或弃用</td>
-</tr>
-<tr>
-<td>平台</td>
-<td>macOS / AArch64、新渲染</td>
-<td>支持 Apple Silicon 等</td>
-</tr>
-<tr>
-<td>API / 孵化</td>
-<td>新随机数、FFM、向量 API</td>
-<td>随机数增强，本地 / 向量为孵化</td>
-</tr>
-</tbody>
-</table>
-<p>以上示例在 JDK 17 下可运行。Java 17 是当前主流 LTS 之一，适合作为新项目或从 8 / 11 升级的目标版本。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1375,7 +1105,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1643,7 +1373,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1865,7 +1595,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2026,6 +1756,222 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java17-features-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java17-features-summary/" class="post-title-link" itemprop="url">Java 17 新特性总结与示例</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-17-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-17-新特性总结与示例"></a> Java 17 新特性总结与示例</h1>
+<p>Java 17 于 <strong>2021 年 9 月 14 日</strong> 正式发布，是 <strong>继 Java 8 以来重要的长期支持（LTS）版本</strong>，支持至 2029 年 9 月。Spring 6.x / Spring Boot 3.x 的最低支持版本即为 Java 17。本文按语言、API、平台等分类梳理主要新特性，并配有示例（基于 JDK 17）。</p>
+<hr>
+<h2 id="一-密封类sealed-classesjep-409"><a class="markdownIt-Anchor" href="#一-密封类sealed-classesjep-409"></a> 一、密封类（Sealed Classes，JEP 409）</h2>
+<p><strong>作用</strong>：用 <code>sealed</code> + <code>permits</code> 限制 “谁可以继承 / 实现” 当前类或接口，编译器可做穷尽性检查，提高类型安全。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 密封接口：只允许 Circle、Square、Rectangle 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">Shape</span> <span class="keyword">permits</span> Circle, Square, Rectangle {</span><br><span class="line">    <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Circle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> r;</span><br><span class="line">    Circle(<span class="type">double</span> r) { <span class="built_in">this</span>.r = r; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> Math.PI * r * r; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Square</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> side;</span><br><span class="line">    Square(<span class="type">double</span> side) { <span class="built_in">this</span>.side = side; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> side * side; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Rectangle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> w, h;</span><br><span class="line">    Rectangle(<span class="type">double</span> w, <span class="type">double</span> h) { <span class="built_in">this</span>.w = w; <span class="built_in">this</span>.h = h; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> w * h; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>子类必须为 <code>final</code>、<code>sealed</code> 或 <code>non-sealed</code> 之一。与 switch 模式匹配结合时，编译器可检查是否覆盖所有 permitted 类型，无需 default。</p>
+<hr>
+<h2 id="二-switch-模式匹配jep-406预览-后续版本转正"><a class="markdownIt-Anchor" href="#二-switch-模式匹配jep-406预览-后续版本转正"></a> 二、Switch 模式匹配（JEP 406，预览 → 后续版本转正）</h2>
+<p><strong>作用</strong>：在 switch 的 case 中使用类型模式，并可直接绑定变量，简化 “按类型分派” 的代码。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> Long l    -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> Double d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> String s  -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span>      -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span>        -&gt; obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(formatter(<span class="number">1</span>));       <span class="comment">// int: 1</span></span><br><span class="line">        System.out.println(formatter(<span class="string">"hi"</span>));    <span class="comment">// string: hi</span></span><br><span class="line">        System.out.println(formatter(<span class="literal">null</span>));   <span class="comment">// null</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>与密封类结合时，对密封类型的 switch 可做穷尽性检查，无需 default。</p>
+<hr>
+<h2 id="三-强封装-jdk-内部-apijep-403"><a class="markdownIt-Anchor" href="#三-强封装-jdk-内部-apijep-403"></a> 三、强封装 JDK 内部 API（JEP 403）</h2>
+<p>默认不再允许反射访问 JDK 内部 API（如 <code>sun.*</code>），除非使用 <code>--add-opens</code> 等打开模块。目的是提高稳定性和安全性，避免依赖未承诺的内部实现。</p>
+<hr>
+<h2 id="四-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#四-其它重要-jep-概览"></a> 四、其它重要 JEP 概览</h2>
+<table>
+<thead>
+<tr>
+<th>JEP</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>410</strong></td>
+<td>移除实验性 AOT / JIT 编译器</td>
+</tr>
+<tr>
+<td><strong>411</strong></td>
+<td>弃用安全管理器（计划删除）</td>
+</tr>
+<tr>
+<td><strong>407</strong></td>
+<td>移除 RMI 激活机制</td>
+</tr>
+<tr>
+<td><strong>398</strong></td>
+<td>弃用 Applet API</td>
+</tr>
+<tr>
+<td><strong>382</strong></td>
+<td>新 macOS 渲染管道</td>
+</tr>
+<tr>
+<td><strong>391</strong></td>
+<td>macOS / AArch64（Apple Silicon）支持</td>
+</tr>
+<tr>
+<td><strong>306</strong></td>
+<td>恢复 “始终严格” 的浮点语义</td>
+</tr>
+<tr>
+<td><strong>415</strong></td>
+<td>上下文反序列化过滤器（安全）</td>
+</tr>
+<tr>
+<td><strong>412</strong></td>
+<td>外部函数与内存 API（孵化）</td>
+</tr>
+<tr>
+<td><strong>414</strong></td>
+<td>向量 API（第二轮孵化）</td>
+</tr>
+<tr>
+<td><strong>356</strong></td>
+<td>增强的伪随机数生成器</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-伪随机数生成器jep-356"><a class="markdownIt-Anchor" href="#五-伪随机数生成器jep-356"></a> 五、伪随机数生成器（JEP 356）</h2>
+<p>新 API 位于 <code>java.util.random</code>，提供 <code>RandomGenerator</code> 接口及多种算法实现（如 <code>L32X64MixRandom</code>），便于在测试与生产中选择可复现或高性能的随机源。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.random.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RandomDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">RandomGenerator</span> <span class="variable">gen</span> <span class="operator">=</span> RandomGenerator.of(<span class="string">"L32X64MixRandom"</span>);</span><br><span class="line">        System.out.println(gen.nextInt(<span class="number">100</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="六-小结"><a class="markdownIt-Anchor" href="#六-小结"></a> 六、小结</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>特性</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言</td>
+<td>密封类</td>
+<td>限制子类型，便于穷尽 switch</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>Switch 模式匹配</td>
+<td>case 中类型模式 + 绑定变量</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>强封装、移除 / 弃用</td>
+<td>内部 API 不可随意反射，RMI 激活 / Applet 等移除或弃用</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>macOS / AArch64、新渲染</td>
+<td>支持 Apple Silicon 等</td>
+</tr>
+<tr>
+<td>API / 孵化</td>
+<td>新随机数、FFM、向量 API</td>
+<td>随机数增强，本地 / 向量为孵化</td>
+</tr>
+</tbody>
+</table>
+<p>以上示例在 JDK 17 下可运行。Java 17 是当前主流 LTS 之一，适合作为新项目或从 8 / 11 升级的目标版本。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java8-features-summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2062,7 +2008,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2304,283 +2250,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-langchain4j-text-splitter/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/01/29/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter 实现说明</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00+08:00">2025-01-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>2.5k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>2 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
-<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
-<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
-<ul>
-<li>包文档：<a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
-</ul>
-<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
-<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<ul>
-<li>输入：<code>Document</code></li>
-<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
-</ul>
-<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>分隔符 / 行为</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>DocumentByParagraphSplitter</code></td>
-<td><code>"\n\n"</code></td>
-<td>按段落</td>
-</tr>
-<tr>
-<td><code>DocumentByLineSplitter</code></td>
-<td><code>"\n"</code></td>
-<td>按行</td>
-</tr>
-<tr>
-<td><code>DocumentBySentenceSplitter</code></td>
-<td>句子边界</td>
-<td>按句子</td>
-</tr>
-<tr>
-<td><code>DocumentByWordSplitter</code></td>
-<td><code>" "</code></td>
-<td>按词</td>
-</tr>
-<tr>
-<td><code>DocumentByCharacterSplitter</code></td>
-<td>字符</td>
-<td>按字符</td>
-</tr>
-<tr>
-<td><code>DocumentByRegexSplitter</code></td>
-<td>正则</td>
-<td>按正则</td>
-</tr>
-<tr>
-<td><code>HierarchicalDocumentSplitter</code></td>
-<td>-</td>
-<td>层级分割基类</td>
-</tr>
-</tbody>
-</table>
-<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
-<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
-<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
-<ol>
-<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
-<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
-<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
-</ol>
-<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
-<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
-<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
-<p><strong>私有字段（6 个）</strong></p>
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>类型</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>maxSegmentSize</code></td>
-<td><code>int</code></td>
-<td>单段最大长度（字符或 token）</td>
-</tr>
-<tr>
-<td><code>sizeFunction</code></td>
-<td><code>Function&lt;String, Integer&gt;</code></td>
-<td>计算文本长度的函数</td>
-</tr>
-<tr>
-<td><code>joinSeparator</code></td>
-<td><code>String</code></td>
-<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
-</tr>
-<tr>
-<td><code>joinSeparatorSize</code></td>
-<td><code>int</code></td>
-<td>分隔符自身长度</td>
-</tr>
-<tr>
-<td><code>segment</code></td>
-<td><code>String</code></td>
-<td>当前正在拼的段内容</td>
-</tr>
-<tr>
-<td><code>segmentSize</code></td>
-<td><code>int</code></td>
-<td>当前段长度（由 sizeFunction 得到）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>对外 API（均为 public 方法）</strong></p>
-<table>
-<thead>
-<tr>
-<th>方法</th>
-<th>作用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>getSize()</code></td>
-<td>当前段长度</td>
-</tr>
-<tr>
-<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
-<td>再拼一段是否仍 ≤ maxSegmentSize</td>
-</tr>
-<tr>
-<td><code>sizeOf(String text)</code></td>
-<td>用 sizeFunction 计算 text 长度</td>
-</tr>
-<tr>
-<td><code>append(String text)</code></td>
-<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
-</tr>
-<tr>
-<td><code>prepend(String text)</code></td>
-<td>开头拼接（overlap 时从段尾逆序填）</td>
-</tr>
-<tr>
-<td><code>isNotEmpty()</code></td>
-<td>当前段是否非空</td>
-</tr>
-<tr>
-<td><code>toString()</code></td>
-<td>返回 <code>segment.trim()</code></td>
-</tr>
-<tr>
-<td><code>reset()</code></td>
-<td>清空当前段，开始拼下一段</td>
-</tr>
-</tbody>
-</table>
-<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
-<ul>
-<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
-<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
-</ul>
-<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
-<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
-<p>支持按字符数或按 token 数控制大小。</p>
-<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
-<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-python-recursive-character-text-splitter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2617,7 +2286,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -2854,6 +2523,283 @@
 <li><strong>重叠</strong>：相邻块之间保留 <code>chunk_overlap</code> 个字符（或 token），避免语义在边界处断裂。</li>
 <li><strong>长度计算</strong>：默认用 <code>len()</code>（字符数）；通过 <code>length_function</code> 可改为 token 数（如 tiktoken）。</li>
 </ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/01/29/2025-01-30-langchain4j-text-splitter/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/01/29/2025-01-30-langchain4j-text-splitter/" class="post-title-link" itemprop="url">LangChain4j TextSplitter 实现说明</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-01-30 00:00:00" itemprop="dateCreated datePublished" datetime="2025-01-30T00:00:00+08:00">2025-01-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/agent/" itemprop="url" rel="index"><span itemprop="name">agent</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/agent/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/textSplitter/" itemprop="url" rel="index"><span itemprop="name">textSplitter</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="langchain4j-splitter包-文档分割-源码解读"><a class="markdownIt-Anchor" href="#langchain4j-splitter包-文档分割-源码解读"></a> LangChain4j Splitter 包 文档分割 源码解读</h1>
+<h2 id="概述"><a class="markdownIt-Anchor" href="#概述"></a> 概述</h2>
+<p>LangChain4j 在包 <code>dev.langchain4j.data.document.splitter</code> 下提供文档分割能力：通过 <code>DocumentSplitter</code> 接口将 <code>Document</code> 切分为多个 <code>TextSegment</code>，并支持按字符、行、段落、句子、词、正则等不同粒度。</p>
+<ul>
+<li>包文档：<a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">dev.langchain4j.data.document.splitter</a></li>
+</ul>
+<h2 id="核心接口"><a class="markdownIt-Anchor" href="#核心接口"></a> 核心接口</h2>
+<h3 id="documentsplitter"><a class="markdownIt-Anchor" href="#documentsplitter"></a> DocumentSplitter</h3>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 概念上的接口（LangChain4j）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">DocumentSplitter</span> {</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">split</span><span class="params">(Document document)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(Document... documents)</span>;</span><br><span class="line">    List&lt;TextSegment&gt; <span class="title function_">splitAll</span><span class="params">(List&lt;Document&gt; documents)</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li>输入：<code>Document</code></li>
+<li>输出：<code>List&lt;TextSegment&gt;</code>，每个 segment 受 <code>maxSegmentSize</code> 限制</li>
+</ul>
+<h2 id="内置分割器langchain4j"><a class="markdownIt-Anchor" href="#内置分割器langchain4j"></a> 内置分割器（LangChain4j）</h2>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>分隔符 / 行为</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DocumentByParagraphSplitter</code></td>
+<td><code>"\n\n"</code></td>
+<td>按段落</td>
+</tr>
+<tr>
+<td><code>DocumentByLineSplitter</code></td>
+<td><code>"\n"</code></td>
+<td>按行</td>
+</tr>
+<tr>
+<td><code>DocumentBySentenceSplitter</code></td>
+<td>句子边界</td>
+<td>按句子</td>
+</tr>
+<tr>
+<td><code>DocumentByWordSplitter</code></td>
+<td><code>" "</code></td>
+<td>按词</td>
+</tr>
+<tr>
+<td><code>DocumentByCharacterSplitter</code></td>
+<td>字符</td>
+<td>按字符</td>
+</tr>
+<tr>
+<td><code>DocumentByRegexSplitter</code></td>
+<td>正则</td>
+<td>按正则</td>
+</tr>
+<tr>
+<td><code>HierarchicalDocumentSplitter</code></td>
+<td>-</td>
+<td>层级分割基类</td>
+</tr>
+</tbody>
+</table>
+<h2 id="源码解读hierarchicaldocumentsplitter-与-segmentbuilder"><a class="markdownIt-Anchor" href="#源码解读hierarchicaldocumentsplitter-与-segmentbuilder"></a> 源码解读：HierarchicalDocumentSplitter 与 SegmentBuilder</h2>
+<h3 id="1-整体流程hierarchicaldocumentsplittersplit"><a class="markdownIt-Anchor" href="#1-整体流程hierarchicaldocumentsplittersplit"></a> 1. 整体流程（HierarchicalDocumentSplitter.split）</h3>
+<p>层级分割的核心在 <code>HierarchicalDocumentSplitter.split(Document)</code>：</p>
+<ol>
+<li>用子类实现的 <code>split(text)</code> 按当前粒度得到 <code>parts</code>（如段落、行、词等）。</li>
+<li>用 <strong>SegmentBuilder</strong> 按 <code>maxSegmentSize</code> 把多个 part 拼成一个 segment；拼不下时先刷出当前 segment，再根据 <code>maxOverlapSize</code> 取尾部 overlap，作为下一段的开头。</li>
+<li>若<strong>单个 part 本身</strong>就超过 <code>maxSegmentSize</code>，则交给 <strong>subSplitter</strong> 再切（如段落太长 → 按句子切），子分割结果再按索引挂回原 Document 的 metadata。</li>
+</ol>
+<p>支持按字符数或按 token 数：通过 <code>TokenCountEstimator</code> 与 <code>estimateSize(text)</code> 注入到 SegmentBuilder 的 “长度” 计算里。</p>
+<h3 id="2-segmentbuilder-的职责与结构"><a class="markdownIt-Anchor" href="#2-segmentbuilder-的职责与结构"></a> 2. SegmentBuilder 的职责与结构</h3>
+<p><code>SegmentBuilder</code>（<code>dev.langchain4j.data.document.splitter.SegmentBuilder</code>）是包级工具类（<code>@Internal</code>），<strong>没有定义任何私有内部类</strong>，只负责：在不超过 <code>maxSegmentSize</code> 的前提下，用指定分隔符拼接多段文本，并支持 “从尾部取 overlap” 时用 <code>prepend</code> 逆序拼。</p>
+<p><strong>私有字段（6 个）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maxSegmentSize</code></td>
+<td><code>int</code></td>
+<td>单段最大长度（字符或 token）</td>
+</tr>
+<tr>
+<td><code>sizeFunction</code></td>
+<td><code>Function&lt;String, Integer&gt;</code></td>
+<td>计算文本长度的函数</td>
+</tr>
+<tr>
+<td><code>joinSeparator</code></td>
+<td><code>String</code></td>
+<td>拼接时的分隔符（如 <code>"\n\n"</code>）</td>
+</tr>
+<tr>
+<td><code>joinSeparatorSize</code></td>
+<td><code>int</code></td>
+<td>分隔符自身长度</td>
+</tr>
+<tr>
+<td><code>segment</code></td>
+<td><code>String</code></td>
+<td>当前正在拼的段内容</td>
+</tr>
+<tr>
+<td><code>segmentSize</code></td>
+<td><code>int</code></td>
+<td>当前段长度（由 sizeFunction 得到）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>对外 API（均为 public 方法）</strong></p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>getSize()</code></td>
+<td>当前段长度</td>
+</tr>
+<tr>
+<td><code>hasSpaceFor(String text)</code> / <code>hasSpaceFor(int size)</code></td>
+<td>再拼一段是否仍 ≤ maxSegmentSize</td>
+</tr>
+<tr>
+<td><code>sizeOf(String text)</code></td>
+<td>用 sizeFunction 计算 text 长度</td>
+</tr>
+<tr>
+<td><code>append(String text)</code></td>
+<td>末尾用 joinSeparator 拼接（主流程拼段）</td>
+</tr>
+<tr>
+<td><code>prepend(String text)</code></td>
+<td>开头拼接（overlap 时从段尾逆序填）</td>
+</tr>
+<tr>
+<td><code>isNotEmpty()</code></td>
+<td>当前段是否非空</td>
+</tr>
+<tr>
+<td><code>toString()</code></td>
+<td>返回 <code>segment.trim()</code></td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>清空当前段，开始拼下一段</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-overlap-与-subsplitter"><a class="markdownIt-Anchor" href="#3-overlap-与-subsplitter"></a> 3. Overlap 与 subSplitter</h3>
+<ul>
+<li><strong>Overlap</strong>：刷出一个 segment 后，用 <code>overlapFrom(segmentText)</code> 从该段<strong>按句子</strong>逆序取最多 <code>maxOverlapSize</code> 的内容，作为下一段的开头，保证相邻段有重叠而不割裂语义。</li>
+<li><strong>subSplitter</strong>：当单个 part 超长时，用子分割器（如 <code>DocumentBySentenceSplitter</code>）再切，子类通过 <code>defaultSubSplitter()</code> 指定默认实现（如段落 → 句子 → 词 → 字符的链条）。</li>
+</ul>
+<h2 id="推荐用法documentsplittersrecursive"><a class="markdownIt-Anchor" href="#推荐用法documentsplittersrecursive"></a> 推荐用法：DocumentSplitters.recursive()</h2>
+<p>LangChain4j 推荐对通用文本使用 <strong>recursive</strong> 方式，即按层级尝试：段落 → 行 → 句子 → 词 → 字符，直到满足 <code>maxSegmentSize</code>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// LangChain4j 用法示例</span></span><br><span class="line"><span class="type">DocumentSplitter</span> <span class="variable">splitter</span> <span class="operator">=</span> DocumentSplitters.recursive(</span><br><span class="line">    <span class="number">1000</span>,  <span class="comment">// maxSegmentSize</span></span><br><span class="line">    <span class="number">200</span>    <span class="comment">// maxOverlap</span></span><br><span class="line">);</span><br><span class="line">List&lt;TextSegment&gt; segments = splitter.split(document);</span><br></pre></td></tr></tbody></table></figure>
+<p>支持按字符数或按 token 数控制大小。</p>
+<h2 id="参考链接"><a class="markdownIt-Anchor" href="#参考链接"></a> 参考链接</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentSplitters.html">LangChain4j DocumentSplitters</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/DocumentByParagraphSplitter.html">LangChain4j DocumentByParagraphSplitter</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.langchain4j.dev/apidocs/dev/langchain4j/data/document/splitter/package-summary.html">LangChain4j 包文档</a></li>
+</ul>
 
       
     </div>

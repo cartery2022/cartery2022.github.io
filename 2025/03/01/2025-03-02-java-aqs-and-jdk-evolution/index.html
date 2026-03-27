@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 8.1.1">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous" defer></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="AbstractQueuedSynchronizer（AQS）详解与 JDK 演进 本文说明 AbstractQueuedSynchronizer（AQS） 的定位、核心结构、独占 &#x2F; 共享模式与条件队列，并梳理 JDK 各版本 中与 AQS 相关的重要实现变化与缺陷修复（尤其是 Java 11 起用 VarHandle 管理状态 及后续维护性更新）。   一、AQS 是什么 AQS 位于 ja">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AbstractQueuedSynchronizer（AQS）详解与 JDK 演进">
+<meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/index.html">
+<meta property="og:site_name" content="贝加尔湖畔">
+<meta property="og:description" content="AbstractQueuedSynchronizer（AQS）详解与 JDK 演进 本文说明 AbstractQueuedSynchronizer（AQS） 的定位、核心结构、独占 &#x2F; 共享模式与条件队列，并梳理 JDK 各版本 中与 AQS 相关的重要实现变化与缺陷修复（尤其是 Java 11 起用 VarHandle 管理状态 及后续维护性更新）。   一、AQS 是什么 AQS 位于 ja">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-27T07:19:37.833Z">
+<meta property="article:author" content="cartery">
+<meta property="article:tag" content="AQS">
+<meta property="article:tag" content="AbstractQueuedSynchronizer">
+<meta property="article:tag" content="JUC">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="并发">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/","path":"2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/","title":"AbstractQueuedSynchronizer（AQS）详解与 JDK 演进"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>AbstractQueuedSynchronizer（AQS）详解与 JDK 演进 | 贝加尔湖畔</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.1.0/medium-zoom.min.js" integrity="sha256-ZgMyDAIYDYGxbcpJcfUnYwNevG/xi9OHKaR/8GK+jWc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lozad.js/1.16.0/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pangu/7.2.0/pangu.umd.js" integrity="sha256-JnmRRnJK7DC6RQJbAJb6AXOM9OmWzS6z8eYultk/48Y=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script><script src="/js/pjax.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.1/mermaid.min.js","integrity":"sha256-BmQmdWDS8X2OTbrwELWK366LV6escyWhHHe0XCTU/Hk="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+  <script src="/js/third-party/pace.js" defer></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha256-UF1fgpAiu3tPJN/uCqEUHNe7pnr+QR0SQDNfgglgtcM=" crossorigin="anonymous">
+  <script class="next-config" data-name="katex" type="application/json">{"copy_tex_js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/copy-tex.min.js","integrity":"sha256-Us54+rSGDSTvIhKKUs4kygE2ipA0RXpWWh0/zLqw3bs="}}</script>
+  <script src="/js/third-party/math/katex.js" defer></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quicklink/3.0.1/quicklink.umd.js" integrity="sha256-44BednzIpUeQJcY8qtLyarFu0UCCTbgmWOvaoehiFQQ=" crossorigin="anonymous" defer></script>
+  <script class="next-config" data-name="quicklink" type="application/json">{"enable":true,"home":true,"archive":true,"delay":true,"timeout":3000,"priority":true,"url":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/"}</script>
+  <script src="/js/third-party/quicklink.js" defer></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">贝加尔湖畔</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#abstractqueuedsynchronizeraqs%E8%AF%A6%E8%A7%A3%E4%B8%8E-jdk-%E6%BC%94%E8%BF%9B"><span class="nav-number">1.</span> <span class="nav-text"> AbstractQueuedSynchronizer（AQS）详解与 JDK 演进</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-aqs-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、AQS 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E6%A0%B8%E5%BF%83%E7%BB%93%E6%9E%84"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、核心结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E5%90%8C%E6%AD%A5%E7%8A%B6%E6%80%81-state"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 同步状态 state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E7%AD%89%E5%BE%85%E9%98%9F%E5%88%97clh-%E5%8F%98%E4%BD%93"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 等待队列（CLH 变体）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#23-%E7%8B%AC%E5%8D%A0%E4%B8%8E%E5%85%B1%E4%BA%AB"><span class="nav-number">1.2.3.</span> <span class="nav-text"> 2.3 独占与共享</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#24-%E6%9D%A1%E4%BB%B6%E9%98%9F%E5%88%97conditionobject"><span class="nav-number">1.2.4.</span> <span class="nav-text"> 2.4 条件队列：ConditionObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#25-%E5%85%84%E5%BC%9F%E7%B1%BBabstractqueuedlongsynchronizer"><span class="nav-number">1.2.5.</span> <span class="nav-text"> 2.5 兄弟类：AbstractQueuedLongSynchronizer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E5%85%B8%E5%9E%8B-acquire-release-%E6%B5%81%E7%A8%8B%E6%A6%82%E5%BF%B5"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、典型 acquire &#x2F; release 流程（概念）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-jdk-%E6%BC%94%E8%BF%9Baqs%E4%B9%8B%E5%90%8E%E7%9A%84%E5%8F%98%E5%8C%96"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、JDK 演进：AQS「之后的变化」</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-java-8-%E5%8F%8A%E6%9B%B4%E6%97%A9"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 Java 8 及更早</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-java-11varhandle-%E9%87%8D%E5%86%99%E7%8A%B6%E6%80%81%E8%AE%BF%E9%97%AE%E9%87%8D%E8%A6%81"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 Java 11：VarHandle 重写状态访问（重要）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-java-12~15-%E9%99%84%E8%BF%91%E4%BF%AE%E5%A4%8D%E4%B8%8E%E5%88%B7%E6%96%B0"><span class="nav-number">1.4.3.</span> <span class="nav-text"> 4.3 Java 12～15 附近：修复与 “刷新”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#44-java-17~21-%E5%8F%8A%E4%BB%A5%E5%90%8E"><span class="nav-number">1.4.4.</span> <span class="nav-text"> 4.4 Java 17～21 及以后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#45-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.4.5.</span> <span class="nav-text"> 4.5 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、学习与实践建议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、小结</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">cartery</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-aqs-and-jdk-evolution/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="AbstractQueuedSynchronizer（AQS）详解与 JDK 演进 | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AbstractQueuedSynchronizer（AQS）详解与 JDK 演进
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">并发</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="abstractqueuedsynchronizeraqs详解与-jdk-演进"><a class="markdownIt-Anchor" href="#abstractqueuedsynchronizeraqs详解与-jdk-演进"></a> AbstractQueuedSynchronizer（AQS）详解与 JDK 演进</h1>
+<p>本文说明 <strong>AbstractQueuedSynchronizer（AQS）</strong> 的定位、核心结构、独占 / 共享模式与条件队列，并梳理 <strong>JDK 各版本</strong> 中与 AQS 相关的重要实现变化与缺陷修复（尤其是 <strong>Java 11 起用 VarHandle 管理状态</strong> 及后续维护性更新）。</p>
+<hr>
+<h2 id="一-aqs-是什么"><a class="markdownIt-Anchor" href="#一-aqs-是什么"></a> 一、AQS 是什么</h2>
+<p><strong>AQS</strong> 位于 <code>java.util.concurrent.locks</code> 包，由 <strong>Doug Lea</strong> 设计，是 JUC 中 <strong>阻塞锁与同步器</strong> 的公共骨架：</p>
+<ul>
+<li><strong>ReentrantLock</strong>、<strong>ReentrantReadWriteLock</strong>（内部 Sync）</li>
+<li><strong>Semaphore</strong></li>
+<li><strong>CountDownLatch</strong></li>
+<li><strong>ThreadPoolExecutor</strong>（Worker 关闭等场景）</li>
+</ul>
+<p>等均通过 <strong>继承 AQS</strong> 并实现 <code>tryAcquire</code> / <code>tryRelease</code>（独占）或 <code>tryAcquireShared</code> / <code>tryReleaseShared</code>（共享）等钩子，复用 <strong>FIFO 等待队列</strong> 与 <strong>阻塞 / 唤醒</strong> 逻辑。</p>
+<p><strong>对外</strong>：应用代码通常只用 <code>Lock</code>、<code>Semaphore</code> 等 API；<strong>AQS 是 <code>public</code> 类</strong>，也可被子类扩展实现自定义同步器，但门槛较高。</p>
+<hr>
+<h2 id="二-核心结构"><a class="markdownIt-Anchor" href="#二-核心结构"></a> 二、核心结构</h2>
+<h3 id="21-同步状态-state"><a class="markdownIt-Anchor" href="#21-同步状态-state"></a> 2.1 同步状态 state</h3>
+<ul>
+<li><strong><code>volatile int state</code></strong>：由子类约定语义。
+<ul>
+<li><strong>ReentrantLock</strong>：0 表示无主，&gt;0 表示持有次数（可重入）。</li>
+<li><strong>Semaphore</strong>：可用许可数。</li>
+<li><strong>CountDownLatch</strong>：还剩多少次 countDown。</li>
+</ul>
+</li>
+</ul>
+<p>通过 <strong><code>getState()</code> / <code>setState()</code> / <code>compareAndSetState()</code></strong> 读取与原子更新状态（具体底层实现随 JDK 版本演进，见第四节）。</p>
+<h3 id="22-等待队列clh-变体"><a class="markdownIt-Anchor" href="#22-等待队列clh-变体"></a> 2.2 等待队列（CLH 变体）</h3>
+<ul>
+<li><strong>FIFO 双向链表</strong>，节点 <code>Node</code> 含：<code>waitStatus</code>、<code>prev</code>、<code>next</code>、<code>thread</code> 等。</li>
+<li><strong><code>head</code> / <code>tail</code></strong> 指向队列头尾（头结点可视为占位，真正等待从其后继开始很常见）。</li>
+<li>获取失败时线程被封装成 Node <strong>入队</strong>，经自旋后调用 <strong><code>LockSupport.park</code></strong> 阻塞；释放时 <strong><code>unpark</code></strong> 后继。</li>
+</ul>
+<h3 id="23-独占与共享"><a class="markdownIt-Anchor" href="#23-独占与共享"></a> 2.3 独占与共享</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>典型用途</th>
+<th>模板入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>独占（Exclusive）</strong></td>
+<td>互斥锁</td>
+<td><code>acquire</code> / <code>release</code></td>
+</tr>
+<tr>
+<td><strong>共享（Shared）</strong></td>
+<td>信号量、读锁（阶段）</td>
+<td><code>acquireShared</code> / <code>releaseShared</code></td>
+</tr>
+</tbody>
+</table>
+<p>子类实现对应的 <strong><code>tryAcquire</code> / <code>tryRelease</code></strong>** 或 <strong><code>tryAcquireShared</code> / <code>tryReleaseShared</code></strong>，返回是否成功；AQS 负责排队、阻塞与唤醒传播（共享模式下可能连续唤醒多个后继）。</p>
+<h3 id="24-条件队列conditionobject"><a class="markdownIt-Anchor" href="#24-条件队列conditionobject"></a> 2.4 条件队列：ConditionObject</h3>
+<ul>
+<li><strong><code>ConditionObject</code></strong> 是 AQS 的<strong>内部类</strong>，实现 <code>Condition</code>。</li>
+<li>每个 <code>Condition</code> 维护<strong>独立于锁等待队列</strong>的条件单向链表；<strong><code>await</code></strong> 释放锁并进入条件队列，<strong><code>signal</code></strong> 将节点移回锁等待队列。</li>
+<li><strong><code>ReentrantLock.newCondition()</code></strong> 即基于同一套 AQS 状态与队列框架。</li>
+</ul>
+<h3 id="25-兄弟类abstractqueuedlongsynchronizer"><a class="markdownIt-Anchor" href="#25-兄弟类abstractqueuedlongsynchronizer"></a> 2.5 兄弟类：AbstractQueuedLongSynchronizer</h3>
+<p>若 <code>int</code> 状态不够（如大范围计数），JDK 提供 <strong><code>AbstractQueuedLongSynchronizer</code></strong>：<strong><code>long</code> 型 state</strong> 与相同队列语义，用法与 AQS 平行。</p>
+<hr>
+<h2 id="三-典型-acquire-release-流程概念"><a class="markdownIt-Anchor" href="#三-典型-acquire-release-流程概念"></a> 三、典型 acquire / release 流程（概念）</h2>
+<p><strong>独占 <code>acquire</code>：</strong></p>
+<ol>
+<li>调用子类 <strong><code>tryAcquire</code></strong>；成功则结束。</li>
+<li>失败则 <strong>构造 Node、入队</strong>，在队列中自旋或 <strong><code>park</code></strong>。</li>
+<li>被 <strong><code>release</code> 唤 unpark</strong> 后继续竞争 <code>tryAcquire</code>。</li>
+</ol>
+<p><strong><code>release</code>：</strong></p>
+<ol>
+<li>调用子类 <strong><code>tryRelease</code></strong>；成功则唤醒后继（<code>unparkSuccessor</code>）。</li>
+</ol>
+<p><strong>共享模式</strong>还会在释放后做 <strong>传播（propagate）</strong>，使多个等待线程在许可充足时依次通过。</p>
+<p>（具体源码分支、中断、取消 <code>CANCELLED</code> 节点清理等细节较长，本文不展开到每一行。）</p>
+<hr>
+<h2 id="四-jdk-演进aqs之后的变化"><a class="markdownIt-Anchor" href="#四-jdk-演进aqs之后的变化"></a> 四、JDK 演进：AQS「之后的变化」</h2>
+<p>对外 API（<code>acquire</code> / <code>release</code> / <code>Condition</code> 等）<strong>长期保持稳定</strong>；变化主要集中在 <strong>状态的原子实现</strong>、<strong>队列/中断/取消</strong> 的健壮性与微优化。</p>
+<h3 id="41-java-8-及更早"><a class="markdownIt-Anchor" href="#41-java-8-及更早"></a> 4.1 Java 8 及更早</h3>
+<ul>
+<li>使用 <strong>Unsafe</strong> 或底层原子原语对 <strong><code>state</code> 字段</strong>做 CAS（<code>compareAndSwapInt</code> 等）。</li>
+<li>AQS 框架形态已是：<strong>state + CLH 风格队列 + <code>LockSupport</code></strong>。</li>
+</ul>
+<h3 id="42-java-11varhandle-重写状态访问重要"><a class="markdownIt-Anchor" href="#42-java-11varhandle-重写状态访问重要"></a> 4.2 Java 11：<strong>VarHandle 重写状态访问（重要）</strong></h3>
+<ul>
+<li><strong><code>compareAndSetState</code> / <code>getState</code> / <code>setState</code></strong> 等改为通过 <strong><code>java.lang.invoke.VarHandle</code></strong> 访问 <strong><code>state</code></strong>，取代对 <strong><code>sun.misc.Unsafe</code></strong> 的直接依赖（与 <strong>JDK-8149644</strong> 等变更相关）。</li>
+<li><strong>语义不变</strong>：仍满足 JMM 对同步器的要求；<strong>子类与 <code>ReentrantLock</code> 等公共 API 无需修改</strong>。</li>
+<li><strong>动机</strong>：更安全、更规范的原子访问 API，便于维护与 JVM 优化；与 <strong>JEP 193（VarHandle）</strong> 路线一致。</li>
+</ul>
+<h3 id="43-java-12~15-附近修复与刷新"><a class="markdownIt-Anchor" href="#43-java-12~15-附近修复与刷新"></a> 4.3 Java 12～15 附近：修复与 “刷新”</h3>
+<p>OpenJDK 变更记录中可见多例仅针对 AQS 或其子类交互的缺陷修复，例如：</p>
+<ul>
+<li><strong>中断与 <code>tryAcquire</code> 抛异常</strong> 时的处理（8191937）。</li>
+<li><strong>cancel 节点</strong> 相关的竞态与队列一致性（8191483）。</li>
+<li>未持锁就 <strong>await</strong> 导致队列损坏等问题（8187408）。</li>
+<li><strong>8229442</strong>：对 AQS 与相关 lock 类的一批刷新 / 整理（实现层，非破坏性 API）。</li>
+</ul>
+<p>这些版本<strong>不增加新的 AQS 抽象模式</strong>，而是提高 <strong>正确性与边界行为</strong>。</p>
+<h3 id="44-java-17~21-及以后"><a class="markdownIt-Anchor" href="#44-java-17~21-及以后"></a> 4.4 Java 17～21 及以后</h3>
+<ul>
+<li>AQS 作为稳定核心，随 <strong>LTS</strong> 继续接受小修复与性能相关微调（以各版本 <strong>Release Notes / JDK Issue</strong> 为准）。</li>
+<li><strong>虚拟线程（Java 21）</strong>：阻塞在 <code>LockSupport.park</code> 上的锁等待路径与虚拟线程调度模型配合；<strong><code>synchronized</code></strong> 在早期虚拟线程上易产生 <strong>pin</strong>，而 <strong>基于 AQS 的 <code>ReentrantLock</code></strong> 常作为替代讨论对象 —— 这是<strong>使用侧</strong>的架构选择，不一定改变 AQS 类签名，但说明了 AQS 在运行时仍承担大量阻塞同步。</li>
+</ul>
+<h3 id="45-小结表"><a class="markdownIt-Anchor" href="#45-小结表"></a> 4.5 小结表</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>AQS 相关变化要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>≤ JDK 10</strong></td>
+<td><code>state</code> 多通过 Unsafe 类原子操作</td>
+</tr>
+<tr>
+<td><strong>JDK 11</strong></td>
+<td><strong><code>state</code> 通过 VarHandle</strong> 更新；对齐标准 JMM API</td>
+</tr>
+<tr>
+<td><strong>JDK 12+</strong></td>
+<td>以 <strong>bugfix、队列 / 中断一致性、微调</strong> 为主</td>
+</tr>
+<tr>
+<td><strong>JDK 21+</strong></td>
+<td>与 <strong>虚拟线程</strong> 生态协同；AQS 仍是 JUC 锁 / 同步器底座</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-学习与实践建议"><a class="markdownIt-Anchor" href="#五-学习与实践建议"></a> 五、学习与实践建议</h2>
+<ol>
+<li>读源码时抓住 <strong><code>acquire</code> / <code>release</code></strong> 与 <strong><code>Node.waitStatus</code></strong> 两条线，再看 <strong>条件队列</strong> <code>ConditionObject</code>。</li>
+<li>自定义同步器优先评估是否可用 <strong><code>Semaphore</code> / <code>ReentrantLock</code></strong> 组合替代，<strong>直接继承 AQS</strong> 需严谨处理 <strong><code>tryRelease</code> 的返回值与 state 含义</strong>。</li>
+<li>关注 <strong>JDK 发行说明</strong> 与 <strong>JDK Bug System</strong> 中带 <code>AbstractQueuedSynchronizer</code> 的条目，可获知具体版本行为修复。</li>
+</ol>
+<hr>
+<h2 id="六-小结"><a class="markdownIt-Anchor" href="#六-小结"></a> 六、小结</h2>
+<p><strong>AbstractQueuedSynchronizer</strong> 用 <strong><code>volatile int state</code> + FIFO 等待队列 + LockSupport</strong> 统一实现阻塞式同步；<strong>独占 / 共享</strong>与 <strong>Condition</strong> 覆盖大部分 JUC 锁与门闩类。<strong>JDK 11</strong> 起用 <strong>VarHandle</strong> 管理 <strong><code>state</code></strong>，是 <strong>Java 8 之后最明显的实现层变化</strong>；其后版本以<strong>正确性修复与细节优化</strong>为主，公共模板 API 保持稳定。理解 AQS 有助于深入掌握 <strong>Java 并发与锁实现</strong>。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/AQS/" rel="tag"># AQS</a>
+              <a href="/tags/AbstractQueuedSynchronizer/" rel="tag"># AbstractQueuedSynchronizer</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag"># 并发</a>
+              <a href="/tags/JUC/" rel="tag"># JUC</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/" rel="prev" title="Java 动态代理原理与 Java 9+ 改动">
+                  <i class="fa fa-angle-left"></i> Java 动态代理原理与 Java 9+ 改动
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/01/2025-03-02-java-cglib-dynamic-proxy/" rel="next" title="CGLIB 动态代理原理与使用">
+                  CGLIB 动态代理原理与使用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cartery</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">106k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">1:36</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

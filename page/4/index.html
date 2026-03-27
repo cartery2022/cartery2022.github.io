@@ -185,18 +185,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-count">40</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">71</span>
+        <span class="site-state-item-count">60</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -222,7 +222,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-20-state/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -240,7 +240,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-20-state/" class="post-title-link" itemprop="url">设计模式（二十）状态模式 — 详解、Spring 运用与业务场景</a>
+          <a href="/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/" class="post-title-link" itemprop="url">String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</a>
         </h2>
 
         <div class="post-meta-container">
@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -266,11 +266,11 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
         </span>
           ，
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
+          <a href="/categories/Java/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">源码解读</span></a>
         </span>
     </span>
 
@@ -280,14 +280,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
+      <span>5.1k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>5 分钟</span>
     </span>
 </div>
 
@@ -298,41 +298,1289 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="状态模式state"><a class="markdownIt-Anchor" href="#状态模式state"></a> 状态模式（State）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>状态模式</strong>允许对象在内部状态改变时改变其行为，对象看起来像是修改了类。</p>
-<p><strong>解决的问题</strong>：当对象行为依赖多种状态且不同状态下行为差异大时，若用大量 if-else/switch 会难以维护；把 “每种状态” 封装成独立类，状态转换时切换当前状态对象，行为随状态对象变化。</p>
-<p><strong>定义</strong>：允许一个对象在其内部状态改变时改变它的行为，对象看起来修改了它的类。</p>
+          <h1 id="string-stringbuffer-stringbuilder-源码解读与-java-9-改动"><a class="markdownIt-Anchor" href="#string-stringbuffer-stringbuilder-源码解读与-java-9-改动"></a> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</h1>
+<p>本文从 JDK 源码出发，说明 <strong>String</strong>、<strong>StringBuffer</strong>、<strong>StringBuilder</strong> 三者的实现结构、核心逻辑与使用场景，并单独梳理 <strong>Java 9 及以后版本</strong> 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。</p>
 <hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<h2 id="一-三者关系与定位"><a class="markdownIt-Anchor" href="#一-三者关系与定位"></a> 一、三者关系与定位</h2>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>可变性</th>
+<th>线程安全</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>String</strong></td>
+<td>不可变</td>
+<td>天然线程安全</td>
+<td>常量、键、单次赋值</td>
+</tr>
+<tr>
+<td><strong>StringBuffer</strong></td>
+<td>可变</td>
+<td>同步（synchronized）</td>
+<td>多线程下可变的字符序列</td>
+</tr>
+<tr>
+<td><strong>StringBuilder</strong></td>
+<td>可变</td>
+<td>非线程安全</td>
+<td>单线程下大量拼接、构造字符串</td>
+</tr>
+</tbody>
+</table>
+<p><strong>继承关系</strong>：<code>StringBuffer</code> 与 <code>StringBuilder</code> 都继承 <strong>AbstractStringBuilder</strong>，没有继承关系；<code>String</code> 独立实现，与后两者无继承关系。</p>
+<hr>
+<h2 id="二-string-源码解读"><a class="markdownIt-Anchor" href="#二-string-源码解读"></a> 二、String 源码解读</h2>
+<h3 id="21-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#21-内部存储java-8-vs-java-9"></a> 2.1 内部存储（Java 8 vs Java 9+）</h3>
+<p><strong>Java 8 及以前</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">char</span>[] value;   <span class="comment">// UTF-16，每字符 2 字节</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;            <span class="comment">// 缓存 hashCode</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <ul>
-<li><strong>Context</strong>：上下文，持有当前 State，客户请求委托给当前 state 处理；可提供 setState () 供状态类切换状态。</li>
-<li><strong>State</strong>：抽象状态，定义行为接口（如 handle ()）。</li>
-<li><strong>ConcreteState</strong>：具体状态，实现行为，并在适当时机调用 context.setState(nextState) 切换状态。</li>
+<li>用 <strong>char[]</strong> 存字符，每个 char 为 UTF-16 码元，占 <strong>2 字节</strong>。</li>
+<li><strong>value 为 final</strong>，引用不变，且对外不暴露可变接口，因此 <strong>String 不可变</strong>。</li>
 </ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">State</span> { <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> State state;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setState</span><span class="params">(State s)</span> { <span class="built_in">this</span>.state = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">request</span><span class="params">()</span> { state.handle(<span class="built_in">this</span>); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteStateA</span> <span class="keyword">implements</span> <span class="title class_">State</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Context ctx)</span> {</span><br><span class="line">        <span class="comment">// 处理并可能切换</span></span><br><span class="line">        ctx.setState(<span class="keyword">new</span> <span class="title class_">ConcreteStateB</span>());</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<p><strong>Java 9 及以后（JEP 254 Compact Strings）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">String</span> <span class="keyword">implements</span> <span class="title class_">java</span>.io.Serializable, Comparable&lt;String&gt;, CharSequence {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span>[] value;  <span class="comment">// 按编码可能是 1 字节/字符 或 2 字节/字符</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">byte</span> coder;     <span class="comment">// 0 = LATIN1，1 = UTF16</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> hash;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <ul>
-<li><strong>Spring State Machine</strong>：spring-statemachine 库显式支持状态机建模，状态与迁移由配置或代码定义，事件驱动迁移，是状态模式的完整实现；适用于订单、工作流、审批等有明确状态与迁移的场景。</li>
-<li><strong>Bean 生命周期</strong>：Bean 的创建、初始化、运行、销毁等可视为不同 “状态”，容器在不同状态下执行不同逻辑（如 PostProcessor、InitializingBean），可抽象为状态思想。</li>
-<li><strong>连接 / 会话状态</strong>：如 TCP 连接、WebSocket 会话的 “未连接/已连接/关闭中/已关闭”，用状态对象封装各阶段行为与迁移条件。</li>
-<li><strong>事务状态</strong>：事务管理器内部有 “无事务/活跃/提交中/回滚中” 等状态，行为（提交、回滚、挂起）随状态变化。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<li>改为 <strong>byte[] + coder</strong>：
 <ul>
-<li><strong>订单/工单/审批流</strong>：待支付、已支付、发货中、已完成、已取消等，每状态下可执行的操作与下一状态不同，用状态模式（或状态机）清晰建模。</li>
-<li><strong>游戏 / 动画</strong>：角色 “待机/跑/攻击/受伤” 等，每状态对应不同动画与输入响应，切换状态即切换行为。</li>
-<li><strong>连接 / 会话管理</strong>：连接建立、认证、传输、关闭等阶段，每阶段允许的操作与错误处理不同。</li>
-<li><strong>UI 控件</strong>：按钮 “正常/禁用/加载中”，不同状态下点击行为、样式不同。</li>
-<li><strong>协议解析</strong>：解析器处于 “读头/读体/读尾” 等状态，收到数据时根据当前状态决定如何处理与迁移。</li>
+<li><strong>LATIN1（coder=0）</strong>：仅含 Latin-1 范围内字符时，每字符 <strong>1 字节</strong>，节省约一半内存。</li>
+<li><strong>UTF16（coder=1）</strong>：含其它 Unicode 时，每字符 <strong>2 字节</strong>，与原来语义一致。</li>
 </ul>
-<p><strong>不适用</strong>：状态很少、行为差异不大时，简单分支即可。</p>
+</li>
+<li>仍为 <strong>final byte[]</strong>，String 依然 <strong>不可变</strong>。</li>
+<li>可通过 JVM 参数 <code>-XX:-CompactStrings</code> 关闭紧凑字符串（部分版本）。</li>
+<li>内部常量化：<code>static final byte LATIN1 = 0;</code>、<code>static final byte UTF16 = 1;</code>，与 <code>StringLatin1</code>/<code>StringUTF16</code> 工具类配合实现 indexOf、concat 等。</li>
+</ul>
+<h3 id="22-常用构造与-lengthcodepoint"><a class="markdownIt-Anchor" href="#22-常用构造与-lengthcodepoint"></a> 2.2 常用构造与 length / codePoint</h3>
+<ul>
+<li><strong>length()</strong>：返回的是 <strong>字符个数</strong>（对 UTF-16 即 code unit 个数），在 Java 9+ 内部按 coder 从 byte [] 计算。</li>
+<li><strong>codePointCount 等</strong>：按 Unicode 码点处理，与 length 可能不同（存在代理对时）。</li>
+</ul>
+<p>构造时若传入 <code>char[]</code>，在 Java 9+ 会按内容选择 LATIN1 或 UTF16 编码再存入 byte []。</p>
+<h3 id="23-不可变与常量池"><a class="markdownIt-Anchor" href="#23-不可变与常量池"></a> 2.3 不可变与常量池</h3>
+<ul>
+<li>所有 “修改” 操作（concat、replace、trim 等）都 <strong>返回新 String</strong>，不修改原对象。</li>
+<li><strong>字面量</strong> 和 <strong>intern()</strong> 进入 <strong>字符串常量池</strong>，相同内容的 intern 可共享实例，减少重复对象。</li>
+</ul>
+<h3 id="24-string-的-hashcode-是干什么用的"><a class="markdownIt-Anchor" href="#24-string-的-hashcode-是干什么用的"></a> 2.4 String 的 hashCode 是干什么用的</h3>
+<p>源码里 String 有一个字段 <strong><code>private int hash</code></strong>（默认 0），用来<strong>缓存</strong> <code>hashCode()</code> 的返回值。</p>
+<p><strong>作用一：满足 “基于哈希的容器” 的约定</strong></p>
+<ul>
+<li>和 <code>equals</code> 一起用：若 <code>a.equals(b)</code> 为 true，则必须 <code>a.hashCode() == b.hashCode()</code>。</li>
+<li>这样 <strong>HashMap、HashSet、Hashtable</strong> 等才能按 “先算 hash → 再按桶找 → 再 equals” 正确找到同一个逻辑对象。</li>
+</ul>
+<p><strong>作用二：实际用在哪</strong></p>
+<ul>
+<li><strong>HashMap / HashSet</strong>：用 <code>key.hashCode()</code> 算桶下标，减少逐个 <code>equals</code> 比较。</li>
+<li>字符串做 key 时（如 <code>Map&lt;String, User&gt;</code>、<code>Set&lt;String&gt;</code>）都依赖 String 的 hashCode 做快速查找、去重。</li>
+<li>任何用 “对象做 key” 或 “按对象去重” 的哈希结构都会用到该对象的 hashCode，String 是最常用的一种。</li>
+</ul>
+<p><strong>为什么要缓存 <code>hash</code>？</strong></p>
+<ul>
+<li>String <strong>不可变</strong>，算过一次 hashCode 后结果永远不变。</li>
+<li>把结果存进 <code>hash</code>（0 表示 “还没算过”），下次再调 <code>hashCode()</code> 直接返回缓存，<strong>避免重复计算</strong>。</li>
+<li>同一个 String 常会多次参与 HashMap 的 put / get，缓存能明显减少重复计算。</li>
+</ul>
+<p><strong>一句话</strong>：String 的 hashCode 用于在 HashMap、HashSet 等容器里<strong>快速定位和比较</strong>“是不是同一个字符串”；<code>hash</code> 字段用来<strong>缓存</strong>这个值，因为字符串不可变，算一次即可。</p>
 <hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>状态模式通过 “状态即对象 + 行为委托给当前状态 + 状态间迁移” 消除复杂分支；Spring 中 <strong>Spring State Machine</strong>、<strong>Bean 生命周期</strong>、<strong>连接 / 事务状态</strong> 有体现。业务上适用于<strong>订单/工作流、游戏/动画、连接/会话、UI 状态、协议解析</strong>等场景。</p>
+<h2 id="三-abstractstringbuilder-源码解读"><a class="markdownIt-Anchor" href="#三-abstractstringbuilder-源码解读"></a> 三、AbstractStringBuilder 源码解读</h2>
+<p><code>StringBuffer</code> 和 <code>StringBuilder</code> 的公共逻辑都在 <strong>AbstractStringBuilder</strong> 中。</p>
+<h3 id="31-内部存储java-8-vs-java-9"><a class="markdownIt-Anchor" href="#31-内部存储java-8-vs-java-9"></a> 3.1 内部存储（Java 8 vs Java 9+）</h3>
+<p><strong>Java 8</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">char</span>[] value;   <span class="comment">// 可扩容，非 final</span></span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 已用字符数（逻辑长度）</span></span><br><span class="line">    <span class="comment">// 容量即 value.length</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>Java 9+</strong>：与 String 对齐，改为 <strong>byte[] + coder</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractStringBuilder</span> {</span><br><span class="line">    <span class="type">byte</span>[] value;</span><br><span class="line">    <span class="type">byte</span> coder;</span><br><span class="line">    <span class="type">int</span> count;      <span class="comment">// 字符数（按 code unit 计）</span></span><br><span class="line">    <span class="comment">// 容量为 value.length &gt;&gt; coder 或按字节语义</span></span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>value 非 final</strong>，可扩容，因此是 <strong>可变</strong> 字符序列。</li>
+<li>扩容、append、getChars 等都会根据 <strong>coder</strong> 走对应实现（如 StringLatin1 / StringUTF16 的静态方法），保证与 String 的 Compact Strings 一致。</li>
+</ul>
+<h3 id="32-初始容量与扩容"><a class="markdownIt-Anchor" href="#32-初始容量与扩容"></a> 3.2 初始容量与扩容</h3>
+<ul>
+<li><strong>无参构造</strong>：初始容量一般为 <strong>16</strong>（字符数）。</li>
+<li><strong>带初始字符串 / 容量构造</strong>：容量 = 字符串长度 + 16 或指定值。</li>
+</ul>
+<p><strong>扩容逻辑</strong>（概念一致，Java 9+ 中按 byte 容量换算）：</p>
+<ol>
+<li>若 <code>count + 待追加长度 &gt; value 容量</code>，则扩容。</li>
+<li>新容量通常为 <strong>旧容量 * 2 + 2</strong>（<code>(capacity &lt;&lt; 1) + 2</code>）。</li>
+<li>若仍不足，则新容量 = 所需最小容量。</li>
+<li>上限约为 <strong>Integer.MAX_VALUE - 8</strong>（或实现定义上限），否则抛 <code>OutOfMemoryError</code>。</li>
+<li>使用 <strong>Arrays.copyOf</strong> 复制到新数组。</li>
+</ol>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 扩容逻辑（伪代码，Java 8 风格便于理解）</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">ensureCapacityInternal</span><span class="params">(<span class="type">int</span> minimumCapacity)</span> {</span><br><span class="line">    <span class="keyword">if</span> (minimumCapacity - value.length &gt; <span class="number">0</span>) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">newCapacity</span> <span class="operator">=</span> (value.length &lt;&lt; <span class="number">1</span>) + <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity - minimumCapacity &lt; <span class="number">0</span>) newCapacity = minimumCapacity;</span><br><span class="line">        <span class="keyword">if</span> (newCapacity &lt; <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">OutOfMemoryError</span>();</span><br><span class="line">        value = Arrays.copyOf(value, newCapacity);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="33-append-insert-delete"><a class="markdownIt-Anchor" href="#33-append-insert-delete"></a> 3.3 append / insert / delete</h3>
+<ul>
+<li><strong>append(String str)</strong>：先 <strong>ensureCapacity(count + str.length())</strong>，再把 str 的字符（通过 getChars 或等价逻辑）拷贝到 value，更新 count，返回 this。</li>
+<li><strong>insert / delete</strong>：同样先保证容量，再移动区间内元素，更新 count。</li>
+<li>若传入 null，通常当作 <code>"null"</code> 字符串处理（appendNull）。</li>
+</ul>
+<hr>
+<h2 id="四-stringbuffer-与-stringbuilder-的差异"><a class="markdownIt-Anchor" href="#四-stringbuffer-与-stringbuilder-的差异"></a> 四、StringBuffer 与 StringBuilder 的差异</h2>
+<p>两者都继承 AbstractStringBuilder，<strong>API 完全一致</strong>，区别只有 <strong>线程安全</strong>：</p>
+<ul>
+<li><strong>StringBuffer</strong>：对外方法（append、insert、delete、replace 等）都加 <strong>synchronized</strong>，多线程下安全，但存在锁开销。</li>
+<li><strong>StringBuilder</strong>：无同步，单线程下更快，<strong>推荐在单线程场景使用</strong>。</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// StringBuffer 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> StringBuffer <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// StringBuilder 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> StringBuilder <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-java-9-及以后对三者的改动汇总"><a class="markdownIt-Anchor" href="#五-java-9-及以后对三者的改动汇总"></a> 五、Java 9 及以后对三者的改动汇总</h2>
+<h3 id="51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"><a class="markdownIt-Anchor" href="#51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"></a> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>Java 8</th>
+<th>Java 9+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>String</strong></td>
+<td><code>char[] value</code>，2 字节 / 字符</td>
+<td><code>byte[] value</code> + <code>byte coder</code>，LATIN1 时 1 字节 / 字符</td>
+</tr>
+<tr>
+<td><strong>AbstractStringBuilder</strong>（及 StringBuffer / StringBuilder）</td>
+<td><code>char[] value</code></td>
+<td><code>byte[] value</code> + <code>byte coder</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>动机</strong>：大量字符串只含 Latin-1 字符，堆上 String 占比高，改为按需 1 字节 / 字符可显著 <strong>降低内存与 GC 压力</strong>。</li>
+<li><strong>对 StringBuffer / StringBuilder</strong>：内部存储与 String 统一，转换与拷贝时无需再在 char [] 与 byte [] 间多做转换，实现更一致。</li>
+</ul>
+<h3 id="52-字符串拼接编译方式jep-280-indify-string-concatenation"><a class="markdownIt-Anchor" href="#52-字符串拼接编译方式jep-280-indify-string-concatenation"></a> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</h3>
+<ul>
+<li><strong>Java 8 及以前</strong>：<code>"a" + b + "c"</code> 编译为 <strong>显式 StringBuilder</strong>：new StringBuilder → 多次 append → toString ()。</li>
+<li><strong>Java 9+</strong>：改为 <strong>invokedynamic</strong>（如 <code>makeConcatWithConstants</code>），由 JVM 在运行时选择拼接策略（可优化为直接使用 byte []、避免中间 StringBuilder 等），<strong>字节码更简洁</strong>，且未来可继续优化而无需重新编译应用。</li>
+<li><strong>注意</strong>：早期版本（如 Java 11–18）存在 “先求值再转字符串” 的顺序与旧行为不一致的 bug，<strong>Java 19 已修复</strong>。</li>
+</ul>
+<p>这主要影响 <strong>编译期</strong> 对 <code>+</code> 拼接的翻译，不改变 String / StringBuilder 的公开 API，但运行时生成的实现会随 JDK 版本演进。</p>
+<h3 id="53-后续版本中的小补充"><a class="markdownIt-Anchor" href="#53-后续版本中的小补充"></a> 5.3 后续版本中的小补充</h3>
+<ul>
+<li><strong>Java 11</strong>：String 增加 <strong>isBlank()、strip()、repeat()、lines()</strong> 等，内部实现基于 byte []+coder。</li>
+<li><strong>Java 17</strong>：<strong>String.format()</strong> 等实现有优化，性能有提升。</li>
+<li><strong>Java 21</strong>：<strong>字符串模板</strong>（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 <strong>可变数组参数</strong> 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。</li>
+</ul>
+<hr>
+<h2 id="六-使用建议与小结"><a class="markdownIt-Anchor" href="#六-使用建议与小结"></a> 六、使用建议与小结</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>常量、键、单次赋值、不需要修改</td>
+<td><strong>String</strong></td>
+</tr>
+<tr>
+<td>单线程下多次拼接、构造大字符串</td>
+<td><strong>StringBuilder</strong></td>
+</tr>
+<tr>
+<td>多线程下共享可变字符序列</td>
+<td><strong>StringBuffer</strong></td>
+</tr>
+<tr>
+<td>简单少量拼接（如 <code>"a"+b</code>）</td>
+<td>直接 <code>+</code>，Java 9+ 由 invokedynamic 优化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>源码层面的要点</strong>：</p>
+<ul>
+<li><strong>String</strong>：不可变，Java 9+ 用 byte []+coder 做紧凑存储；所有 “修改” 都是新对象。</li>
+<li><strong>AbstractStringBuilder</strong>：可变，Java 9+ 同样 byte []+coder，扩容规则 *2 + 2，与 String 编码一致。</li>
+<li><strong>StringBuffer</strong> = AbstractStringBuilder + synchronized；<strong>StringBuilder</strong> = AbstractStringBuilder，无同步。</li>
+<li><strong>Java 9+</strong>：三者存储统一为 byte []+coder（Compact Strings），字符串 <code>+</code> 的编译从 StringBuilder 链式调用改为 invokedynamic，后续版本继续在 format、构造器、模板等方面做增强。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/" class="post-title-link" itemprop="url">Java 线程池知识点与 Java 9+ 改动</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">并发</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-线程池知识点与-java-9-改动"><a class="markdownIt-Anchor" href="#java-线程池知识点与-java-9-改动"></a> Java 线程池知识点与 Java 9+ 改动</h1>
+<p>本文梳理 <strong>Java 线程池</strong> 的完整知识点：体系结构、核心参数、任务流程、拒绝策略、Executors 工厂方法、ForkJoinPool 与定时任务，以及 <strong>Java 9 及以后版本</strong> 对线程池与相关 API 的改动（CompletableFuture 增强、虚拟线程 Executor 等）。</p>
+<hr>
+<h2 id="一-体系结构"><a class="markdownIt-Anchor" href="#一-体系结构"></a> 一、体系结构</h2>
+<figure class="highlight plaintext"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Executor（接口）</span><br><span class="line">    └── ExecutorService（接口）</span><br><span class="line">            └── AbstractExecutorService（抽象类）</span><br><span class="line">                    ├── ThreadPoolExecutor（通用线程池）</span><br><span class="line">                    ├── ScheduledThreadPoolExecutor（定时/周期任务）</span><br><span class="line">                    └── ForkJoinPool（分治/工作窃取）</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong>Executor</strong>：只定义 <code>void execute(Runnable command)</code>，表示 “执行任务”。</li>
+<li><strong>ExecutorService</strong>：扩展了提交任务（submit 返回 Future）、关闭（shutdown/shutdownNow）、批量执行（invokeAll/invokeAny）等。</li>
+<li><strong>ThreadPoolExecutor</strong>：最常用的实现，通过<strong>核心线程数、最大线程数、队列、拒绝策略</strong>等控制行为。</li>
+</ul>
+<hr>
+<h2 id="二-threadpoolexecutor-核心参数"><a class="markdownIt-Anchor" href="#二-threadpoolexecutor-核心参数"></a> 二、ThreadPoolExecutor 核心参数</h2>
+<p>构造方法（7 个参数）：</p>
+<figure class="highlight text"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ThreadPoolExecutor(</span><br><span class="line">    int corePoolSize,</span><br><span class="line">    int maximumPoolSize,</span><br><span class="line">    long keepAliveTime,</span><br><span class="line">    TimeUnit unit,</span><br><span class="line">    BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">    ThreadFactory threadFactory,</span><br><span class="line">    RejectedExecutionHandler handler</span><br><span class="line">)</span><br></pre></td></tr></tbody></table></figure>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>corePoolSize</strong></td>
+<td>核心线程数，常驻池中，空闲时默认不回收（除非开启 allowCoreThreadTimeOut）</td>
+</tr>
+<tr>
+<td><strong>maximumPoolSize</strong></td>
+<td>最大线程数，池中线程总数上限</td>
+</tr>
+<tr>
+<td><strong>keepAliveTime</strong></td>
+<td>非核心线程空闲超过该时间会被回收；单位由 unit 指定</td>
+</tr>
+<tr>
+<td><strong>unit</strong></td>
+<td>keepAliveTime 的时间单位</td>
+</tr>
+<tr>
+<td><strong>workQueue</strong></td>
+<td>任务队列，存放尚未被线程执行的任务</td>
+</tr>
+<tr>
+<td><strong>threadFactory</strong></td>
+<td>创建新线程的工厂，可自定义线程名、优先级等</td>
+</tr>
+<tr>
+<td><strong>handler</strong></td>
+<td>当 “线程数已达 maximum 且队列已满” 时的拒绝策略</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="三-任务提交流程"><a class="markdownIt-Anchor" href="#三-任务提交流程"></a> 三、任务提交流程</h2>
+<p><code>execute(Runnable command)</code> 的大致逻辑：</p>
+<ol>
+<li><strong>当前线程数 &lt; corePoolSize</strong>：创建新<strong>核心线程</strong>执行该任务。</li>
+<li><strong>当前线程数 ≥ corePoolSize</strong>：尝试将任务<strong>放入 workQueue</strong>。</li>
+<li><strong>队列已满</strong>：尝试创建<strong>非核心线程</strong>（不超过 maximumPoolSize）执行该任务。</li>
+<li><strong>无法创建新线程</strong>（已达 maximum 且队列满）：执行 <strong>RejectedExecutionHandler</strong>（拒绝策略）。</li>
+</ol>
+<p>因此：<strong>先占满核心线程 → 再填队列 → 再开非核心线程 → 再拒绝</strong>。<br>
+使用<strong>无界队列</strong>时，不会走到 “队列满”，也就不会创建非核心线程，maximumPoolSize 形同虚设。</p>
+<hr>
+<h2 id="四-任务队列workqueue常见类型"><a class="markdownIt-Anchor" href="#四-任务队列workqueue常见类型"></a> 四、任务队列（workQueue）常见类型</h2>
+<table>
+<thead>
+<tr>
+<th>队列类型</th>
+<th>特点</th>
+<th>典型用法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LinkedBlockingQueue</strong>（无界）</td>
+<td>容量可视为无限，不触发拒绝</td>
+<td>任务量可控、希望 “削峰” 时</td>
+</tr>
+<tr>
+<td><strong>ArrayBlockingQueue</strong>（有界）</td>
+<td>固定容量，满则走非核心 / 拒绝</td>
+<td>需要限制排队数量时</td>
+</tr>
+<tr>
+<td><strong>SynchronousQueue</strong></td>
+<td>不存元素，移交即被取走</td>
+<td>配合 “大 maximumPoolSize” 做直接交接</td>
+</tr>
+<tr>
+<td><strong>DelayQueue</strong></td>
+<td>按延迟时间取出</td>
+<td>延迟任务（也可用 ScheduledExecutorService）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-拒绝策略rejectedexecutionhandler"><a class="markdownIt-Anchor" href="#五-拒绝策略rejectedexecutionhandler"></a> 五、拒绝策略（RejectedExecutionHandler）</h2>
+<p>当 “线程数 = maximumPoolSize 且 workQueue 满” 时触发。</p>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AbortPolicy</strong>（默认）</td>
+<td>抛出 <strong>RejectedExecutionException</strong></td>
+</tr>
+<tr>
+<td><strong>CallerRunsPolicy</strong></td>
+<td>由<strong>提交任务的线程</strong>直接执行该任务，相当于 “调用者自己跑”</td>
+</tr>
+<tr>
+<td><strong>DiscardPolicy</strong></td>
+<td>静默丢弃任务，不抛异常</td>
+</tr>
+<tr>
+<td><strong>DiscardOldestPolicy</strong></td>
+<td>丢弃队列中<strong>最早</strong>的一个任务，再把当前任务入队</td>
+</tr>
+</tbody>
+</table>
+<p>可自定义实现 <strong>RejectedExecutionHandler</strong>，做打日志、入库、转存等。</p>
+<hr>
+<h2 id="六-executors-工厂方法及注意点"><a class="markdownIt-Anchor" href="#六-executors-工厂方法及注意点"></a> 六、Executors 工厂方法及注意点</h2>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>内部实现要点</th>
+<th>常见问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>newFixedThreadPool(n)</strong></td>
+<td>核心 = 最大 = n，<strong>无界</strong> LinkedBlockingQueue</td>
+<td>任务过多时队列无限增长，易 OOM</td>
+</tr>
+<tr>
+<td><strong>newCachedThreadPool()</strong></td>
+<td>核心 = 0，最大 = Integer.MAX_VALUE，<strong>SynchronousQueue</strong></td>
+<td>任务多时线程数暴增，易耗尽资源</td>
+</tr>
+<tr>
+<td><strong>newSingleThreadExecutor()</strong></td>
+<td>核心 = 最大 = 1，无界队列</td>
+<td>同上，队列无界</td>
+</tr>
+<tr>
+<td><strong>newScheduledThreadPool(n)</strong></td>
+<td>定时任务线程池，DelayedWorkQueue</td>
+<td>核心线程数可设为 0 或较小，需结合业务</td>
+</tr>
+</tbody>
+</table>
+<p><strong>建议</strong>：生产环境尽量用 <strong>ThreadPoolExecutor 构造器</strong> 显式指定有界队列、合理 maximum、自定义 ThreadFactory 和拒绝策略，避免直接用上述 “无界” 工厂。</p>
+<hr>
+<h2 id="七-关闭shutdown-与-shutdownnow"><a class="markdownIt-Anchor" href="#七-关闭shutdown-与-shutdownnow"></a> 七、关闭：shutdown 与 shutdownNow</h2>
+<ul>
+<li><strong>shutdown()</strong>：不再接受新任务，已提交的任务会继续执行完；池不会立刻退出。</li>
+<li><strong>shutdownNow()</strong>：不再接受新任务，并<strong>尝试中断</strong>正在执行的任务，返回<strong>尚未执行的任务列表</strong>；对不响应中断的任务无法强制停止。</li>
+<li><strong>awaitTermination(long timeout, TimeUnit unit)</strong>：阻塞当前线程，直到池关闭或超时；常与 shutdown 配合使用，先 shutdown 再 awaitTermination 等待一段时间。</li>
+</ul>
+<p>典型用法：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">executor.shutdown();</span><br><span class="line"><span class="keyword">if</span> (!executor.awaitTermination(<span class="number">60</span>, TimeUnit.SECONDS)) {</span><br><span class="line">    executor.shutdownNow();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="八-扩展点与其它配置"><a class="markdownIt-Anchor" href="#八-扩展点与其它配置"></a> 八、扩展点与其它配置</h2>
+<ul>
+<li><strong>allowCoreThreadTimeOut(boolean)</strong>：为 true 时，核心线程在空闲 keepAliveTime 后也会被回收；默认 false。</li>
+<li><strong>beforeExecute(Thread t, Runnable r)</strong> / <strong>afterExecute(Runnable r, Throwable t)</strong>：子类可重写，在任务执行前后打日志、统计等。</li>
+<li><strong>setCorePoolSize</strong> / <strong>setMaximumPoolSize</strong>：运行时可动态调整（需注意与当前队列、线程数的关系）。</li>
+</ul>
+<hr>
+<h2 id="九-forkjoinpool-与-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#九-forkjoinpool-与-scheduledexecutorservice"></a> 九、ForkJoinPool 与 ScheduledExecutorService</h2>
+<h3 id="91-forkjoinpool"><a class="markdownIt-Anchor" href="#91-forkjoinpool"></a> 9.1 ForkJoinPool</h3>
+<ul>
+<li>面向<strong>分治、可递归拆分的任务</strong>（如大数组并行计算），使用 <strong>work-stealing</strong>：空闲线程从其它线程的队列尾部 “偷” 任务。</li>
+<li><strong>ForkJoinPool.commonPool()</strong>：JVM 内共享的通用池，默认线程数约 CPU 核数 - 1；<strong>CompletableFuture</strong> 默认使用该池，不适合大量 I / O 或阻塞任务，建议显式传入自定义 Executor。</li>
+</ul>
+<h3 id="92-scheduledexecutorservice"><a class="markdownIt-Anchor" href="#92-scheduledexecutorservice"></a> 9.2 ScheduledExecutorService</h3>
+<ul>
+<li><strong>schedule(command, delay, unit)</strong>：延迟一次执行。</li>
+<li><strong>scheduleAtFixedRate</strong> / <strong>scheduleWithFixedDelay</strong>：周期执行。</li>
+<li>实现类 <strong>ScheduledThreadPoolExecutor</strong> 继承 ThreadPoolExecutor，使用 <strong>DelayedWorkQueue</strong>；核心线程数可设为 0 或较小，一般不建议对调度池开启 allowCoreThreadTimeOut，以免无线程可用。</li>
+</ul>
+<hr>
+<h2 id="十-completablefuture-与线程池"><a class="markdownIt-Anchor" href="#十-completablefuture-与线程池"></a> 十、CompletableFuture 与线程池</h2>
+<ul>
+<li><strong>CompletableFuture.supplyAsync(supplier)</strong> / <strong>runAsync(runnable)</strong> 等<strong>不传 Executor</strong> 时，使用 <strong>ForkJoinPool.commonPool()</strong>。</li>
+<li>commonPool 线程数少，且针对 CPU 密集型设计；<strong>I / O 多或阻塞多</strong>时易成为瓶颈，甚至低核数机器上退化为 “每任务一线程”。</li>
+<li><strong>建议</strong>：<strong>始终传入业务专用线程池</strong>，例如 <code>CompletableFuture.supplyAsync(supplier, customExecutor)</code>，且 thenApplyAsync 等也尽量传同一 Executor，避免混用 commonPool。</li>
+</ul>
+<hr>
+<h2 id="十一-java-9-及以后对线程池相关-api-的改动"><a class="markdownIt-Anchor" href="#十一-java-9-及以后对线程池相关-api-的改动"></a> 十一、Java 9 及以后对线程池相关 API 的改动</h2>
+<h3 id="111-completablefuture-增强java-9"><a class="markdownIt-Anchor" href="#111-completablefuture-增强java-9"></a> 11.1 CompletableFuture 增强（Java 9）</h3>
+<ul>
+<li><strong>completeOnTimeout(value, timeout, unit)</strong>：超时未完成则用给定值完成。</li>
+<li><strong>orTimeout(timeout, unit)</strong>：超时未完成则以 <strong>TimeoutException</strong> 异常完成。</li>
+<li><strong>defaultExecutor()</strong>：子类可重写，自定义默认执行器，不必每次传 Executor。</li>
+<li><strong>newIncompleteFuture()</strong>：工厂方法，便于子类扩展。</li>
+<li><strong>completedStage()</strong> / <strong>failedStage()</strong> / <strong>failedFuture()</strong> 等：创建已完成或已失败的 CompletableFuture / CompletionStage。</li>
+</ul>
+<p>这些改动不改变 “线程池” 本身，但让异步任务与超时、默认 Executor 的配合更灵活。</p>
+<h3 id="112-虚拟线程与-executorjava-21"><a class="markdownIt-Anchor" href="#112-虚拟线程与-executorjava-21"></a> 11.2 虚拟线程与 Executor（Java 21）</h3>
+<ul>
+<li><strong>Executors.newVirtualThreadPerTaskExecutor()</strong>：为<strong>每个任务</strong>创建一个<strong>虚拟线程</strong>，任务结束后虚拟线程可被回收；适合 “一任务一线程” 的模型，无需再维护传统线程池的队列与最大线程数上限。</li>
+<li><strong>Executors.newThreadPerTaskExecutor(ThreadFactory)</strong>：按给定 <strong>ThreadFactory</strong> 为每个任务创建新线程；若传入 <strong>Thread.ofVirtual().factory()</strong>，效果与上面类似（虚拟线程）。</li>
+<li>虚拟线程由 JVM 调度，可创建大量虚拟线程而只占少量平台线程，适合高并发 I / O；<strong>现有 ExecutorService 接口不变</strong>，只是实现从 “固定线程 + 队列” 变为 “每任务一虚拟线程”。</li>
+</ul>
+<p>示例：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> (<span class="type">var</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newVirtualThreadPerTaskExecutor()) {</span><br><span class="line">    IntStream.range(<span class="number">0</span>, <span class="number">10_000</span>).forEach(i -&gt;</span><br><span class="line">        executor.submit(() -&gt; {</span><br><span class="line">            Thread.sleep(Duration.ofSeconds(<span class="number">1</span>));</span><br><span class="line">            <span class="keyword">return</span> i;</span><br><span class="line">        })</span><br><span class="line">    );</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="113-其它版本"><a class="markdownIt-Anchor" href="#113-其它版本"></a> 11.3 其它版本</h3>
+<ul>
+<li><strong>Java 8</strong>：Lambda、CompletableFuture 的引入使 “异步 + 线程池” 成为标配。</li>
+<li><strong>Java 9+</strong>：模块化后 <code>java.util.concurrent</code> 仍在 java.base，无 API 破坏性变更；线程池本身行为稳定，改动主要集中在 CompletableFuture（9）和虚拟线程 Executor（21）。</li>
+</ul>
+<hr>
+<h2 id="十二-小结"><a class="markdownIt-Anchor" href="#十二-小结"></a> 十二、小结</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>体系</strong></td>
+<td>Executor → ExecutorService → ThreadPoolExecutor / ScheduledThreadPoolExecutor / ForkJoinPool</td>
+</tr>
+<tr>
+<td><strong>核心参数</strong></td>
+<td>corePoolSize、maximumPoolSize、keepAliveTime、workQueue、threadFactory、handler</td>
+</tr>
+<tr>
+<td><strong>流程</strong></td>
+<td>先占满核心线程 → 再入队 → 再开非核心线程 → 再拒绝</td>
+</tr>
+<tr>
+<td><strong>队列</strong></td>
+<td>无界队列易 OOM；有界队列 + 合理 maximum + 拒绝策略更稳妥</td>
+</tr>
+<tr>
+<td><strong>拒绝策略</strong></td>
+<td>AbortPolicy、CallerRunsPolicy、DiscardPolicy、DiscardOldestPolicy 及自定义</td>
+</tr>
+<tr>
+<td><strong>关闭</strong></td>
+<td>shutdown + awaitTermination，必要时 shutdownNow</td>
+</tr>
+<tr>
+<td><strong>CompletableFuture</strong></td>
+<td>务必传自定义 Executor，避免 commonPool；Java 9 增加超时与默认 Executor 扩展</td>
+</tr>
+<tr>
+<td><strong>Java 21</strong></td>
+<td>newVirtualThreadPerTaskExecutor、newThreadPerTaskExecutor (ThreadFactory) 支持虚拟线程，适合高并发 I / O 场景</td>
+</tr>
+</tbody>
+</table>
+<p>掌握以上内容即可覆盖日常开发与面试中对 Java 线程池的要求，并在 Java 9+ 中正确使用 CompletableFuture 与虚拟线程 Executor。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java11-features-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java11-features-summary/" class="post-title-link" itemprop="url">Java 11 新特性总结与示例</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-11-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-11-新特性总结与示例"></a> Java 11 新特性总结与示例</h1>
+<p>Java 11 于 <strong>2018 年 9 月 25 日</strong> 正式发布，是 <strong>Java 8 之后首个长期支持（LTS）版本</strong>，支持至 2026 年 9 月。本文按语言、API、工具、GC 等分类梳理主要新特性，并配有示例（基于 JDK 11）。</p>
+<hr>
+<h2 id="一-语言层面"><a class="markdownIt-Anchor" href="#一-语言层面"></a> 一、语言层面</h2>
+<h3 id="11-lambda-参数支持-varjep-323"><a class="markdownIt-Anchor" href="#11-lambda-参数支持-varjep-323"></a> 1.1 Lambda 参数支持 var（JEP 323）</h3>
+<p>在 Lambda 形参中可以使用 <code>var</code>，便于添加注解或统一风格（注意：Java 10 已在局部变量中引入 var，Java 11 扩展到 Lambda 参数）。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.function.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">VarInLambda</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// Lambda 参数可使用 var，便于加注解或统一风格</span></span><br><span class="line">        BiFunction&lt;Integer, Integer, Integer&gt; add = (<span class="keyword">var</span> a, <span class="keyword">var</span> b) -&gt; a + b;</span><br><span class="line">        System.out.println(add.apply(<span class="number">1</span>, <span class="number">2</span>));  <span class="comment">// 3</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="12-嵌套类访问控制jep-181"><a class="markdownIt-Anchor" href="#12-嵌套类访问控制jep-181"></a> 1.2 嵌套类访问控制（JEP 181）</h3>
+<p><code>Class</code> 新增 <code>getNestHost()</code>、<code>getNestMembers()</code> 等方法，嵌套类（内部类等）的访问控制语义更清晰，反射可正确识别 “巢” 关系。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">NestDemo</span> {</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Inner</span> { }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        Class&lt;?&gt; host = NestDemo.Inner.class.getNestHost();</span><br><span class="line">        System.out.println(host.getName());  <span class="comment">// NestDemo</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="二-string-增强"><a class="markdownIt-Anchor" href="#二-string-增强"></a> 二、String 增强</h2>
+<p>新增方法均针对 “空白” 和 “首尾空格” 的现代需求（比 <code>trim()</code> 正确处理 Unicode 等）。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isBlank()</code></td>
+<td>是否为空或仅包含空白字符</td>
+</tr>
+<tr>
+<td><code>strip()</code> / <code>stripLeading()</code> / <code>stripTrailing()</code></td>
+<td>去除首尾/仅首/仅尾空白</td>
+</tr>
+<tr>
+<td><code>repeat(int n)</code></td>
+<td>将字符串重复 n 次</td>
+</tr>
+<tr>
+<td><code>lines()</code></td>
+<td>按行拆分为 <code>Stream&lt;String&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StringDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">String</span> <span class="variable">s</span> <span class="operator">=</span> <span class="string">"  hello  "</span>;</span><br><span class="line">        System.out.println(s.isBlank());       <span class="comment">// false</span></span><br><span class="line">        System.out.println(<span class="string">"   "</span>.isBlank());   <span class="comment">// true</span></span><br><span class="line">        System.out.println(s.strip());         <span class="comment">// "hello"</span></span><br><span class="line">        System.out.println(<span class="string">"ab"</span>.repeat(<span class="number">3</span>));    <span class="comment">// "ababab"</span></span><br><span class="line"></span><br><span class="line">        <span class="string">"a\nb\nc"</span>.lines().forEach(System.out::println);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-集合不可变工厂"><a class="markdownIt-Anchor" href="#三-集合不可变工厂"></a> 三、集合：不可变工厂</h2>
+<p><code>List</code>、<code>Set</code>、<code>Map</code> 提供 <code>of(...)</code> 和 <code>copyOf(...)</code>，创建不可变集合，避免手写 <code>Collections.unmodifiableXXX</code>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CollectionDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        List&lt;String&gt; list = List.of(<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>);</span><br><span class="line">        Set&lt;Integer&gt; set = Set.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line">        Map&lt;String, Integer&gt; map = Map.of(<span class="string">"x"</span>, <span class="number">1</span>, <span class="string">"y"</span>, <span class="number">2</span>);</span><br><span class="line">        Map&lt;String, Integer&gt; map2 = Map.ofEntries(</span><br><span class="line">            Map.entry(<span class="string">"a"</span>, <span class="number">1</span>),</span><br><span class="line">            Map.entry(<span class="string">"b"</span>, <span class="number">2</span>)</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        List&lt;String&gt; copy = List.copyOf(list);</span><br><span class="line">        <span class="comment">// list.add("d");  // UnsupportedOperationException</span></span><br><span class="line">        <span class="comment">// copy.add("d");  // UnsupportedOperationException</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="四-stream-optional-增强"><a class="markdownIt-Anchor" href="#四-stream-optional-增强"></a> 四、Stream / Optional 增强</h2>
+<ul>
+<li><strong>Stream</strong>：<code>ofNullable(T t)</code>（null 则空流）、<code>takeWhile</code>/<code>dropWhile</code>、<code>iterate</code> 重载（带 Predicate）。</li>
+<li><strong>Optional</strong>：无新增重要方法（部分文档提到的 <code>isEmpty()</code> 在 Java 11 中为 Optional 的增强，实际在后续版本更常见；Optional 在 11 中已有 <code>isEmpty()</code> 的讨论，部分实现可能在 11 或 12）。</li>
+</ul>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.stream.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">StreamDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="comment">// ofNullable：null 得到空流</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">c</span> <span class="operator">=</span> Stream.ofNullable(<span class="literal">null</span>).count();</span><br><span class="line">        System.out.println(c);  <span class="comment">// 0</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// takeWhile / dropWhile</span></span><br><span class="line">        Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)</span><br><span class="line">            .takeWhile(n -&gt; n &lt; <span class="number">4</span>)</span><br><span class="line">            .forEach(System.out::print);  <span class="comment">// 123</span></span><br><span class="line">        System.out.println();</span><br><span class="line">        Stream.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)</span><br><span class="line">            .dropWhile(n -&gt; n &lt; <span class="number">4</span>)</span><br><span class="line">            .forEach(System.out::print);  <span class="comment">// 45</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="五-http-client-标准化jep-321"><a class="markdownIt-Anchor" href="#五-http-client-标准化jep-321"></a> 五、HTTP Client 标准化（JEP 321）</h2>
+<p>从 Java 9 的孵化模块迁至 <strong><code>java.net.http</code></strong>，支持同步/异步、HTTP/2，可替代 <code>HttpURLConnection</code> 或部分第三方 HTTP 库。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.net.URI;</span><br><span class="line"><span class="keyword">import</span> java.net.http.*;</span><br><span class="line"><span class="keyword">import</span> java.net.http.HttpClient.Version;</span><br><span class="line"><span class="keyword">import</span> java.time.Duration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HttpClientDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception {</span><br><span class="line">        <span class="type">HttpClient</span> <span class="variable">client</span> <span class="operator">=</span> HttpClient.newBuilder()</span><br><span class="line">            .connectTimeout(Duration.ofSeconds(<span class="number">10</span>))</span><br><span class="line">            .version(Version.HTTP_2)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">        <span class="type">HttpRequest</span> <span class="variable">request</span> <span class="operator">=</span> HttpRequest.newBuilder(URI.create(<span class="string">"https://example.com"</span>))</span><br><span class="line">            .timeout(Duration.ofSeconds(<span class="number">5</span>))</span><br><span class="line">            .GET()</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 同步</span></span><br><span class="line">        HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());</span><br><span class="line">        System.out.println(response.statusCode());</span><br><span class="line">        System.out.println(response.body().substring(<span class="number">0</span>, Math.min(<span class="number">100</span>, response.body().length())));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 异步</span></span><br><span class="line">        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())</span><br><span class="line">            .thenApply(HttpResponse::body)</span><br><span class="line">            .thenAccept(b -&gt; System.out.println(<span class="string">"Async body length: "</span> + b.length()));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="六-单文件源码运行jep-330"><a class="markdownIt-Anchor" href="#六-单文件源码运行jep-330"></a> 六、单文件源码运行（JEP 330）</h2>
+<p>无需先 <code>javac</code>，可直接运行单个 <code>.java</code> 文件，适合脚本式使用或入门教学。</p>
+<figure class="highlight bash"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 直接运行</span></span><br><span class="line">java Hello.java</span><br><span class="line"></span><br><span class="line"><span class="comment"># 带参数</span></span><br><span class="line">java --<span class="built_in">source</span> 11 Main.java arg1 arg2</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="七-gc-与运行时常量"><a class="markdownIt-Anchor" href="#七-gc-与运行时常量"></a> 七、GC 与运行时常量</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ZGC（JEP 333，实验）</strong></td>
+<td>可扩展低延迟 GC，目标暂停时间 &lt; 10ms</td>
+</tr>
+<tr>
+<td><strong>Epsilon GC（JEP 318）</strong></td>
+<td>无操作 GC，只分配不回收，用于性能测试等</td>
+</tr>
+<tr>
+<td><strong>动态类文件常量（JEP 309）</strong></td>
+<td>字节码新增 <code>CONSTANT_Dynamic</code></td>
+</tr>
+<tr>
+<td><strong>移除 Java EE / CORBA 模块（JEP 320）</strong></td>
+<td>正式移除，需要时改用 Jakarta EE 等</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="八-小结"><a class="markdownIt-Anchor" href="#八-小结"></a> 八、小结</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>特性</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言</td>
+<td>Lambda 参数 var、嵌套类</td>
+<td>语法与反射增强</td>
+</tr>
+<tr>
+<td>API</td>
+<td>String / 集合 / Stream</td>
+<td>不可变集合、String 工具、流式增强</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>HTTP Client</td>
+<td>标准库 HTTP / 2 同步与异步</td>
+</tr>
+<tr>
+<td>工具</td>
+<td>单文件运行</td>
+<td><code>java xxx.java</code></td>
+</tr>
+<tr>
+<td>GC / 平台</td>
+<td>ZGC、Epsilon、移除 EE</td>
+<td>低延迟 GC、瘦身 JDK</td>
+</tr>
+</tbody>
+</table>
+<p>以上示例均在 JDK 11 下可运行。Java 11 作为 LTS，是许多团队从 8 升级的首选版本。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java17-features-summary/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java17-features-summary/" class="post-title-link" itemprop="url">Java 17 新特性总结与示例</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="java-17-新特性总结与示例"><a class="markdownIt-Anchor" href="#java-17-新特性总结与示例"></a> Java 17 新特性总结与示例</h1>
+<p>Java 17 于 <strong>2021 年 9 月 14 日</strong> 正式发布，是 <strong>继 Java 8 以来重要的长期支持（LTS）版本</strong>，支持至 2029 年 9 月。Spring 6.x / Spring Boot 3.x 的最低支持版本即为 Java 17。本文按语言、API、平台等分类梳理主要新特性，并配有示例（基于 JDK 17）。</p>
+<hr>
+<h2 id="一-密封类sealed-classesjep-409"><a class="markdownIt-Anchor" href="#一-密封类sealed-classesjep-409"></a> 一、密封类（Sealed Classes，JEP 409）</h2>
+<p><strong>作用</strong>：用 <code>sealed</code> + <code>permits</code> 限制 “谁可以继承 / 实现” 当前类或接口，编译器可做穷尽性检查，提高类型安全。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 密封接口：只允许 Circle、Square、Rectangle 实现</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">sealed</span> <span class="keyword">interface</span> <span class="title class_">Shape</span> <span class="keyword">permits</span> Circle, Square, Rectangle {</span><br><span class="line">    <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Circle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> r;</span><br><span class="line">    Circle(<span class="type">double</span> r) { <span class="built_in">this</span>.r = r; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> Math.PI * r * r; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Square</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> side;</span><br><span class="line">    Square(<span class="type">double</span> side) { <span class="built_in">this</span>.side = side; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> side * side; }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Rectangle</span> <span class="keyword">implements</span> <span class="title class_">Shape</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">double</span> w, h;</span><br><span class="line">    Rectangle(<span class="type">double</span> w, <span class="type">double</span> h) { <span class="built_in">this</span>.w = w; <span class="built_in">this</span>.h = h; }</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> <span class="type">double</span> <span class="title function_">area</span><span class="params">()</span> { <span class="keyword">return</span> w * h; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>子类必须为 <code>final</code>、<code>sealed</code> 或 <code>non-sealed</code> 之一。与 switch 模式匹配结合时，编译器可检查是否覆盖所有 permitted 类型，无需 default。</p>
+<hr>
+<h2 id="二-switch-模式匹配jep-406预览-后续版本转正"><a class="markdownIt-Anchor" href="#二-switch-模式匹配jep-406预览-后续版本转正"></a> 二、Switch 模式匹配（JEP 406，预览 → 后续版本转正）</h2>
+<p><strong>作用</strong>：在 switch 的 case 中使用类型模式，并可直接绑定变量，简化 “按类型分派” 的代码。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SwitchPatternDemo</span> {</span><br><span class="line">    <span class="keyword">static</span> String <span class="title function_">formatter</span><span class="params">(Object obj)</span> {</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">switch</span> (obj) {</span><br><span class="line">            <span class="keyword">case</span> Integer i -&gt; <span class="string">"int: "</span> + i;</span><br><span class="line">            <span class="keyword">case</span> Long l    -&gt; <span class="string">"long: "</span> + l;</span><br><span class="line">            <span class="keyword">case</span> Double d -&gt; <span class="string">"double: "</span> + d;</span><br><span class="line">            <span class="keyword">case</span> String s  -&gt; <span class="string">"string: "</span> + s;</span><br><span class="line">            <span class="keyword">case</span> <span class="literal">null</span>      -&gt; <span class="string">"null"</span>;</span><br><span class="line">            <span class="keyword">default</span>        -&gt; obj.getClass().getSimpleName();</span><br><span class="line">        };</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        System.out.println(formatter(<span class="number">1</span>));       <span class="comment">// int: 1</span></span><br><span class="line">        System.out.println(formatter(<span class="string">"hi"</span>));    <span class="comment">// string: hi</span></span><br><span class="line">        System.out.println(formatter(<span class="literal">null</span>));   <span class="comment">// null</span></span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>与密封类结合时，对密封类型的 switch 可做穷尽性检查，无需 default。</p>
+<hr>
+<h2 id="三-强封装-jdk-内部-apijep-403"><a class="markdownIt-Anchor" href="#三-强封装-jdk-内部-apijep-403"></a> 三、强封装 JDK 内部 API（JEP 403）</h2>
+<p>默认不再允许反射访问 JDK 内部 API（如 <code>sun.*</code>），除非使用 <code>--add-opens</code> 等打开模块。目的是提高稳定性和安全性，避免依赖未承诺的内部实现。</p>
+<hr>
+<h2 id="四-其它重要-jep-概览"><a class="markdownIt-Anchor" href="#四-其它重要-jep-概览"></a> 四、其它重要 JEP 概览</h2>
+<table>
+<thead>
+<tr>
+<th>JEP</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>410</strong></td>
+<td>移除实验性 AOT / JIT 编译器</td>
+</tr>
+<tr>
+<td><strong>411</strong></td>
+<td>弃用安全管理器（计划删除）</td>
+</tr>
+<tr>
+<td><strong>407</strong></td>
+<td>移除 RMI 激活机制</td>
+</tr>
+<tr>
+<td><strong>398</strong></td>
+<td>弃用 Applet API</td>
+</tr>
+<tr>
+<td><strong>382</strong></td>
+<td>新 macOS 渲染管道</td>
+</tr>
+<tr>
+<td><strong>391</strong></td>
+<td>macOS / AArch64（Apple Silicon）支持</td>
+</tr>
+<tr>
+<td><strong>306</strong></td>
+<td>恢复 “始终严格” 的浮点语义</td>
+</tr>
+<tr>
+<td><strong>415</strong></td>
+<td>上下文反序列化过滤器（安全）</td>
+</tr>
+<tr>
+<td><strong>412</strong></td>
+<td>外部函数与内存 API（孵化）</td>
+</tr>
+<tr>
+<td><strong>414</strong></td>
+<td>向量 API（第二轮孵化）</td>
+</tr>
+<tr>
+<td><strong>356</strong></td>
+<td>增强的伪随机数生成器</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="五-伪随机数生成器jep-356"><a class="markdownIt-Anchor" href="#五-伪随机数生成器jep-356"></a> 五、伪随机数生成器（JEP 356）</h2>
+<p>新 API 位于 <code>java.util.random</code>，提供 <code>RandomGenerator</code> 接口及多种算法实现（如 <code>L32X64MixRandom</code>），便于在测试与生产中选择可复现或高性能的随机源。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.random.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RandomDemo</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> {</span><br><span class="line">        <span class="type">RandomGenerator</span> <span class="variable">gen</span> <span class="operator">=</span> RandomGenerator.of(<span class="string">"L32X64MixRandom"</span>);</span><br><span class="line">        System.out.println(gen.nextInt(<span class="number">100</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="六-小结"><a class="markdownIt-Anchor" href="#六-小结"></a> 六、小结</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>特性</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言</td>
+<td>密封类</td>
+<td>限制子类型，便于穷尽 switch</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>Switch 模式匹配</td>
+<td>case 中类型模式 + 绑定变量</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>强封装、移除 / 弃用</td>
+<td>内部 API 不可随意反射，RMI 激活 / Applet 等移除或弃用</td>
+</tr>
+<tr>
+<td>平台</td>
+<td>macOS / AArch64、新渲染</td>
+<td>支持 Apple Silicon 等</td>
+</tr>
+<tr>
+<td>API / 孵化</td>
+<td>新随机数、FFM、向量 API</td>
+<td>随机数增强，本地 / 向量为孵化</td>
+</tr>
+</tbody>
+</table>
+<p>以上示例在 JDK 17 下可运行。Java 17 是当前主流 LTS 之一，适合作为新项目或从 8 / 11 升级的目标版本。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/" class="post-title-link" itemprop="url">VarHandle 详解与 Java 8 之后的发展</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E5%B9%B6%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">并发</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="varhandle-详解与-java-8-之后的发展"><a class="markdownIt-Anchor" href="#varhandle-详解与-java-8-之后的发展"></a> VarHandle 详解与 Java 8 之后的发展</h1>
+<p><strong>说明</strong>：<code>VarHandle</code> 在 <strong>Java 9</strong> 才通过 <strong>JEP 193</strong> 正式引入标准库。<strong>Java 8 及以前没有 <code>VarHandle</code></strong>；本文先讲 VarHandle 是什么、怎么用，再按时间线说明 <strong>Java 9 起</strong> 的能力扩展与在 JDK 内部的落地。</p>
+<hr>
+<h2 id="一-为什么会出现-varhandle"><a class="markdownIt-Anchor" href="#一-为什么会出现-varhandle"></a> 一、为什么会出现 VarHandle</h2>
+<p>在 VarHandle 之前，若要对<strong>普通对象的字段</strong>或<strong>数组元素</strong>做带顺序语义的读 / 写、<code>compareAndSet</code>、<code>getAndAdd</code> 等操作，常见做法是：</p>
+<ul>
+<li>用 <strong><code>AtomicInteger</code></strong> 等专用原子类（多一层引用与间接访问），或</li>
+<li>用 <strong><code>Atomic*FieldUpdater</code></strong>（写法和性能上往往不理想），或</li>
+<li>使用 <strong><code>sun.misc.Unsafe</code></strong>（不安全、非标准、不可移植）。</li>
+</ul>
+<p><strong>JEP 193（Java 9）</strong> 引入 <strong><code>java.lang.invoke.VarHandle</code></strong>，目标包括：</p>
+<ul>
+<li><strong>安全</strong>：类型匹配、边界检查、<strong><code>final</code> 实例字段不可写</strong> 等规则与字节码一致，不会把 JVM 搞到不可靠状态。</li>
+<li><strong>性能</strong>：意图与 <code>Unsafe</code> 类操作接近，HotSpot 可做 <strong>intrinsic</strong>，生成与 Unsafe 相近的机器码（在可行处）。</li>
+<li><strong>可用性</strong>：API 比 Unsafe 清晰；统一的<strong>访问模式</strong>表达不同内存排序语义。</li>
+</ul>
+<hr>
+<h2 id="二-varhandle-是什么"><a class="markdownIt-Anchor" href="#二-varhandle-是什么"></a> 二、VarHandle 是什么</h2>
+<p><code>VarHandle</code> 是<strong>对某一 “变量位置” 的类型化引用</strong>：该位置可以是<strong>实例字段、静态字段、数组元素</strong>，以及 <code>ByteBuffer</code> 视图等（视 JDK 版本与支持类型而定）。</p>
+<p>对变量的访问不直接暴露 “地址”，而是通过 <strong>签名多态（signature polymorphic）</strong> 的方法，例如：</p>
+<ul>
+<li><code>get</code> / <code>set</code>：普通（plain）读写。</li>
+<li><code>getVolatile</code> / <code>setVolatile</code>：与 <code>volatile</code> 类似的可见性与有序性。</li>
+<li><code>getAcquire</code> / <code>setRelease</code>：常用于与 release / acquire 配对。</li>
+<li><code>compareAndSet</code>、<code>weakCompareAndSet</code>、<code>compareAndExchange</code>：CAS。</li>
+<li><code>getAndSet</code>、<code>getAndAdd</code>：读 - 改 - 写。</li>
+<li><strong>Java 11 起</strong>：<code>getAndBitwiseOr</code>、<code>getAndBitwiseAnd</code>、<code>getAndBitwiseXor</code> 及其 acquire / release 变体等。</li>
+<li><strong>内存栅栏</strong>：<code>fullFence</code>、<code>acquireFence</code>、<code>releaseFence</code>、<code>loadLoadFence</code>、<code>storeStoreFence</code>（静态方法）。</li>
+<li><strong>可达性</strong>：<code>reachabilityFence</code> 保证对象在语义上仍被强引用（与 GC 交互场景有用）。</li>
+</ul>
+<hr>
+<h2 id="三-如何获取-varhandle"><a class="markdownIt-Anchor" href="#三-如何获取-varhandle"></a> 三、如何获取 VarHandle</h2>
+<p>通常通过 <strong><code>MethodHandles.Lookup</code></strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.invoke.MethodHandles;</span><br><span class="line"><span class="keyword">import</span> java.lang.invoke.VarHandle;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Demo</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">int</span> x;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> VarHandle X_HANDLE;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            X_HANDLE = MethodHandles.lookup()</span><br><span class="line">                .findVarHandle(Demo.class, <span class="string">"x"</span>, <span class="type">int</span>.class);</span><br><span class="line">        } <span class="keyword">catch</span> (ReflectiveOperationException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ExceptionInInitializerError</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">casDemo</span><span class="params">()</span> {</span><br><span class="line">        <span class="comment">// 等价思想：原子地把 x 从 0 改成 1</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">ok</span> <span class="operator">=</span> X_HANDLE.compareAndSet(<span class="built_in">this</span>, <span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>注意</strong>：</p>
+<ul>
+<li><code>Lookup</code> 的访问规则与反射一致（模块导出/ <code>opens</code>、<strong>private</strong> 需 <code>privateLookupIn</code> 等）。</li>
+<li>对 <strong>数组</strong> 用 <code>MethodHandles.arrayElementVarHandle(int[].class)</code> 等。</li>
+</ul>
+<hr>
+<h2 id="四-访问模式与内存语义概念"><a class="markdownIt-Anchor" href="#四-访问模式与内存语义概念"></a> 四、访问模式与内存语义（概念）</h2>
+<p>不同方法对应 JMM 中不同的读 / 写与同步效果，可粗分为：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>典型方法</th>
+<th>含义（简化理解）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plain</td>
+<td><code>get</code> / <code>set</code></td>
+<td>无额外同步承诺，可被重排序优化</td>
+</tr>
+<tr>
+<td>Volatile</td>
+<td><code>getVolatile</code> / <code>setVolatile</code></td>
+<td>与 volatile 字段类似的可见性与 hb 关系</td>
+</tr>
+<tr>
+<td>Acquire/Release</td>
+<td><code>getAcquire</code> / <code>setRelease</code></td>
+<td>单侧排序，常用于与另一端的 release / acquire 配对</td>
+</tr>
+<tr>
+<td>Opaque</td>
+<td><code>getOpaque</code> / <code>setOpaque</code></td>
+<td>可见性保证、排序弱于 volatile，具体见 Javadoc</td>
+</tr>
+<tr>
+<td>RMW</td>
+<td><code>compareAndSet</code>、<code>getAndAdd</code> 等</td>
+<td>原子读 - 改 - 写，方法上注明各自的内存排序</td>
+</tr>
+</tbody>
+</table>
+<p>编写并发代码时应<strong>以 Javadoc 与 JLS 为准</strong>，本节只做导读。</p>
+<hr>
+<h2 id="五-java-8-之后的发展时间线"><a class="markdownIt-Anchor" href="#五-java-8-之后的发展时间线"></a> 五、Java 8 之后的发展时间线</h2>
+<h3 id="51-java-8-及以前"><a class="markdownIt-Anchor" href="#51-java-8-及以前"></a> 5.1 Java 8 及以前</h3>
+<ul>
+<li><strong>无 <code>VarHandle</code></strong>。</li>
+<li>并发原子操作用 <strong><code>java.util.concurrent.atomic</code></strong>、<strong>Unsafe</strong>（内部）、或 <strong><code>synchronized</code> / <code>volatile</code></strong>。</li>
+</ul>
+<h3 id="52-java-9jep-193varhandle-首次发布"><a class="markdownIt-Anchor" href="#52-java-9jep-193varhandle-首次发布"></a> 5.2 Java 9：JEP 193，VarHandle 首次发布</h3>
+<ul>
+<li><strong><code>java.lang.invoke.VarHandle</code></strong> 与配套 Lookup API。</li>
+<li>覆盖实例 / 静态字段、数组元素等；提供上述多类访问模式与 fence、<code>reachabilityFence</code>。</li>
+<li>为后续 <strong>JUC、JDK 内部逐步替换 Unsafe 字段访问</strong> 打下基础。</li>
+</ul>
+<h3 id="53-java-11位运算原子-api-内部广泛使用"><a class="markdownIt-Anchor" href="#53-java-11位运算原子-api-内部广泛使用"></a> 5.3 Java 11：位运算原子 API + 内部广泛使用</h3>
+<ul>
+<li>VarHandle 增加 <strong><code>getAndBitwiseOr</code> / <code>And</code> / <code>Xor</code></strong> 及带 <strong>Acquire/Release</strong> 语义的变体，以及按位相关的单比特操作等（具体以当前 JDK <code>VarHandle</code> Javadoc 列举为准），更贴近硬件上的原子位操作能力。</li>
+<li><strong>AbstractQueuedSynchronizer（AQS）</strong> 等对<strong>同步状态</strong>的 CAS 等实现，迁移到以 <strong>VarHandle</strong> 实现原子更新（如 <strong>JDK-8149644</strong> 一类变更），减少对 <code>Unsafe</code> 的依赖，<strong>应用层 <code>ReentrantLock</code> 等 API 不变</strong>。</li>
+</ul>
+<h3 id="54-java-12-及以后"><a class="markdownIt-Anchor" href="#54-java-12-及以后"></a> 5.4 Java 12 及以后</h3>
+<ul>
+<li><code>VarHandle</code> 作为稳定 API，随版本补充文档与小改进；<strong>核心模型仍是 JEP 193 + Java 11 的位运算扩展</strong>。</li>
+<li>应用层若未使用新增方法，一般无需改代码。</li>
+<li>与 <strong>Foreign Memory / Panama（如 <code>MemorySegment</code>）</strong> 等走的是另一套 API（不同 JEP），和 “堆内字段上的 VarHandle” 互补而不是替代关系。</li>
+</ul>
+<h3 id="55-小结表"><a class="markdownIt-Anchor" href="#55-小结表"></a> 5.5 小结表</h3>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>与 VarHandle 相关的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>≤ 8</strong></td>
+<td>无 VarHandle</td>
+</tr>
+<tr>
+<td><strong>9</strong></td>
+<td>JEP 193：VarHandle 与全套基础访问模式</td>
+</tr>
+<tr>
+<td><strong>11</strong></td>
+<td>位运算类原子方法；AQS 等内部改用 VarHandle</td>
+</tr>
+<tr>
+<td><strong>12+</strong></td>
+<td>持续维护；与 Panama 等并存</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="六-简单示例getandadd"><a class="markdownIt-Anchor" href="#六-简单示例getandadd"></a> 六、简单示例：getAndAdd</h2>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.invoke.MethodHandles;</span><br><span class="line"><span class="keyword">import</span> java.lang.invoke.VarHandle;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CounterHolder</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">long</span> counter;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> VarHandle COUNTER;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            COUNTER = MethodHandles.lookup()</span><br><span class="line">                .findVarHandle(CounterHolder.class, <span class="string">"counter"</span>, <span class="type">long</span>.class);</span><br><span class="line">        } <span class="keyword">catch</span> (ReflectiveOperationException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ExceptionInInitializerError</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">increment</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">return</span> (<span class="type">long</span>) COUNTER.getAndAdd(<span class="built_in">this</span>, <span class="number">1L</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>（生产环境可继续优先用 <strong><code>AtomicLong</code></strong>；VarHandle 更适合<strong>自定义数据结构</strong>或<strong>与现有字段布局强绑定</strong>的场景。）</p>
+<hr>
+<h2 id="七-何时用-varhandle"><a class="markdownIt-Anchor" href="#七-何时用-varhandle"></a> 七、何时用 VarHandle</h2>
+<table>
+<thead>
+<tr>
+<th>更适合 VarHandle</th>
+<th>更适合 Atomic / synchronized</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需要对<strong>现有类字段</strong>做 CAS / 有序访问且不想单独包一层原子类</td>
+<td>单一计数器、累加器等，<strong>Atomic*</strong> 更直观</td>
+</tr>
+<tr>
+<td>实现<strong>无锁数据结构</strong>、与内存排序精细控制</td>
+<td>普通互斥，<strong><code>synchronized</code></strong> 或 <strong>Lock</strong> 足够</td>
+</tr>
+<tr>
+<td>库 / 框架作者，依赖 <strong>标准 API</strong> 替代 Unsafe</td>
+<td>业务代码很少需要直接碰 VarHandle</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="八-小结"><a class="markdownIt-Anchor" href="#八-小结"></a> 八、小结</h2>
+<ul>
+<li><strong>VarHandle 自 Java 9 起存在</strong>，不是 Java 8 的 API；Java 8 之后的发展即 <strong>9 起引入、11 增强位运算与 JDK 内部迁移</strong>。</li>
+<li>它提供<strong>类型安全、有 JMM 语义说明</strong>的字段 / 元素原子与有序访问，是 <strong><code>Unsafe</code> 字段操作</strong> 的标准替代方向之一。</li>
+<li><strong>Java 11</strong> 在 VarHandle 上扩展了<strong>按位原子</strong>能力，并推动 <strong>AQS</strong> 等核心类用 VarHandle 实现状态更新；之后版本以<strong>稳定演进</strong>为主。</li>
+<li>日常业务优先 <strong><code>java.util.concurrent</code></strong> 与 <strong><code>synchronized</code></strong>；<strong>VarHandle</strong> 面向需要<strong>精细内存语义</strong>或 <strong>JDK / 框架级</strong> 实现的场景。</li>
+</ul>
 
       
     </div>
@@ -395,7 +1643,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -404,6 +1652,10 @@
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
           <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
         </span>
     </span>
 
@@ -577,144 +1829,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-21-strategy/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-21-strategy/" class="post-title-link" itemprop="url">设计模式（二十一）策略模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="策略模式strategy"><a class="markdownIt-Anchor" href="#策略模式strategy"></a> 策略模式（Strategy）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>策略模式</strong>定义一系列算法，将每个算法封装起来并使它们可互换；策略使算法独立于使用它的客户而变化。</p>
-<p><strong>解决的问题</strong>：同一类问题有多种解法（如多种排序、多种支付、多种校验），若用 if-else 堆砌会难以扩展；把每种解法抽成独立策略类，客户依赖策略接口，运行时注入不同实现即可切换。</p>
-<p><strong>定义</strong>：定义一系列算法，把它们一个个封装起来，并且使它们可以相互替换；策略模式使算法独立于使用它的客户。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Strategy</strong>：策略接口，定义算法方法（如 execute (data)）。</li>
-<li><strong>ConcreteStrategy</strong>：具体策略，实现不同算法。</li>
-<li><strong>Context</strong>：上下文，持有 Strategy，将客户请求委托给当前策略；可在构造或 setter 中注入策略。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Strategy</span> { <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Add</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a + b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Multiply</span> <span class="keyword">implements</span> <span class="title class_">Strategy</span> {</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> a * b; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Context</span> {</span><br><span class="line">    <span class="keyword">private</span> Strategy strategy;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrategy</span><span class="params">(Strategy s)</span> { <span class="built_in">this</span>.strategy = s; }</span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">execute</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> { <span class="keyword">return</span> strategy.compute(a, b); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>ResourceLoader / 资源加载策略</strong>：根据 URL 前缀（file:、classpath:、http:）选择不同 Resource 实现，可视为 “按前缀选择加载策略”；Spring 内置多种 Resource 实现，由 ResourceLoader 路由。</li>
-<li><strong>AOP 代理策略</strong>：JdkDynamicAopProxy 与 Cglib2AopProxy 是两种 “生成代理” 的策略，根据目标是否实现接口选择其一。</li>
-<li><strong>PlatformTransactionManager 与具体实现</strong>：事务管理是抽象，DataSourceTransactionManager、HibernateTransactionManager 等是不同策略，由配置或自动装配决定使用哪种。</li>
-<li><strong>MessageConverter</strong>：HTTP 消息的序列化 / 反序列化有多种策略（JSON、XML 等），根据 Content-Type 或配置选择不同 Converter。</li>
-<li><strong>CacheManager</strong>：缓存抽象，Redis、Caffeine、Simple 等是不同策略，通过配置切换。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>多种算法 / 规则可替换</strong>：如支付（微信/支付宝/银联）、运费计算（按重量/按体积/固定）、折扣（满减/会员价/券），每种一种策略，便于新增与测试。</li>
-<li><strong>多数据源 / 多协议</strong>：根据配置或路由键选择不同数据源、不同 RPC 协议，客户只依赖 “获取连接 / 发请求” 的接口。</li>
-<li><strong>多格式解析 / 序列化</strong>：同一业务数据支持 JSON/XML/二进制等多种格式，每种格式一个策略。</li>
-<li><strong>多验证规则</strong>：校验逻辑有多种（格式、黑名单、风控），可组合或按场景选不同策略。</li>
-<li><strong>多通知渠道</strong>：发送通知支持短信/邮件/站内信/推送，每种渠道一个策略，由配置或业务选择。</li>
-</ul>
-<p><strong>不适用</strong>：算法唯一或很少变化时，直接实现即可。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>策略模式通过 “策略接口 + 多种实现 + 上下文委托” 使算法可替换、易扩展；Spring 中 <strong>ResourceLoader</strong>、<strong>AOP 代理选择</strong>、<strong>事务管理器</strong>、<strong>MessageConverter</strong>、<strong>CacheManager</strong> 都是策略思想的体现。业务上适用于<strong>多种支付/计算/校验、多数据源/多协议、多格式、多通知渠道</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java25-features-summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -751,7 +1865,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -760,6 +1874,10 @@
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
           <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
         </span>
     </span>
 
@@ -944,7 +2062,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -953,6 +2071,10 @@
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
           <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java/%E6%96%B0%E7%89%88%E6%9C%AC%E7%89%B9%E6%80%A7/" itemprop="url" rel="index"><span itemprop="name">新版本特性</span></a>
         </span>
     </span>
 
@@ -1218,7 +2340,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1495,7 +2617,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-03 14:51:52" itemprop="dateModified" datetime="2026-03-03T14:51:52+08:00">2026-03-03</time>
+      <time title="修改时间：2026-03-27 15:19:37" itemprop="dateModified" datetime="2026-03-27T15:19:37+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1773,13 +2895,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">96k</span>
+    <span title="站点总字数">106k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:27</span>
+    <span title="站点阅读时长">1:36</span>
   </span>
 </div>
 <div class="busuanzi-count">

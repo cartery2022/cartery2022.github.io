@@ -22,31 +22,29 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="ReentrantLock 详解与 Java 8 之后版本相关改动 本文说明 ReentrantLock 的定位、与 synchronized 的差异、核心 API、底层与 AbstractQueuedSynchronizer（AQS） 的关系，以及 Java 8 之后各版本 与可重入锁相关的实现与生态变化（VarHandle、AQS 内部实现、虚拟线程与 “锁” 等）。   一、Reentra">
+    <meta name="description" content="ReentrantLock 详解与 JDK 演进 本文说明 ReentrantLock 的定位、与 synchronized 的差异、核心 API、底层与 AbstractQueuedSynchronizer（AQS） 的关系，以及与实现、运行环境相关的版本演进（均以 Java 8 为叙述起点：该类早于 Java 8 已存在，不再向前追溯）。   一、ReentrantLock 是什么 Reen">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ReentrantLock 详解与 Java 8 之后版本相关改动">
+<meta property="og:title" content="ReentrantLock 详解与 JDK 演进">
 <meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/index.html">
 <meta property="og:site_name" content="贝加尔湖畔">
-<meta property="og:description" content="ReentrantLock 详解与 Java 8 之后版本相关改动 本文说明 ReentrantLock 的定位、与 synchronized 的差异、核心 API、底层与 AbstractQueuedSynchronizer（AQS） 的关系，以及 Java 8 之后各版本 与可重入锁相关的实现与生态变化（VarHandle、AQS 内部实现、虚拟线程与 “锁” 等）。   一、Reentra">
+<meta property="og:description" content="ReentrantLock 详解与 JDK 演进 本文说明 ReentrantLock 的定位、与 synchronized 的差异、核心 API、底层与 AbstractQueuedSynchronizer（AQS） 的关系，以及与实现、运行环境相关的版本演进（均以 Java 8 为叙述起点：该类早于 Java 8 已存在，不再向前追溯）。   一、ReentrantLock 是什么 Reen">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-27T07:25:43.733Z">
+<meta property="article:modified_time" content="2026-03-27T07:42:13.775Z">
 <meta property="article:author" content="cartery">
-<meta property="article:tag" content="AQS">
 <meta property="article:tag" content="ReentrantLock">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="并发">
-<meta property="article:tag" content="虚拟线程">
 <meta name="twitter:card" content="summary">
 
 
 <link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/","path":"2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/","title":"ReentrantLock 详解与 Java 8 之后版本相关改动"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/","path":"2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/","title":"ReentrantLock 详解与 JDK 演进"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>ReentrantLock 详解与 Java 8 之后版本相关改动 | 贝加尔湖畔</title>
+<title>ReentrantLock 详解与 JDK 演进 | 贝加尔湖畔</title>
   
 
 
@@ -182,7 +180,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#reentrantlock-%E8%AF%A6%E8%A7%A3%E4%B8%8E-java-8-%E4%B9%8B%E5%90%8E%E7%89%88%E6%9C%AC%E7%9B%B8%E5%85%B3%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> ReentrantLock 详解与 Java 8 之后版本相关改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-reentrantlock-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、ReentrantLock 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E4%B8%8E-synchronized-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、与 synchronized 的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E6%A0%B8%E5%BF%83-api-%E7%94%A8%E6%B3%95"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、核心 API 用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E6%A0%87%E5%87%86%E5%86%99%E6%B3%95"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 标准写法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E5%8F%AF%E4%B8%AD%E6%96%AD%E8%8E%B7%E5%8F%96"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 可中断获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-%E5%B0%9D%E8%AF%95%E4%B8%8E%E5%AE%9A%E6%97%B6%E8%8E%B7%E5%8F%96"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 尝试与定时获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#34-condition%E5%A4%9A%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85"><span class="nav-number">1.3.4.</span> <span class="nav-text"> 3.4 Condition（多条件等待）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E7%AE%80%E8%BF%B0aqs"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、实现原理简述（AQS）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-java-8-%E4%B9%8B%E5%90%8E%E4%B8%8E-reentrantlock-%E7%9B%B8%E5%85%B3%E7%9A%84%E6%94%B9%E5%8A%A8"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、Java 8 之后与 ReentrantLock 相关的改动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-9varhandlejep-193%E9%93%BA%E5%A5%BD%E5%BA%95%E5%B1%82%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 9：VarHandle（JEP 193）铺好底层基础设施</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-11aqs-%E7%AD%89%E5%90%8C%E6%AD%A5%E5%99%A8%E5%86%85%E9%83%A8%E8%BF%81%E7%A7%BB%E5%88%B0-varhandlejdk-8149644-%E7%AD%89"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 11：AQS 等同步器内部迁移到 VarHandle（JDK-8149644 等）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-java-8-%E5%B7%B2%E5%AD%98%E5%9C%A8-%E5%B8%B8%E4%B8%8E-reentrantlock-%E5%AF%B9%E6%AF%94%E7%9A%84-apistampedlock"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 Java 8 已存在、常与 ReentrantLock 对比的 API：StampedLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#54-java-21%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8Bjep-444%E4%B8%8E%E9%94%81"><span class="nav-number">1.5.4.</span> <span class="nav-text"> 5.4 Java 21：虚拟线程（JEP 444）与锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#55-%E5%B0%8F%E7%BB%93%E8%A1%A8%E5%AF%B9%E5%BA%94%E7%94%A8%E4%BB%A3%E7%A0%81%E7%9A%84%E5%90%AB%E4%B9%89"><span class="nav-number">1.5.5.</span> <span class="nav-text"> 5.5 小结表（对应用代码的含义）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E5%AE%9E%E8%B7%B5%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、实践注意点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、小结</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#reentrantlock-%E8%AF%A6%E8%A7%A3%E4%B8%8E-jdk-%E6%BC%94%E8%BF%9B"><span class="nav-number">1.</span> <span class="nav-text"> ReentrantLock 详解与 JDK 演进</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-reentrantlock-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、ReentrantLock 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E4%B8%8E-synchronized-%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、与 synchronized 的对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E6%A0%B8%E5%BF%83-api-%E7%94%A8%E6%B3%95"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、核心 API 用法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E6%A0%87%E5%87%86%E5%86%99%E6%B3%95"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 标准写法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E5%8F%AF%E4%B8%AD%E6%96%AD%E8%8E%B7%E5%8F%96"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 可中断获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-%E5%B0%9D%E8%AF%95%E4%B8%8E%E5%AE%9A%E6%97%B6%E8%8E%B7%E5%8F%96"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 尝试与定时获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#34-condition%E5%A4%9A%E6%9D%A1%E4%BB%B6%E7%AD%89%E5%BE%85"><span class="nav-number">1.3.4.</span> <span class="nav-text"> 3.4 Condition（多条件等待）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E6%BA%90%E7%A0%81%E8%B5%B0%E8%AF%BBopenjdk-%E4%B8%BB%E5%B9%B2"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、源码走读（OpenJDK 主干）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-%E7%B1%BB%E5%B1%82%E6%AC%A1%E4%B8%8E-state"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 类层次与 state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-%E9%9D%9E%E5%85%AC%E5%B9%B3-lock%E5%85%88-cas-%E6%8A%A2%E4%B8%80%E6%AC%A1"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 非公平 lock()：先 CAS 抢一次</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-tryacquire%E5%8F%AF%E9%87%8D%E5%85%A5-%E5%85%AC%E5%B9%B3%E9%98%9F%E5%88%97%E5%88%A4%E6%96%AD"><span class="nav-number">1.4.3.</span> <span class="nav-text"> 4.3 tryAcquire：可重入 + 公平队列判断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#44-aqs-%E6%A8%A1%E6%9D%BFacquire-release-%E4%B8%8E-locksupport"><span class="nav-number">1.4.4.</span> <span class="nav-text"> 4.4 AQS 模板：acquire &#x2F; release 与 LockSupport</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#45-state-%E7%9A%84-cas-%E5%AE%9E%E7%8E%B0%E4%B8%8E%E5%90%8E%E6%96%87%E7%9F%A5%E8%AF%86%E7%82%B9%E6%BC%94%E5%8F%98"><span class="nav-number">1.4.5.</span> <span class="nav-text"> 4.5 state 的 CAS 实现与后文「知识点演变」</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E7%9F%A5%E8%AF%86%E7%82%B9%E6%BC%94%E5%8F%98%E8%87%AA-java-8-%E8%B5%B7%E6%8C%89%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、知识点演变（自 Java 8 起按时间顺序）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-8"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 8</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-9"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 9</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-java-11"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 Java 11</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#54-java-12~15"><span class="nav-number">1.5.4.</span> <span class="nav-text"> 5.4 Java 12～15</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#55-java-21"><span class="nav-number">1.5.5.</span> <span class="nav-text"> 5.5 Java 21</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#56-jdk-24-%E5%8F%8A%E4%BB%A5%E5%90%8E"><span class="nav-number">1.5.6.</span> <span class="nav-text"> 5.6 JDK 24 及以后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#57-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.5.7.</span> <span class="nav-text"> 5.7 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E5%AE%9E%E8%B7%B5%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、实践注意点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、小结</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -206,7 +204,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-count">59</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -246,12 +244,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="ReentrantLock 详解与 Java 8 之后版本相关改动 | 贝加尔湖畔">
+      <meta itemprop="name" content="ReentrantLock 详解与 JDK 演进 | 贝加尔湖畔">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          ReentrantLock 详解与 Java 8 之后版本相关改动
+          ReentrantLock 详解与 JDK 演进
         </h1>
 
         <div class="post-meta-container">
@@ -269,7 +267,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -298,14 +296,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.5k</span>
+      <span>4.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>3 分钟</span>
+      <span>4 分钟</span>
     </span>
 </div>
 
@@ -315,8 +313,8 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="reentrantlock-详解与-java-8-之后版本相关改动"><a class="markdownIt-Anchor" href="#reentrantlock-详解与-java-8-之后版本相关改动"></a> ReentrantLock 详解与 Java 8 之后版本相关改动</h1>
-<p>本文说明 <strong>ReentrantLock</strong> 的定位、与 <code>synchronized</code> 的差异、核心 API、底层与 <strong>AbstractQueuedSynchronizer（AQS）</strong> 的关系，以及 <strong>Java 8 之后各版本</strong> 与可重入锁相关的实现与生态变化（VarHandle、AQS 内部实现、虚拟线程与 “锁” 等）。</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="reentrantlock-详解与-jdk-演进"><a class="markdownIt-Anchor" href="#reentrantlock-详解与-jdk-演进"></a> ReentrantLock 详解与 JDK 演进</h1>
+<p>本文说明 <strong>ReentrantLock</strong> 的定位、与 <code>synchronized</code> 的差异、核心 API、底层与 <strong>AbstractQueuedSynchronizer（AQS）</strong> 的关系，以及<strong>与实现、运行环境相关</strong>的版本演进（均以 <strong>Java 8 为叙述起点</strong>：该类早于 Java 8 已存在，不再向前追溯）。</p>
 <hr>
 <h2 id="一-reentrantlock-是什么"><a class="markdownIt-Anchor" href="#一-reentrantlock-是什么"></a> 一、ReentrantLock 是什么</h2>
 <p><code>ReentrantLock</code> 位于 <code>java.util.concurrent.locks</code> 包，实现 <code>Lock</code> 接口，提供<strong>可重入的互斥锁</strong>：</p>
@@ -382,65 +380,99 @@
 <h3 id="34-condition多条件等待"><a class="markdownIt-Anchor" href="#34-condition多条件等待"></a> 3.4 Condition（多条件等待）</h3>
 <figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line"><span class="type">Condition</span> <span class="variable">notEmpty</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line"><span class="type">Condition</span> <span class="variable">notFull</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line"></span><br><span class="line">lock.lock();</span><br><span class="line"><span class="keyword">try</span> {</span><br><span class="line">    <span class="keyword">while</span> (queue.isEmpty()) notEmpty.await();</span><br><span class="line">    <span class="comment">// 取元素</span></span><br><span class="line">    notFull.signal();</span><br><span class="line">} <span class="keyword">finally</span> {</span><br><span class="line">    lock.unlock();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
-<h2 id="四-实现原理简述aqs"><a class="markdownIt-Anchor" href="#四-实现原理简述aqs"></a> 四、实现原理简述（AQS）</h2>
+<h2 id="四-源码走读openjdk-主干"><a class="markdownIt-Anchor" href="#四-源码走读openjdk-主干"></a> 四、源码走读（OpenJDK 主干）</h2>
+<p>以下与 <strong><code>java.util.concurrent.locks.ReentrantLock</code></strong>、<code>NonfairSync</code> / <code>FairSync</code>、<strong><code>AbstractQueuedSynchronizer</code></strong> 的公开源码结构一致，便于把 API 与实现对应起来（具体行号随 JDK 版本略有差异）。</p>
+<h3 id="41-类层次与-state"><a class="markdownIt-Anchor" href="#41-类层次与-state"></a> 4.1 类层次与 <code>state</code></h3>
 <ul>
-<li><code>ReentrantLock</code> 内部有一个 <code>Sync</code> 继承 <strong>AQS</strong>，用 <strong>state</strong> 表示重入次数：首次获取为 1，同线程再次 <code>lock</code> 则 <code>state++</code>，<code>unlock</code> 时 <code>state--</code>，到 0 才真正释放。</li>
-<li><strong>非公平</strong>：新来的线程可能插队抢锁（在实现允许的情况下），减少上下文切换，通常更快。</li>
-<li><strong>公平</strong>：先检查队列中是否有等待者，尝试减少 “饥饿”，但吞吐量可能略低。</li>
+<li>对外 <strong><code>ReentrantLock</code></strong> 只委托内部 <strong><code>Sync extends AbstractQueuedSynchronizer</code></strong>，再分子类 <strong><code>NonfairSync</code></strong>、<strong><code>FairSync</code></strong>。</li>
+<li><strong><code>state</code>（volatile int）</strong> 在互斥锁语义下：<strong>0</strong> 表示无占用；若当前<strong>独占线程</strong>是本线程，则 <strong><code>state</code> 为重入次数</strong>（每次 <code>lock</code> 对应 <code>+1</code>，<code>unlock</code> 对应 <code>-1</code>，减到 <strong>0</strong> 才完全释放）。</li>
 </ul>
-<p>AQS 使用 <strong>CAS</strong> 更新状态、<strong>CLH 变体队列</strong> 管理等待节点，阻塞时使用 <code>LockSupport.park</code>，唤醒用 <code>unpark</code>。这些在 Java 8 及以后大方向一致，<strong>JDK 内部的具体原子实现</strong>在 8 之后有演进（见下节）。</p>
+<h3 id="42-非公平-lock先-cas-抢一次"><a class="markdownIt-Anchor" href="#42-非公平-lock先-cas-抢一次"></a> 4.2 非公平 <code>lock()</code>：先 CAS 抢一次</h3>
+<p><code>NonfairSync.lock()</code> 里典型顺序是：若 <strong><code>compareAndSetState(0, 1)</code></strong> 成功，则 <strong><code>setExclusiveOwnerThread(Thread.currentThread())</code></strong> 并返回；否则走 <strong><code>acquire(1)</code></strong>。这就是 “新来的线程<strong>可能插队</strong>” 的来源 —— 在未入队前就有机会直接拿到锁，减少 <strong><code>park</code></strong> / 上下文切换。</p>
+<p>公平锁的 <code>FairSync.lock()</code> 通常直接 <strong><code>acquire(1)</code></strong>，把是否允许抢锁交给 <strong><code>tryAcquire</code></strong>（见下）。</p>
+<h3 id="43-tryacquire可重入-公平队列判断"><a class="markdownIt-Anchor" href="#43-tryacquire可重入-公平队列判断"></a> 4.3 <code>tryAcquire</code>：可重入 + 公平队列判断</h3>
+<p>公平与否的差异集中在 <strong><code>tryAcquire(int acquires)</code></strong>。公平版在 <code>state == 0</code> 时会先 <strong><code>hasQueuedPredecessors()</code></strong>：若同步队列里已有更早等待的节点，则<strong>不 CAS</strong>，避免饥饿；非公平版在 <code>state == 0</code> 时往往<strong>直接 CAS</strong>。<br>
+两版在 <strong><code>current == getExclusiveOwnerThread()</code></strong> 时都做 <strong><code>setState(c + acquires)</code></strong>，实现<strong>可重入</strong>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// FairSync.tryAcquire —— 逻辑结构与 OpenJDK 一致（省略溢出检查细节）</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="type">boolean</span> <span class="title function_">tryAcquire</span><span class="params">(<span class="type">int</span> acquires)</span> {</span><br><span class="line">    <span class="keyword">final</span> <span class="type">Thread</span> <span class="variable">current</span> <span class="operator">=</span> Thread.currentThread();</span><br><span class="line">    <span class="type">int</span> <span class="variable">c</span> <span class="operator">=</span> getState();</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="number">0</span>) {</span><br><span class="line">        <span class="keyword">if</span> (!hasQueuedPredecessors() &amp;&amp; compareAndSetState(<span class="number">0</span>, acquires)) {</span><br><span class="line">            setExclusiveOwnerThread(current);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        }</span><br><span class="line">    } <span class="keyword">else</span> <span class="keyword">if</span> (current == getExclusiveOwnerThread()) {</span><br><span class="line">        <span class="type">int</span> <span class="variable">nextc</span> <span class="operator">=</span> c + acquires;</span><br><span class="line">        <span class="keyword">if</span> (nextc &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">"Maximum lock count exceeded"</span>);</span><br><span class="line">        setState(nextc);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h3 id="44-aqs-模板acquire-release-与-locksupport"><a class="markdownIt-Anchor" href="#44-aqs-模板acquire-release-与-locksupport"></a> 4.4 AQS 模板：<code>acquire</code> / <code>release</code> 与 <code>LockSupport</code></h3>
+<p><code>tryAcquire</code> 失败则进入 AQS 的公共路径：<strong>入队、自旋再 <code>park</code>、被释放方 <code>unpark</code></strong>。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AbstractQueuedSynchronizer</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">acquire</span><span class="params">(<span class="type">int</span> arg)</span> {</span><br><span class="line">    <span class="keyword">if</span> (!tryAcquire(arg) &amp;&amp;</span><br><span class="line">        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))</span><br><span class="line">        selfInterrupt();</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<ul>
+<li><strong><code>addWaiter</code></strong>：当前线程封装为 <strong><code>Node</code></strong>，挂到 <strong>CLH 风格双向 FIFO 队列</strong>。</li>
+<li><strong><code>acquireQueued</code></strong>：在队列中按需自旋尝试 <code>tryAcquire</code>，失败后 <strong><code>LockSupport.park</code></strong>。</li>
+</ul>
+<p>释放时 <strong><code>unlock()</code></strong> → <strong><code>release(1)</code></strong>：子类 <strong><code>tryRelease</code></strong> 把 <code>state</code> 减到 0 并 <strong><code>setExclusiveOwnerThread(null)</code></strong> 返回 true 后，AQS 调用 <strong><code>unparkSuccessor</code></strong> 唤醒后继。</p>
+<h3 id="45-state-的-cas-实现与后文知识点演变"><a class="markdownIt-Anchor" href="#45-state-的-cas-实现与后文知识点演变"></a> 4.5 <code>state</code> 的 CAS 实现与后文「知识点演变」</h3>
+<p><strong><code>compareAndSetState</code> / <code>getState</code> / <code>setState</code></strong> 在较早 JDK 中常基于 <strong>Unsafe</strong>，自 <strong>Java 11</strong> 起在 AQS 内普遍改为 <strong><code>VarHandle</code></strong>，<strong>对外语义不变</strong>。下节按版本说明这些演进。</p>
 <hr>
-<h2 id="五-java-8-之后与-reentrantlock-相关的改动"><a class="markdownIt-Anchor" href="#五-java-8-之后与-reentrantlock-相关的改动"></a> 五、Java 8 之后与 ReentrantLock 相关的改动</h2>
-<p>下面区分：<strong>对外 API</strong> 与 <strong>JVM / JUC 内部实现</strong>，以及与 <strong>虚拟线程</strong> 的关系。</p>
-<h3 id="51-java-9varhandlejep-193铺好底层基础设施"><a class="markdownIt-Anchor" href="#51-java-9varhandlejep-193铺好底层基础设施"></a> 5.1 Java 9：VarHandle（JEP 193）铺好底层基础设施</h3>
+<h2 id="五-知识点演变自-java-8-起按时间顺序"><a class="markdownIt-Anchor" href="#五-知识点演变自-java-8-起按时间顺序"></a> 五、知识点演变（自 Java 8 起按时间顺序）</h2>
+<p><code>ReentrantLock</code> / AQS 早于 Java 8 已存在；读者侧约定从 <strong>Java 8</strong> 起按版本发布时间顺序叙述，不向前追溯。</p>
+<h3 id="51-java-8"><a class="markdownIt-Anchor" href="#51-java-8"></a> 5.1 Java 8</h3>
 <ul>
-<li>Java 9 引入 <strong>VarHandle</strong>，提供类型安全、规范化的字段/数组/静态变量的细粒度访问（含 volatile、CAS 等），旨在替代部分 <strong>sun.misc.Unsafe</strong> 用法。</li>
-<li><strong><code>ReentrantLock</code> 的公开 API 在 Java 9 未做破坏性变更</strong>；变化主要在 JUC 底层逐步采用更规范的内存访问原语。</li>
+<li><strong>公开 API</strong>：<code>lock</code> / <code>tryLock</code> / <code>lockInterruptibly</code>、<code>Condition</code>、<code>公平/非公平</code> 等与当今用法一致，可视为稳定基线。</li>
+<li><strong>并列 API</strong>：<strong>StampedLock</strong>（读写 + 乐观读，<strong>不可重入</strong>、无 <code>Condition</code>），与 <code>ReentrantLock</code> 场景互补。</li>
+<li><strong>底层</strong>：AQS 的 <code>state</code> 仍多依赖 <strong>Unsafe</strong> 等路径做 CAS（实现细节随版本而变）。</li>
 </ul>
-<h3 id="52-java-11aqs-等同步器内部迁移到-varhandlejdk-8149644-等"><a class="markdownIt-Anchor" href="#52-java-11aqs-等同步器内部迁移到-varhandlejdk-8149644-等"></a> 5.2 Java 11：AQS 等同步器内部迁移到 VarHandle（JDK-8149644 等）</h3>
+<h3 id="52-java-9"><a class="markdownIt-Anchor" href="#52-java-9"></a> 5.2 Java 9</h3>
 <ul>
-<li><strong>AbstractQueuedSynchronizer</strong> 等对 <strong>state</strong> 的 CAS、volatile 读写等，在 JDK 11 前后改为通过 <strong>VarHandle</strong> 完成，减少对 Unsafe 的直接依赖，语义更清晰，便于维护与优化。</li>
-<li>对应用开发者而言：<strong>调用方式不变</strong>，<strong>行为与内存模型语义仍与 JLS 监视器 / 锁规则一致</strong>；可能带来实现层面的性能微调，但一般无需改代码。</li>
+<li><strong>VarHandle</strong>（JEP 193）进入标准库，为后续用规范原子 API 替代部分 Unsafe 用法铺路。</li>
+<li><strong><code>ReentrantLock</code> 对外 API 无破坏性变更</strong>。</li>
 </ul>
-<h3 id="53-java-8-已存在-常与-reentrantlock-对比的-apistampedlock"><a class="markdownIt-Anchor" href="#53-java-8-已存在-常与-reentrantlock-对比的-apistampedlock"></a> 5.3 Java 8 已存在、常与 ReentrantLock 对比的 API：StampedLock</h3>
+<h3 id="53-java-11"><a class="markdownIt-Anchor" href="#53-java-11"></a> 5.3 Java 11</h3>
 <ul>
-<li><strong>StampedLock</strong>（Java 8 引入）不是 <code>ReentrantLock</code> 的替代品提供互斥的简单升级版，而是<strong>读写 + 乐观读</strong>的另一套模型；<strong>不可重入</strong>，且无 <code>Condition</code>。</li>
-<li><strong>读多写少</strong>且能接受更复杂用法时，可考虑 <code>StampedLock</code>；<strong>需要可重入或 Condition</strong> 时仍用 <code>ReentrantLock</code> / <code>ReentrantReadWriteLock</code>。</li>
+<li><strong>AQS</strong> 对 <strong><code>state</code></strong> 的访问普遍改为 <strong>VarHandle</strong>（如 JDK-8149644），减少直接依赖 <code>sun.misc.Unsafe</code>；<strong>语义与使用方式不变</strong>。</li>
 </ul>
-<h3 id="54-java-21虚拟线程jep-444与锁"><a class="markdownIt-Anchor" href="#54-java-21虚拟线程jep-444与锁"></a> 5.4 Java 21：虚拟线程（JEP 444）与锁</h3>
+<h3 id="54-java-12~15"><a class="markdownIt-Anchor" href="#54-java-12~15"></a> 5.4 Java 12～15</h3>
 <ul>
-<li><strong>虚拟线程</strong>在阻塞时（包括通过 JUC 锁等待）使用 <strong>pinning 较少</strong> 的路径时，由运行时调度到 <code>LockSupport.park</code>，可释放底层载体线程给其它虚拟线程使用。</li>
-<li><strong><code>synchronized</code> 在 JDK 21 中仍可能导致虚拟线程 “钉住”（pin）平台线程</strong>，高并发阻塞在监视器上会压缩虚拟线程优势；在虚拟线程环境下，<strong>需要长时间持锁或复杂阻塞时，更倾向使用 <code>ReentrantLock</code> 等 <code>java.util.concurrent</code> 锁</strong>，这也是官方文档与实践中常提到的差异之一。</li>
-<li><strong>JEP 491（JDK 24 起）</strong>：改进 <strong>synchronized</strong> 与虚拟线程的配合，减少 pin；<strong>不替代</strong>按需使用 <code>ReentrantLock</code> 的场景，但缩小了 “只用 JVM 监视器” 的劣势。</li>
+<li>以 <strong>AQS / 锁相关 bug 修复与实现整理</strong>为主（中断、cancel 竞态、队列一致性等），<strong>不扩展新的锁 API 模型</strong>。</li>
 </ul>
-<h3 id="55-小结表对应用代码的含义"><a class="markdownIt-Anchor" href="#55-小结表对应用代码的含义"></a> 5.5 小结表（对应用代码的含义）</h3>
+<h3 id="55-java-21"><a class="markdownIt-Anchor" href="#55-java-21"></a> 5.5 Java 21</h3>
+<ul>
+<li><strong>虚拟线程</strong>（JEP 444）：阻塞在 <strong>JUC 锁</strong>上的等待路径与运行时调度较好配合；<strong><code>synchronized</code></strong> 仍易 <strong>pin</strong> 平台线程，高压场景下 <strong><code>ReentrantLock</code> 与短临界区</strong> 常被优先讨论。</li>
+</ul>
+<h3 id="56-jdk-24-及以后"><a class="markdownIt-Anchor" href="#56-jdk-24-及以后"></a> 5.6 JDK 24 及以后</h3>
+<ul>
+<li><strong>JEP 491</strong>：改进 <strong><code>synchronized</code> 与虚拟线程</strong>的配合，减轻 pin；与是否继续使用 <code>ReentrantLock</code> 的架构选择并行存在。</li>
+</ul>
+<h3 id="57-小结表"><a class="markdownIt-Anchor" href="#57-小结表"></a> 5.7 小结表</h3>
 <table>
 <thead>
 <tr>
-<th>版本区间</th>
-<th>与 ReentrantLock 最相关的内容</th>
+<th>顺序</th>
+<th>版本</th>
+<th>要点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td>①</td>
 <td><strong>Java 8</strong></td>
-<td>API 形态稳定；与 <code>StampedLock</code> 并存</td>
+<td>API 基线；<code>StampedLock</code> 并存</td>
 </tr>
 <tr>
+<td>②</td>
 <td><strong>Java 9</strong></td>
-<td>VarHandle 引入，为后续 JUC 内部改写奠基</td>
+<td>VarHandle 基础设施</td>
 </tr>
 <tr>
+<td>③</td>
 <td><strong>Java 11</strong></td>
-<td>AQS 等内部广泛使用 VarHandle，<strong>API 不变</strong></td>
+<td>AQS <code>state</code> 等走 VarHandle</td>
 </tr>
 <tr>
+<td>④</td>
+<td><strong>12～15</strong></td>
+<td>正确性为主的小步修复</td>
+</tr>
+<tr>
+<td>⑤</td>
 <td><strong>Java 21</strong></td>
-<td>虚拟线程：<strong>JUC 锁</strong>与 <code>synchronized</code> 对虚拟线程的友好度差异需纳入设计</td>
+<td>虚拟线程与锁选型</td>
 </tr>
 <tr>
-<td><strong>JDK 24+</strong></td>
-<td><code>synchronized</code> 与虚拟线程行为改进（JEP 491），策略上可多评估是否仍需显式 Lock</td>
+<td>⑥</td>
+<td><strong>24+</strong></td>
+<td><code>synchronized</code> 与虚拟线程改进（JEP 491）</td>
 </tr>
 </tbody>
 </table>
@@ -455,7 +487,7 @@
 </ol>
 <hr>
 <h2 id="七-小结"><a class="markdownIt-Anchor" href="#七-小结"></a> 七、小结</h2>
-<p><strong>ReentrantLock</strong> 提供可重入互斥、可中断与定时获取、多 <code>Condition</code>，底层由 <strong>AQS</strong> 实现。Java 8 之后<strong>公开 API 保持稳定</strong>；<strong>Java 9–11</strong> 一代主要改进是 <strong>VarHandle 与 AQS 内部实现</strong>；<strong>Java 21+</strong> 在<strong>虚拟线程</strong>场景下，<code>ReentrantLock</code> 等 JUC 锁与 <code>synchronized</code> 的取舍成为架构关注点；<strong>JDK 24+</strong> 通过 <strong>JEP 491</strong> 缓解 <code>synchronized</code> 与虚拟线程的 pin 问题。掌握显式锁的用法与这些演进，有助于写出更安全、可维护的并发代码。</p>
+<p><strong>ReentrantLock</strong> 提供可重入互斥、可中断与定时获取、多 <code>Condition</code>，底层由 <strong>AQS</strong> 实现。自 <strong>Java 8</strong> 起对外 API 已稳定；随后 <strong>9～11</strong> 主要是 <strong>AQS 用 VarHandle 管理状态</strong> 等实现层变化；<strong>21</strong> 起 <strong>虚拟线程</strong> 使 JUC 锁与 <code>synchronized</code> 的选型更受关注；<strong>24+</strong> 的 <strong>JEP 491</strong> 改善了 <code>synchronized</code> 与虚拟线程的配合。写作顺序上：以 Java 8 为起点，按版本递增理解即可。</p>
 
     </div>
 
@@ -466,23 +498,21 @@
     <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/java/" rel="tag"># java</a>
-              <a href="/tags/AQS/" rel="tag"># AQS</a>
               <a href="/tags/%E5%B9%B6%E5%8F%91/" rel="tag"># 并发</a>
               <a href="/tags/ReentrantLock/" rel="tag"># ReentrantLock</a>
-              <a href="/tags/%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B/" rel="tag"># 虚拟线程</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-serialization-compare-scenarios/" rel="prev" title="Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景">
-                  <i class="fa fa-angle-left"></i> Java 序列化对比 —— 官方 Serializable 与常见三方库的优缺点与适用场景
+                <a href="/2025/03/01/2025-03-02-java-serializable-implementation/" rel="prev" title="Java 标准库 Serializable 整体实现流程（源码与示例）">
+                  <i class="fa fa-angle-left"></i> Java 标准库 Serializable 整体实现流程（源码与示例）
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-design-pattern-23-visitor/" rel="next" title="设计模式（二十三）访问者模式 — 详解、Spring 运用与业务场景">
-                  设计模式（二十三）访问者模式 — 详解、Spring 运用与业务场景 <i class="fa fa-angle-right"></i>
+                <a href="/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/" rel="next" title="Java 动态代理原理与 Java 9+ 改动">
+                  Java 动态代理原理与 Java 9+ 改动 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -514,13 +544,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">106k</span>
+    <span title="站点总字数">110k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:36</span>
+    <span title="站点阅读时长">1:40</span>
   </span>
 </div>
 <div class="busuanzi-count">

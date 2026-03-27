@@ -22,15 +22,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景，并单独梳理 Java 9 及以后版本 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。   一、三者关系与定位    类 可变性 线程">
+    <meta name="description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景；第五节「知识点演变」 自 Java 8 起按时间顺序说明存储与编译策略的演进（含 Java 9 紧凑字符串与 invokedynamic 拼接等）。   一、三">
 <meta property="og:type" content="article">
 <meta property="og:title" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动">
 <meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/index.html">
 <meta property="og:site_name" content="贝加尔湖畔">
-<meta property="og:description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景，并单独梳理 Java 9 及以后版本 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。   一、三者关系与定位    类 可变性 线程">
+<meta property="og:description" content="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 本文从 JDK 源码出发，说明 String、StringBuffer、StringBuilder 三者的实现结构、核心逻辑与使用场景；第五节「知识点演变」 自 Java 8 起按时间顺序说明存储与编译策略的演进（含 Java 9 紧凑字符串与 invokedynamic 拼接等）。   一、三">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-27T07:25:43.734Z">
+<meta property="article:modified_time" content="2026-03-27T07:42:13.775Z">
 <meta property="article:author" content="cartery">
 <meta property="article:tag" content="String">
 <meta property="article:tag" content="StringBuffer">
@@ -182,7 +182,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#string-stringbuffer-stringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%B8%89%E8%80%85%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%AE%9A%E4%BD%8D"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、三者关系与定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-string-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、String 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E5%B8%B8%E7%94%A8%E6%9E%84%E9%80%A0%E4%B8%8E-lengthcodepoint"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 常用构造与 length &#x2F; codePoint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#23-%E4%B8%8D%E5%8F%AF%E5%8F%98%E4%B8%8E%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">1.2.3.</span> <span class="nav-text"> 2.3 不可变与常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#24-string-%E7%9A%84-hashcode-%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%94%A8%E7%9A%84"><span class="nav-number">1.2.4.</span> <span class="nav-text"> 2.4 String 的 hashCode 是干什么用的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-abstractstringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、AbstractStringBuilder 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E5%88%9D%E5%A7%8B%E5%AE%B9%E9%87%8F%E4%B8%8E%E6%89%A9%E5%AE%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 初始容量与扩容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-append-insert-delete"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 append &#x2F; insert &#x2F; delete</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-stringbuffer-%E4%B8%8E-stringbuilder-%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、StringBuffer 与 StringBuilder 的差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-java-9-%E5%8F%8A%E4%BB%A5%E5%90%8E%E5%AF%B9%E4%B8%89%E8%80%85%E7%9A%84%E6%94%B9%E5%8A%A8%E6%B1%87%E6%80%BB"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、Java 9 及以后对三者的改动汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-%E7%B4%A7%E5%87%91%E5%AD%97%E7%AC%A6%E4%B8%B2jep-254-string-abstractstringbuilder-%E5%9D%87%E5%8F%97%E7%9B%8A"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%8B%BC%E6%8E%A5%E7%BC%96%E8%AF%91%E6%96%B9%E5%BC%8Fjep-280-indify-string-concatenation"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-%E5%90%8E%E7%BB%AD%E7%89%88%E6%9C%AC%E4%B8%AD%E7%9A%84%E5%B0%8F%E8%A1%A5%E5%85%85"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 后续版本中的小补充</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE%E4%B8%8E%E5%B0%8F%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、使用建议与小结</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#string-stringbuffer-stringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%B8%89%E8%80%85%E5%85%B3%E7%B3%BB%E4%B8%8E%E5%AE%9A%E4%BD%8D"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、三者关系与定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-string-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、String 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-%E5%B8%B8%E7%94%A8%E6%9E%84%E9%80%A0%E4%B8%8E-lengthcodepoint"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 常用构造与 length &#x2F; codePoint</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#23-%E4%B8%8D%E5%8F%AF%E5%8F%98%E4%B8%8E%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">1.2.3.</span> <span class="nav-text"> 2.3 不可变与常量池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#24-string-%E7%9A%84-hashcode-%E6%98%AF%E5%B9%B2%E4%BB%80%E4%B9%88%E7%94%A8%E7%9A%84"><span class="nav-number">1.2.4.</span> <span class="nav-text"> 2.4 String 的 hashCode 是干什么用的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#25-hashcode-%E6%BA%90%E7%A0%81%E9%AA%A8%E6%9E%B6java-9"><span class="nav-number">1.2.5.</span> <span class="nav-text"> 2.5 hashCode() 源码骨架（Java 9+）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-abstractstringbuilder-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、AbstractStringBuilder 源码解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#31-%E5%86%85%E9%83%A8%E5%AD%98%E5%82%A8java-8-vs-java-9"><span class="nav-number">1.3.1.</span> <span class="nav-text"> 3.1 内部存储（Java 8 vs Java 9+）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-%E5%88%9D%E5%A7%8B%E5%AE%B9%E9%87%8F%E4%B8%8E%E6%89%A9%E5%AE%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text"> 3.2 初始容量与扩容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-append-insert-delete"><span class="nav-number">1.3.3.</span> <span class="nav-text"> 3.3 append &#x2F; insert &#x2F; delete</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#34-appendstring-%E6%BA%90%E7%A0%81%E4%B8%BB%E5%B9%B2%E4%B8%8E-openjdk-%E4%B8%80%E8%87%B4"><span class="nav-number">1.3.4.</span> <span class="nav-text"> 3.4 append(String) 源码主干（与 OpenJDK 一致）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-stringbuffer-%E4%B8%8E-stringbuilder-%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、StringBuffer 与 StringBuilder 的差异</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E7%9F%A5%E8%AF%86%E7%82%B9%E6%BC%94%E5%8F%98%E8%87%AA-java-8-%E8%B5%B7%E6%8C%89%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、知识点演变（自 Java 8 起按时间顺序）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-8%E5%9F%BA%E7%BA%BF"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 8（基线）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-9"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 9</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-java-11"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 Java 11</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#54-java-17"><span class="nav-number">1.5.4.</span> <span class="nav-text"> 5.4 Java 17</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#55-java-19"><span class="nav-number">1.5.5.</span> <span class="nav-text"> 5.5 Java 19</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#56-java-21"><span class="nav-number">1.5.6.</span> <span class="nav-text"> 5.6 Java 21</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#57-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.5.7.</span> <span class="nav-text"> 5.7 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE%E4%B8%8E%E5%B0%8F%E7%BB%93"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、使用建议与小结</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -206,7 +206,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-count">59</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -269,7 +269,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -298,7 +298,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>5.1k</span>
+      <span>6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -316,7 +316,7 @@
     
     
     <div class="post-body" itemprop="articleBody"><h1 id="string-stringbuffer-stringbuilder-源码解读与-java-9-改动"><a class="markdownIt-Anchor" href="#string-stringbuffer-stringbuilder-源码解读与-java-9-改动"></a> String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动</h1>
-<p>本文从 JDK 源码出发，说明 <strong>String</strong>、<strong>StringBuffer</strong>、<strong>StringBuilder</strong> 三者的实现结构、核心逻辑与使用场景，并单独梳理 <strong>Java 9 及以后版本</strong> 对这三类的改动（紧凑字符串、byte [] 存储、字符串拼接编译方式等）。</p>
+<p>本文从 JDK 源码出发，说明 <strong>String</strong>、<strong>StringBuffer</strong>、<strong>StringBuilder</strong> 三者的实现结构、核心逻辑与使用场景；<strong>第五节「知识点演变」</strong> 自 <strong>Java 8</strong> 起按时间顺序说明存储与编译策略的演进（含 <strong>Java 9</strong> 紧凑字符串与 invokedynamic 拼接等）。</p>
 <hr>
 <h2 id="一-三者关系与定位"><a class="markdownIt-Anchor" href="#一-三者关系与定位"></a> 一、三者关系与定位</h2>
 <table>
@@ -403,6 +403,10 @@
 <li>同一个 String 常会多次参与 HashMap 的 put / get，缓存能明显减少重复计算。</li>
 </ul>
 <p><strong>一句话</strong>：String 的 hashCode 用于在 HashMap、HashSet 等容器里<strong>快速定位和比较</strong>“是不是同一个字符串”；<code>hash</code> 字段用来<strong>缓存</strong>这个值，因为字符串不可变，算一次即可。</p>
+<h3 id="25-hashcode-源码骨架java-9"><a class="markdownIt-Anchor" href="#25-hashcode-源码骨架java-9"></a> 2.5 <code>hashCode()</code> 源码骨架（Java 9+）</h3>
+<p>与 <strong>Compact Strings</strong> 对齐：<code>hash</code> 仍为 <strong>0 表示未缓存</strong>；实际计算按 <strong><code>coder</code></strong> 委托给 <strong><code>StringLatin1</code></strong> 或 <strong><code>StringUTF16</code></strong> 的静态方法（遍历 <strong>byte[]</strong> 上逻辑字符，公式仍为 <strong><code>h = 31 * h + c</code></strong> 的推广）。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// String.hashCode() —— 与 OpenJDK 主干一致的思想（略去具体辅助方法名）</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">hashCode</span><span class="params">()</span> {</span><br><span class="line">    <span class="type">int</span> <span class="variable">h</span> <span class="operator">=</span> hash;</span><br><span class="line">    <span class="keyword">if</span> (h == <span class="number">0</span> &amp;&amp; !isEmpty()) {</span><br><span class="line">        hash = h = isLatin1()</span><br><span class="line">            ? StringLatin1.hashCode(value)</span><br><span class="line">            : StringUTF16.hashCode(value);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> h;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong><code>equals</code> 依赖 <code>coder</code> + 字节级比较</strong>：两串 <strong><code>coder</code> 相同</strong>时直接比较 <strong><code>value</code></strong>；若一 <strong>Latin-1</strong> 一 <strong>UTF-16</strong>，则需按码点对齐比较（源码中有对应分支）。</p>
 <hr>
 <h2 id="三-abstractstringbuilder-源码解读"><a class="markdownIt-Anchor" href="#三-abstractstringbuilder-源码解读"></a> 三、AbstractStringBuilder 源码解读</h2>
 <p><code>StringBuffer</code> 和 <code>StringBuilder</code> 的公共逻辑都在 <strong>AbstractStringBuilder</strong> 中。</p>
@@ -435,6 +439,10 @@
 <li><strong>insert / delete</strong>：同样先保证容量，再移动区间内元素，更新 count。</li>
 <li>若传入 null，通常当作 <code>"null"</code> 字符串处理（appendNull）。</li>
 </ul>
+<h3 id="34-appendstring-源码主干与-openjdk-一致"><a class="markdownIt-Anchor" href="#34-appendstring-源码主干与-openjdk-一致"></a> 3.4 <code>append(String)</code> 源码主干（与 OpenJDK 一致）</h3>
+<p>逻辑三步：<strong>判空 → 按 <code>count + len</code> 扩容 → 按当前 <code>coder</code> 把 <code>str</code> 写入 <code>value</code></strong>。Java 9+ 中写操作会落在 <strong><code>StringLatin1</code> / <code>StringUTF16</code></strong> 或 <strong><code>putStringAt</code></strong> 一类私有方法上，必要时对 <strong><code>str</code> 做解压或混合编码</strong>，保证本 builder 与 <strong><code>String</code> 的 coder 约定</strong>一致。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> AbstractStringBuilder <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="keyword">if</span> (str == <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">return</span> appendNull();</span><br><span class="line">    <span class="type">int</span> <span class="variable">len</span> <span class="operator">=</span> str.length();</span><br><span class="line">    ensureCapacityInternal(count + len);</span><br><span class="line">    putStringAt(count, str);   <span class="comment">// 内部按 coder 将 str 拷入 value</span></span><br><span class="line">    count += len;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong><code>ensureCapacityInternal</code> → <code>newCapacity</code></strong>：容量不足时 <strong><code>Arrays.copyOf</code></strong> 到更大 <strong>byte[]</strong>（长度按字符数 × 每字符字节数换算），再执行 <strong><code>putStringAt</code></strong>。<strong><code>StringBuilder.append</code> 无锁</strong>；<strong><code>StringBuffer.append</code> 对整段方法 <code>synchronized</code></strong>，再 <strong><code>super.append</code></strong>。</p>
 <hr>
 <h2 id="四-stringbuffer-与-stringbuilder-的差异"><a class="markdownIt-Anchor" href="#四-stringbuffer-与-stringbuilder-的差异"></a> 四、StringBuffer 与 StringBuilder 的差异</h2>
 <p>两者都继承 AbstractStringBuilder，<strong>API 完全一致</strong>，区别只有 <strong>线程安全</strong>：</p>
@@ -444,46 +452,77 @@
 </ul>
 <figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// StringBuffer 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> StringBuffer <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// StringBuilder 典型方法（简化）</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> StringBuilder <span class="title function_">append</span><span class="params">(String str)</span> {</span><br><span class="line">    <span class="built_in">super</span>.append(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">this</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
-<h2 id="五-java-9-及以后对三者的改动汇总"><a class="markdownIt-Anchor" href="#五-java-9-及以后对三者的改动汇总"></a> 五、Java 9 及以后对三者的改动汇总</h2>
-<h3 id="51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"><a class="markdownIt-Anchor" href="#51-紧凑字符串jep-254-string-abstractstringbuilder-均受益"></a> 5.1 紧凑字符串（JEP 254）—— String、AbstractStringBuilder 均受益</h3>
+<h2 id="五-知识点演变自-java-8-起按时间顺序"><a class="markdownIt-Anchor" href="#五-知识点演变自-java-8-起按时间顺序"></a> 五、知识点演变（自 Java 8 起按时间顺序）</h2>
+<p>String / AbstractStringBuilder 早于 Java 8 已存在；本节从 <strong>Java 8</strong> 起按版本发布时间叙述存储与编译策略的变化，不向前追溯。</p>
+<h3 id="51-java-8基线"><a class="markdownIt-Anchor" href="#51-java-8基线"></a> 5.1 Java 8（基线）</h3>
+<ul>
+<li><strong>String</strong>：<code>char[] value</code>，每码元 <strong>2 字节</strong>；字面量与 <code>intern</code> 走常量池。</li>
+<li><strong>AbstractStringBuilder / StringBuffer / StringBuilder</strong>：可变 <code>char[]</code>，扩容 <strong>×2+2</strong>。</li>
+<li><strong><code>"a" + b + "c"</code></strong>：编译为 <strong>显式 StringBuilder</strong> 链（new → append → <code>toString()</code>）。</li>
+</ul>
+<h3 id="52-java-9"><a class="markdownIt-Anchor" href="#52-java-9"></a> 5.2 Java 9</h3>
+<ul>
+<li><strong>JEP 254 Compact Strings</strong>：String 与 AbstractStringBuilder 改为 <strong><code>byte[]</code> + <code>coder</code></strong>（Latin-1 时 1 字节 / 字符），<strong>不可变 / 可变语义不变</strong>。</li>
+<li><strong>JEP 280（Indify String Concatenation）</strong>：<code>'+'</code> 拼接改为 <strong>invokedynamic</strong>（如 <code>makeConcatWithConstants</code>），字节码更简洁，运行时可继续优化。</li>
+</ul>
+<h3 id="53-java-11"><a class="markdownIt-Anchor" href="#53-java-11"></a> 5.3 Java 11</h3>
+<ul>
+<li>String 增加 <strong>isBlank()、strip()、repeat()、lines()</strong> 等，实现基于 <strong>byte[]+coder</strong>。</li>
+</ul>
+<h3 id="54-java-17"><a class="markdownIt-Anchor" href="#54-java-17"></a> 5.4 Java 17</h3>
+<ul>
+<li><strong>String.format</strong> 等实现优化，性能提升（具体以发行说明为准）。</li>
+</ul>
+<h3 id="55-java-19"><a class="markdownIt-Anchor" href="#55-java-19"></a> 5.5 Java 19</h3>
+<ul>
+<li>修复部分版本（约 <strong>11～18</strong>）上 invokedynamic 拼接在 <strong>求值 / 转字符串顺序</strong> 上与旧行为不一致的问题。</li>
+</ul>
+<h3 id="56-java-21"><a class="markdownIt-Anchor" href="#56-java-21"></a> 5.6 Java 21</h3>
+<ul>
+<li><strong>字符串模板</strong>（JEP 430，预览阶段以当时 JDK 为准）提供新的构建方式；<strong>String 构造器</strong> 对可变数组参数的拷贝与健壮性增强，避免调用方事后改数组影响内容。</li>
+</ul>
+<h3 id="57-小结表"><a class="markdownIt-Anchor" href="#57-小结表"></a> 5.7 小结表</h3>
 <table>
 <thead>
 <tr>
-<th>项目</th>
-<th>Java 8</th>
-<th>Java 9+</th>
+<th>顺序</th>
+<th>版本</th>
+<th>要点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>String</strong></td>
-<td><code>char[] value</code>，2 字节 / 字符</td>
-<td><code>byte[] value</code> + <code>byte coder</code>，LATIN1 时 1 字节 / 字符</td>
+<td>①</td>
+<td><strong>Java 8</strong></td>
+<td><code>char[]</code>；<code>+</code> → StringBuilder</td>
 </tr>
 <tr>
-<td><strong>AbstractStringBuilder</strong>（及 StringBuffer / StringBuilder）</td>
-<td><code>char[] value</code></td>
-<td><code>byte[] value</code> + <code>byte coder</code></td>
+<td>②</td>
+<td><strong>Java 9</strong></td>
+<td>紧凑字符串；<code>+</code> → invokedynamic</td>
+</tr>
+<tr>
+<td>③</td>
+<td><strong>Java 11</strong></td>
+<td>isBlank、strip 等 API</td>
+</tr>
+<tr>
+<td>④</td>
+<td><strong>Java 17</strong></td>
+<td>format 等优化</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td><strong>Java 19</strong></td>
+<td>拼接求值顺序 bug 修复</td>
+</tr>
+<tr>
+<td>⑥</td>
+<td><strong>Java 21</strong></td>
+<td>模板预览；构造器健壮性</td>
 </tr>
 </tbody>
 </table>
-<ul>
-<li><strong>动机</strong>：大量字符串只含 Latin-1 字符，堆上 String 占比高，改为按需 1 字节 / 字符可显著 <strong>降低内存与 GC 压力</strong>。</li>
-<li><strong>对 StringBuffer / StringBuilder</strong>：内部存储与 String 统一，转换与拷贝时无需再在 char [] 与 byte [] 间多做转换，实现更一致。</li>
-</ul>
-<h3 id="52-字符串拼接编译方式jep-280-indify-string-concatenation"><a class="markdownIt-Anchor" href="#52-字符串拼接编译方式jep-280-indify-string-concatenation"></a> 5.2 字符串拼接编译方式（JEP 280 Indify String Concatenation）</h3>
-<ul>
-<li><strong>Java 8 及以前</strong>：<code>"a" + b + "c"</code> 编译为 <strong>显式 StringBuilder</strong>：new StringBuilder → 多次 append → toString ()。</li>
-<li><strong>Java 9+</strong>：改为 <strong>invokedynamic</strong>（如 <code>makeConcatWithConstants</code>），由 JVM 在运行时选择拼接策略（可优化为直接使用 byte []、避免中间 StringBuilder 等），<strong>字节码更简洁</strong>，且未来可继续优化而无需重新编译应用。</li>
-<li><strong>注意</strong>：早期版本（如 Java 11–18）存在 “先求值再转字符串” 的顺序与旧行为不一致的 bug，<strong>Java 19 已修复</strong>。</li>
-</ul>
-<p>这主要影响 <strong>编译期</strong> 对 <code>+</code> 拼接的翻译，不改变 String / StringBuilder 的公开 API，但运行时生成的实现会随 JDK 版本演进。</p>
-<h3 id="53-后续版本中的小补充"><a class="markdownIt-Anchor" href="#53-后续版本中的小补充"></a> 5.3 后续版本中的小补充</h3>
-<ul>
-<li><strong>Java 11</strong>：String 增加 <strong>isBlank()、strip()、repeat()、lines()</strong> 等，内部实现基于 byte []+coder。</li>
-<li><strong>Java 17</strong>：<strong>String.format()</strong> 等实现有优化，性能有提升。</li>
-<li><strong>Java 21</strong>：<strong>字符串模板</strong>（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 <strong>可变数组参数</strong> 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。</li>
-</ul>
 <hr>
 <h2 id="六-使用建议与小结"><a class="markdownIt-Anchor" href="#六-使用建议与小结"></a> 六、使用建议与小结</h2>
 <table>
@@ -517,7 +556,7 @@
 <li><strong>String</strong>：不可变，Java 9+ 用 byte []+coder 做紧凑存储；所有 “修改” 都是新对象。</li>
 <li><strong>AbstractStringBuilder</strong>：可变，Java 9+ 同样 byte []+coder，扩容规则 *2 + 2，与 String 编码一致。</li>
 <li><strong>StringBuffer</strong> = AbstractStringBuilder + synchronized；<strong>StringBuilder</strong> = AbstractStringBuilder，无同步。</li>
-<li><strong>Java 9+</strong>：三者存储统一为 byte []+coder（Compact Strings），字符串 <code>+</code> 的编译从 StringBuilder 链式调用改为 invokedynamic，后续版本继续在 format、构造器、模板等方面做增强。</li>
+<li><strong>自 Java 9 起</strong>：存储统一为 byte []+coder；<code>+</code> 走 invokedynamic；其后 <strong>11 / 17 / 19 / 21</strong> 分别在 API、format、拼接语义修复、模板与构造器等方面演进（见第五节）。</li>
 </ul>
 
     </div>
@@ -528,8 +567,8 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="tag"># 源码解读</a>
               <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="tag"># 源码解读</a>
               <a href="/tags/String/" rel="tag"># String</a>
               <a href="/tags/StringBuilder/" rel="tag"># StringBuilder</a>
               <a href="/tags/StringBuffer/" rel="tag"># StringBuffer</a>
@@ -539,13 +578,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-dynamic-proxy-and-java9-changes/" rel="prev" title="Java 动态代理原理与 Java 9+ 改动">
-                  <i class="fa fa-angle-left"></i> Java 动态代理原理与 Java 9+ 改动
+                <a href="/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/" rel="prev" title="VarHandle 详解与 JDK 演进">
+                  <i class="fa fa-angle-left"></i> VarHandle 详解与 JDK 演进
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-spi-spring-cross-project/" rel="next" title="SPI 机制与跨项目实现（含 Spring 与完整示例）">
-                  SPI 机制与跨项目实现（含 Spring 与完整示例） <i class="fa fa-angle-right"></i>
+                <a href="/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/" rel="next" title="Java 线程池知识点与 Java 9+ 改动">
+                  Java 线程池知识点与 Java 9+ 改动 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -577,13 +616,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">106k</span>
+    <span title="站点总字数">110k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:36</span>
+    <span title="站点阅读时长">1:40</span>
   </span>
 </div>
 <div class="busuanzi-count">

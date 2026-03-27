@@ -22,15 +22,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"cartery2022.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.27.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"mac"},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":true,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":"giscus","storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
 
-    <meta name="description" content="VarHandle 详解与 Java 8 之后的发展 说明：VarHandle 在 Java 9 才通过 JEP 193 正式引入标准库。Java 8 及以前没有 VarHandle；本文先讲 VarHandle 是什么、怎么用，再按时间线说明 Java 9 起 的能力扩展与在 JDK 内部的落地。   一、为什么会出现 VarHandle 在 VarHandle 之前，若要对普通对象的字段或数">
+    <meta name="description" content="VarHandle 详解与 JDK 演进 说明：VarHandle 在 Java 9（JEP 193）才进入标准库，此前无对应 API；本文先讲其用途与用法，知识点演变从 Java 9 起按时间顺序叙述（不单独以 Java 8 为起点）。   一、为什么会出现 VarHandle 在 VarHandle 之前，若要对普通对象的字段或数组元素做带顺序语义的读 &#x2F; 写、compareAndSet、g">
 <meta property="og:type" content="article">
-<meta property="og:title" content="VarHandle 详解与 Java 8 之后的发展">
+<meta property="og:title" content="VarHandle 详解与 JDK 演进">
 <meta property="og:url" content="https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/index.html">
 <meta property="og:site_name" content="贝加尔湖畔">
-<meta property="og:description" content="VarHandle 详解与 Java 8 之后的发展 说明：VarHandle 在 Java 9 才通过 JEP 193 正式引入标准库。Java 8 及以前没有 VarHandle；本文先讲 VarHandle 是什么、怎么用，再按时间线说明 Java 9 起 的能力扩展与在 JDK 内部的落地。   一、为什么会出现 VarHandle 在 VarHandle 之前，若要对普通对象的字段或数">
+<meta property="og:description" content="VarHandle 详解与 JDK 演进 说明：VarHandle 在 Java 9（JEP 193）才进入标准库，此前无对应 API；本文先讲其用途与用法，知识点演变从 Java 9 起按时间顺序叙述（不单独以 Java 8 为起点）。   一、为什么会出现 VarHandle 在 VarHandle 之前，若要对普通对象的字段或数组元素做带顺序语义的读 &#x2F; 写、compareAndSet、g">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-27T07:25:43.734Z">
+<meta property="article:modified_time" content="2026-03-27T07:42:13.775Z">
 <meta property="article:author" content="cartery">
 <meta property="article:tag" content="VarHandle">
 <meta property="article:tag" content="java">
@@ -42,10 +42,10 @@
 <link rel="canonical" href="https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/","path":"2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/","title":"VarHandle 详解与 Java 8 之后的发展"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://cartery2022.github.io/2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/","path":"2025/03/01/2025-03-02-java-varhandle-and-post-jdk8/","title":"VarHandle 详解与 JDK 演进"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>VarHandle 详解与 Java 8 之后的发展 | 贝加尔湖畔</title>
+<title>VarHandle 详解与 JDK 演进 | 贝加尔湖畔</title>
   
 
 
@@ -181,7 +181,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#varhandle-%E8%AF%A6%E8%A7%A3%E4%B8%8E-java-8-%E4%B9%8B%E5%90%8E%E7%9A%84%E5%8F%91%E5%B1%95"><span class="nav-number">1.</span> <span class="nav-text"> VarHandle 详解与 Java 8 之后的发展</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0-varhandle"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、为什么会出现 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-varhandle-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、VarHandle 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-varhandle"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、如何获取 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E8%AE%BF%E9%97%AE%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89%E6%A6%82%E5%BF%B5"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、访问模式与内存语义（概念）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-java-8-%E4%B9%8B%E5%90%8E%E7%9A%84%E5%8F%91%E5%B1%95%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、Java 8 之后的发展时间线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-8-%E5%8F%8A%E4%BB%A5%E5%89%8D"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 8 及以前</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-9jep-193varhandle-%E9%A6%96%E6%AC%A1%E5%8F%91%E5%B8%83"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 9：JEP 193，VarHandle 首次发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-java-11%E4%BD%8D%E8%BF%90%E7%AE%97%E5%8E%9F%E5%AD%90-api-%E5%86%85%E9%83%A8%E5%B9%BF%E6%B3%9B%E4%BD%BF%E7%94%A8"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 Java 11：位运算原子 API + 内部广泛使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#54-java-12-%E5%8F%8A%E4%BB%A5%E5%90%8E"><span class="nav-number">1.5.4.</span> <span class="nav-text"> 5.4 Java 12 及以后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#55-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.5.5.</span> <span class="nav-text"> 5.5 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8Bgetandadd"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、简单示例：getAndAdd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E4%BD%95%E6%97%B6%E7%94%A8-varhandle"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、何时用 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.8.</span> <span class="nav-text"> 八、小结</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#varhandle-%E8%AF%A6%E8%A7%A3%E4%B8%8E-jdk-%E6%BC%94%E8%BF%9B"><span class="nav-number">1.</span> <span class="nav-text"> VarHandle 详解与 JDK 演进</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E5%87%BA%E7%8E%B0-varhandle"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、为什么会出现 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-varhandle-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、VarHandle 是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-varhandle"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、如何获取 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E8%AE%BF%E9%97%AE%E6%A8%A1%E5%BC%8F%E4%B8%8E%E5%86%85%E5%AD%98%E8%AF%AD%E4%B9%89%E6%A6%82%E5%BF%B5"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、访问模式与内存语义（概念）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-%E6%BA%90%E7%A0%81%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%97%B6lookup-%E7%AD%BE%E5%90%8D%E5%A4%9A%E6%80%81-intrinsic"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 源码与运行时：Lookup、签名多态、intrinsic</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E7%9F%A5%E8%AF%86%E7%82%B9%E6%BC%94%E5%8F%98%E8%87%AA-java-9-%E8%B5%B7%E6%8C%89%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、知识点演变（自 Java 9 起按时间顺序）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-9jep-193%E9%A6%96%E6%AC%A1%E5%8F%91%E5%B8%83"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 9：JEP 193，首次发布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-11%E4%BD%8D%E8%BF%90%E7%AE%97%E5%8E%9F%E5%AD%90-api-aqs-%E7%AD%89%E8%90%BD%E5%9C%B0-varhandle"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 11：位运算原子 API + AQS 等落地 VarHandle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-java-12-%E5%8F%8A%E4%BB%A5%E5%90%8E"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 Java 12 及以后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#54-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.5.4.</span> <span class="nav-text"> 5.4 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8Bgetandadd"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、简单示例：getAndAdd</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E4%BD%95%E6%97%B6%E7%94%A8-varhandle"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、何时用 VarHandle</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.8.</span> <span class="nav-text"> 八、小结</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -205,7 +205,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-count">59</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -245,12 +245,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="VarHandle 详解与 Java 8 之后的发展 | 贝加尔湖畔">
+      <meta itemprop="name" content="VarHandle 详解与 JDK 演进 | 贝加尔湖畔">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          VarHandle 详解与 Java 8 之后的发展
+          VarHandle 详解与 JDK 演进
         </h1>
 
         <div class="post-meta-container">
@@ -268,7 +268,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -297,7 +297,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.7k</span>
+      <span>3.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -314,8 +314,8 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="varhandle-详解与-java-8-之后的发展"><a class="markdownIt-Anchor" href="#varhandle-详解与-java-8-之后的发展"></a> VarHandle 详解与 Java 8 之后的发展</h1>
-<p><strong>说明</strong>：<code>VarHandle</code> 在 <strong>Java 9</strong> 才通过 <strong>JEP 193</strong> 正式引入标准库。<strong>Java 8 及以前没有 <code>VarHandle</code></strong>；本文先讲 VarHandle 是什么、怎么用，再按时间线说明 <strong>Java 9 起</strong> 的能力扩展与在 JDK 内部的落地。</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="varhandle-详解与-jdk-演进"><a class="markdownIt-Anchor" href="#varhandle-详解与-jdk-演进"></a> VarHandle 详解与 JDK 演进</h1>
+<p><strong>说明</strong>：<code>VarHandle</code> 在 <strong>Java 9</strong>（JEP 193）才进入标准库，<strong>此前无对应 API</strong>；本文先讲其用途与用法，<strong>知识点演变从 Java 9 起按时间顺序</strong>叙述（不单独以 Java 8 为起点）。</p>
 <hr>
 <h2 id="一-为什么会出现-varhandle"><a class="markdownIt-Anchor" href="#一-为什么会出现-varhandle"></a> 一、为什么会出现 VarHandle</h2>
 <p>在 VarHandle 之前，若要对<strong>普通对象的字段</strong>或<strong>数组元素</strong>做带顺序语义的读 / 写、<code>compareAndSet</code>、<code>getAndAdd</code> 等操作，常见做法是：</p>
@@ -393,54 +393,51 @@
 </tbody>
 </table>
 <p>编写并发代码时应<strong>以 Javadoc 与 JLS 为准</strong>，本节只做导读。</p>
+<h3 id="41-源码与运行时lookup-签名多态-intrinsic"><a class="markdownIt-Anchor" href="#41-源码与运行时lookup-签名多态-intrinsic"></a> 4.1 源码与运行时：<code>Lookup</code>、签名多态、intrinsic</h3>
+<p><strong><code>findVarHandle</code> / <code>arrayElementVarHandle</code></strong> 在 <strong><code>java.lang.invoke</code></strong> 中解析访问目标并构造 <strong><code>VarHandle</code></strong>（字段或数组元素的<strong>布局与权限</strong>在句柄创建时即定死）。</p>
+<p><code>VarHandle</code> 的 <strong><code>get</code>、<code>set</code>、<code>compareAndSet</code></strong> 等为 <strong><code>@MethodHandle.PolymorphicSignature</code></strong>：编译器按实参类型生成 <strong><code>invokeExact</code> 约定</strong>下的 <code>invoke</code>，<strong>不必</strong>为每种类型单独声明一套方法。</p>
+<p>JVM 将 <strong>AccessMode</strong> 映射到 <strong>内存排序</strong>；HotSpot 可对 <strong><code>compareAndSet</code>、<code>getVolatile</code></strong> 等做 <strong>intrinsic</strong>，与历史上 <strong>Unsafe</strong> CAS 同级。</p>
 <hr>
-<h2 id="五-java-8-之后的发展时间线"><a class="markdownIt-Anchor" href="#五-java-8-之后的发展时间线"></a> 五、Java 8 之后的发展时间线</h2>
-<h3 id="51-java-8-及以前"><a class="markdownIt-Anchor" href="#51-java-8-及以前"></a> 5.1 Java 8 及以前</h3>
+<h2 id="五-知识点演变自-java-9-起按时间顺序"><a class="markdownIt-Anchor" href="#五-知识点演变自-java-9-起按时间顺序"></a> 五、知识点演变（自 Java 9 起按时间顺序）</h2>
+<h3 id="51-java-9jep-193首次发布"><a class="markdownIt-Anchor" href="#51-java-9jep-193首次发布"></a> 5.1 Java 9：JEP 193，首次发布</h3>
 <ul>
-<li><strong>无 <code>VarHandle</code></strong>。</li>
-<li>并发原子操作用 <strong><code>java.util.concurrent.atomic</code></strong>、<strong>Unsafe</strong>（内部）、或 <strong><code>synchronized</code> / <code>volatile</code></strong>。</li>
+<li>引入 <strong><code>java.lang.invoke.VarHandle</code></strong> 与配套 <strong>Lookup</strong> API。</li>
+<li>覆盖实例 / 静态字段、数组元素等；提供多类访问模式与 fence、<code>reachabilityFence</code>。</li>
+<li>为 <strong>JUC / JDK 内部逐步替换 Unsafe 字段访问</strong> 打下基础。</li>
 </ul>
-<h3 id="52-java-9jep-193varhandle-首次发布"><a class="markdownIt-Anchor" href="#52-java-9jep-193varhandle-首次发布"></a> 5.2 Java 9：JEP 193，VarHandle 首次发布</h3>
+<h3 id="52-java-11位运算原子-api-aqs-等落地-varhandle"><a class="markdownIt-Anchor" href="#52-java-11位运算原子-api-aqs-等落地-varhandle"></a> 5.2 Java 11：位运算原子 API + AQS 等落地 VarHandle</h3>
 <ul>
-<li><strong><code>java.lang.invoke.VarHandle</code></strong> 与配套 Lookup API。</li>
-<li>覆盖实例 / 静态字段、数组元素等；提供上述多类访问模式与 fence、<code>reachabilityFence</code>。</li>
-<li>为后续 <strong>JUC、JDK 内部逐步替换 Unsafe 字段访问</strong> 打下基础。</li>
+<li>增加 <strong><code>getAndBitwiseOr</code> / <code>And</code> / <code>Xor</code></strong> 及 <strong>Acquire/Release</strong> 变体等（以当前 JDK Javadoc 为准）。</li>
+<li><strong>AQS</strong> 等对同步状态的 CAS 等改为以 <strong>VarHandle</strong> 实现（如 <strong>JDK-8149644</strong>），<strong><code>ReentrantLock</code> 等对外 API 不变</strong>。</li>
 </ul>
-<h3 id="53-java-11位运算原子-api-内部广泛使用"><a class="markdownIt-Anchor" href="#53-java-11位运算原子-api-内部广泛使用"></a> 5.3 Java 11：位运算原子 API + 内部广泛使用</h3>
+<h3 id="53-java-12-及以后"><a class="markdownIt-Anchor" href="#53-java-12-及以后"></a> 5.3 Java 12 及以后</h3>
 <ul>
-<li>VarHandle 增加 <strong><code>getAndBitwiseOr</code> / <code>And</code> / <code>Xor</code></strong> 及带 <strong>Acquire/Release</strong> 语义的变体，以及按位相关的单比特操作等（具体以当前 JDK <code>VarHandle</code> Javadoc 列举为准），更贴近硬件上的原子位操作能力。</li>
-<li><strong>AbstractQueuedSynchronizer（AQS）</strong> 等对<strong>同步状态</strong>的 CAS 等实现，迁移到以 <strong>VarHandle</strong> 实现原子更新（如 <strong>JDK-8149644</strong> 一类变更），减少对 <code>Unsafe</code> 的依赖，<strong>应用层 <code>ReentrantLock</code> 等 API 不变</strong>。</li>
+<li><strong>API 稳定</strong>，以小改进、文档补充为主；与 <strong>Panama / <code>MemorySegment</code></strong> 等堆外访问体系<strong>并行存在、定位不同</strong>。</li>
 </ul>
-<h3 id="54-java-12-及以后"><a class="markdownIt-Anchor" href="#54-java-12-及以后"></a> 5.4 Java 12 及以后</h3>
-<ul>
-<li><code>VarHandle</code> 作为稳定 API，随版本补充文档与小改进；<strong>核心模型仍是 JEP 193 + Java 11 的位运算扩展</strong>。</li>
-<li>应用层若未使用新增方法，一般无需改代码。</li>
-<li>与 <strong>Foreign Memory / Panama（如 <code>MemorySegment</code>）</strong> 等走的是另一套 API（不同 JEP），和 “堆内字段上的 VarHandle” 互补而不是替代关系。</li>
-</ul>
-<h3 id="55-小结表"><a class="markdownIt-Anchor" href="#55-小结表"></a> 5.5 小结表</h3>
+<h3 id="54-小结表"><a class="markdownIt-Anchor" href="#54-小结表"></a> 5.4 小结表</h3>
 <table>
 <thead>
 <tr>
+<th>顺序</th>
 <th>版本</th>
-<th>与 VarHandle 相关的内容</th>
+<th>要点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>≤ 8</strong></td>
-<td>无 VarHandle</td>
+<td>①</td>
+<td><strong>Java 9</strong></td>
+<td>JEP 193，VarHandle 与基础访问模式</td>
 </tr>
 <tr>
-<td><strong>9</strong></td>
-<td>JEP 193：VarHandle 与全套基础访问模式</td>
+<td>②</td>
+<td><strong>Java 11</strong></td>
+<td>位运算原子；AQS 等内部用 VarHandle</td>
 </tr>
 <tr>
-<td><strong>11</strong></td>
-<td>位运算类原子方法；AQS 等内部改用 VarHandle</td>
-</tr>
-<tr>
+<td>③</td>
 <td><strong>12+</strong></td>
-<td>持续维护；与 Panama 等并存</td>
+<td>维护；与 Panama 等并存</td>
 </tr>
 </tbody>
 </table>
@@ -475,9 +472,8 @@
 <hr>
 <h2 id="八-小结"><a class="markdownIt-Anchor" href="#八-小结"></a> 八、小结</h2>
 <ul>
-<li><strong>VarHandle 自 Java 9 起存在</strong>，不是 Java 8 的 API；Java 8 之后的发展即 <strong>9 起引入、11 增强位运算与 JDK 内部迁移</strong>。</li>
-<li>它提供<strong>类型安全、有 JMM 语义说明</strong>的字段 / 元素原子与有序访问，是 <strong><code>Unsafe</code> 字段操作</strong> 的标准替代方向之一。</li>
-<li><strong>Java 11</strong> 在 VarHandle 上扩展了<strong>按位原子</strong>能力，并推动 <strong>AQS</strong> 等核心类用 VarHandle 实现状态更新；之后版本以<strong>稳定演进</strong>为主。</li>
+<li><strong>VarHandle</strong> 提供<strong>类型安全、有 JMM 语义说明</strong>的字段 / 元素原子与有序访问，是 <strong><code>Unsafe</code> 字段操作</strong> 的标准替代方向之一。</li>
+<li><strong>演变顺序</strong>：<strong>Java 9</strong> 引入 → <strong>Java 11</strong> 扩展位运算原子并让 <strong>AQS</strong> 等用 VarHandle 更新状态 → <strong>12+</strong> 稳定维护并与 Panama 并存。</li>
 <li>日常业务优先 <strong><code>java.util.concurrent</code></strong> 与 <strong><code>synchronized</code></strong>；<strong>VarHandle</strong> 面向需要<strong>精细内存语义</strong>或 <strong>JDK / 框架级</strong> 实现的场景。</li>
 </ul>
 
@@ -499,13 +495,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java21-features-summary/" rel="prev" title="Java 21 新特性总结与示例">
-                  <i class="fa fa-angle-left"></i> Java 21 新特性总结与示例
+                <a href="/2025/03/01/2025-03-02-java11-features-summary/" rel="prev" title="Java 11 新特性总结与示例">
+                  <i class="fa fa-angle-left"></i> Java 11 新特性总结与示例
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java11-features-summary/" rel="next" title="Java 11 新特性总结与示例">
-                  Java 11 新特性总结与示例 <i class="fa fa-angle-right"></i>
+                <a href="/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/" rel="next" title="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动">
+                  String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -537,13 +533,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">106k</span>
+    <span title="站点总字数">110k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:36</span>
+    <span title="站点阅读时长">1:40</span>
   </span>
 </div>
 <div class="busuanzi-count">

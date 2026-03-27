@@ -196,7 +196,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-count">59</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -258,7 +258,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -391,6 +391,142 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-02-factory-method/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-02-factory-method/" class="post-title-link" itemprop="url">设计模式（二）工厂方法模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">创建型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="工厂方法模式factory-method"><a class="markdownIt-Anchor" href="#工厂方法模式factory-method"></a> 工厂方法模式（Factory Method）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>工厂方法模式</strong>定义用于创建对象的接口，由子类决定实例化哪一个类，将对象的创建延迟到子类。</p>
+<p><strong>解决的问题</strong>：避免在业务代码中直接 <code>new</code> 具体类，降低耦合，便于扩展新的产品类型。</p>
+<p><strong>定义</strong>：定义一个创建对象的接口，让子类决定实例化哪个类；工厂方法使一个类的实例化延迟到其子类。</p>
+<hr>
+<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
+<ul>
+<li><strong>Product</strong>：抽象产品（接口或抽象类）。</li>
+<li><strong>ConcreteProduct</strong>：具体产品。</li>
+<li><strong>Creator</strong>：抽象工厂，声明工厂方法（返回 Product）。</li>
+<li><strong>ConcreteCreator</strong>：具体工厂，实现工厂方法，返回 ConcreteProduct。</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Product</span> { <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ProductA</span> <span class="keyword">implements</span> <span class="title class_">Product</span> { <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span> { System.out.println(<span class="string">"A"</span>); } }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ProductB</span> <span class="keyword">implements</span> <span class="title class_">Product</span> { <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span> { System.out.println(<span class="string">"B"</span>); } }</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Creator</span> {</span><br><span class="line">    <span class="keyword">abstract</span> Product <span class="title function_">createProduct</span><span class="params">()</span>;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">Product</span> <span class="variable">p</span> <span class="operator">=</span> createProduct();</span><br><span class="line">        p.use();</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CreatorA</span> <span class="keyword">extends</span> <span class="title class_">Creator</span> {</span><br><span class="line">    Product <span class="title function_">createProduct</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ProductA</span>(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CreatorB</span> <span class="keyword">extends</span> <span class="title class_">Creator</span> {</span><br><span class="line">    Product <span class="title function_">createProduct</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ProductB</span>(); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>BeanFactory / ApplicationContext</strong>：本质是 “创建 Bean 的工厂”，<code>getBean()</code> 即工厂方法；具体创建哪种 Bean、如何构造由配置与子类 / 实现决定。</li>
+<li><strong>FactoryBean</strong>：实现 <code>FactoryBean&lt;T&gt;</code> 的 Bean，容器通过 <code>getObject()</code> 获取实际要暴露的对象，适合 “创建过程复杂、非简单 new” 的对象（如 AOP 代理、动态数据源等）。</li>
+<li><strong>@Bean 方法</strong>：在配置类中声明 <code>@Bean</code>，相当于 “工厂方法”，由 Spring 调用得到实例并纳入容器。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>同一抽象多种实现</strong>：如多种支付方式、多种存储引擎，新增实现时只需新增工厂 / 产品类，不改调用方。</li>
+<li><strong>创建逻辑复杂</strong>：对象需要多步初始化、依赖外部配置或策略时，集中到工厂方法中。</li>
+<li><strong>希望与具体类解耦</strong>：调用方只依赖抽象产品与工厂接口，便于测试与替换实现。</li>
+<li><strong>与配置 / 策略结合</strong>：根据配置或运行时条件选择不同产品实现（Spring 中常通过不同 Bean 定义或 Profile 实现）。</li>
+</ul>
+<p><strong>不适用</strong>：产品类型极少且几乎不变、创建逻辑极简单（直接 new 即可）的场景。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>工厂方法通过 “抽象工厂 + 工厂方法” 把对象创建延迟到子类，实现开闭原则；Spring 中 <strong>BeanFactory / ApplicationContext</strong> 与 <strong>FactoryBean</strong>、<strong>@Bean</strong> 都是工厂方法思想的体现。业务上适用于 “多种实现选一种、创建逻辑集中、与具体类解耦” 的场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-03-abstract-factory/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -427,7 +563,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -527,6 +663,141 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-05-prototype/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="cartery">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content=" | 贝加尔湖畔">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/03/01/2025-03-02-design-pattern-05-prototype/" class="post-title-link" itemprop="url">设计模式（五）原型模式 — 详解、Spring 运用与业务场景</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">创建型</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="原型模式prototype"><a class="markdownIt-Anchor" href="#原型模式prototype"></a> 原型模式（Prototype）</h1>
+<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
+<p><strong>原型模式</strong>用原型实例指定创建对象的种类，并通过复制该原型创建新对象。</p>
+<p><strong>解决的问题</strong>：当直接 new 成本高（如构造需大量计算或 I / O），或希望基于已有对象 “复制一份再改” 时，通过克隆避免重复初始化。</p>
+<p><strong>定义</strong>：用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
+<hr>
+<h2 id="二-结构与实现"><a class="markdownIt-Anchor" href="#二-结构与实现"></a> 二、结构与实现</h2>
+<ul>
+<li><strong>Prototype</strong>：声明克隆方法的接口（Java 中常用 <code>Cloneable</code> + <code>clone()</code>）。</li>
+<li><strong>ConcretePrototype</strong>：实现克隆逻辑；浅拷贝直接复制字段，深拷贝需递归复制引用类型。</li>
+</ul>
+<p><strong>示例（浅拷贝）</strong>：</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Document</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> {</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; paragraphs;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Document <span class="title function_">clone</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            <span class="keyword">return</span> (Document) <span class="built_in">super</span>.clone(); <span class="comment">// 浅拷贝，paragraphs 仍共享引用</span></span><br><span class="line">        } <span class="keyword">catch</span> (CloneNotSupportedException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p>深拷贝可重写 <code>clone()</code> 中对 <code>paragraphs</code> 等集合做 new 并复制元素，或使用序列化 / 拷贝构造器等方式。</p>
+<hr>
+<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
+<ul>
+<li><strong>Bean 的 scope=“prototype”</strong>：每次 <code>getBean()</code> 或注入时，容器都会<strong>新建一个实例</strong>，相当于 “根据 Bean 定义这一‘原型’复制出新对象”；与单例的 “只一份” 相对。</li>
+<li><strong>ObjectFactory / Provider 注入</strong>：获取 prototype Bean 时，通过 <code>ObjectFactory&lt;T&gt;</code> 或 <code>Provider&lt;T&gt;</code> 延迟获取，每次 <code>getObject()</code> 得到新实例，避免单例 Bean 持有 prototype 导致只拿到同一实例的问题。</li>
+<li><strong>Bean 的创建过程</strong>：容器内部根据 BeanDefinition 创建实例，可视为 “按定义原型创建”，但一般不直接实现 <code>Cloneable</code>，而是反射 / 构造器创建。</li>
+</ul>
+<hr>
+<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
+<ul>
+<li><strong>创建成本高、状态可复制</strong>：如大对象初始化慢，或从模板复制后只改少量字段（如合同、工单从模板生成）。</li>
+<li><strong>需要隔离实例状态</strong>：如每次请求 / 会话需要独立对象，避免线程或请求间共享导致并发问题，Spring 中对应 <strong>prototype 作用域</strong>。</li>
+<li><strong>撤销 / 重做、快照</strong>：保存当前状态的一份拷贝，后续可恢复或对比（需深拷贝以保证一致性）。</li>
+<li><strong>缓存与模板</strong>：从缓存中的 “模板对象” 克隆出一份再填充数据，避免污染模板。</li>
+</ul>
+<p><strong>不适用</strong>：对象无状态或创建成本很低时，用 new 或工厂即可；深拷贝成本高或引用关系复杂时需权衡。</p>
+<hr>
+<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
+<p>原型模式通过 “克隆已有对象” 创建新对象，避免重复昂贵初始化；Spring 中 <strong>prototype 作用域</strong> 与 <strong>ObjectFactory/Provider</strong> 体现了 “按需创建新实例” 的思想。业务上适用于<strong>高创建成本、需实例隔离、模板复制、快照 / 撤销</strong>等场景。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-04-builder/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -563,7 +834,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -699,7 +970,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -799,141 +1070,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-05-prototype/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-05-prototype/" class="post-title-link" itemprop="url">设计模式（五）原型模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">创建型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="原型模式prototype"><a class="markdownIt-Anchor" href="#原型模式prototype"></a> 原型模式（Prototype）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>原型模式</strong>用原型实例指定创建对象的种类，并通过复制该原型创建新对象。</p>
-<p><strong>解决的问题</strong>：当直接 new 成本高（如构造需大量计算或 I / O），或希望基于已有对象 “复制一份再改” 时，通过克隆避免重复初始化。</p>
-<p><strong>定义</strong>：用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
-<hr>
-<h2 id="二-结构与实现"><a class="markdownIt-Anchor" href="#二-结构与实现"></a> 二、结构与实现</h2>
-<ul>
-<li><strong>Prototype</strong>：声明克隆方法的接口（Java 中常用 <code>Cloneable</code> + <code>clone()</code>）。</li>
-<li><strong>ConcretePrototype</strong>：实现克隆逻辑；浅拷贝直接复制字段，深拷贝需递归复制引用类型。</li>
-</ul>
-<p><strong>示例（浅拷贝）</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Document</span> <span class="keyword">implements</span> <span class="title class_">Cloneable</span> {</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; paragraphs;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Document <span class="title function_">clone</span><span class="params">()</span> {</span><br><span class="line">        <span class="keyword">try</span> {</span><br><span class="line">            <span class="keyword">return</span> (Document) <span class="built_in">super</span>.clone(); <span class="comment">// 浅拷贝，paragraphs 仍共享引用</span></span><br><span class="line">        } <span class="keyword">catch</span> (CloneNotSupportedException e) {</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">        }</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<p>深拷贝可重写 <code>clone()</code> 中对 <code>paragraphs</code> 等集合做 new 并复制元素，或使用序列化 / 拷贝构造器等方式。</p>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>Bean 的 scope=“prototype”</strong>：每次 <code>getBean()</code> 或注入时，容器都会<strong>新建一个实例</strong>，相当于 “根据 Bean 定义这一‘原型’复制出新对象”；与单例的 “只一份” 相对。</li>
-<li><strong>ObjectFactory / Provider 注入</strong>：获取 prototype Bean 时，通过 <code>ObjectFactory&lt;T&gt;</code> 或 <code>Provider&lt;T&gt;</code> 延迟获取，每次 <code>getObject()</code> 得到新实例，避免单例 Bean 持有 prototype 导致只拿到同一实例的问题。</li>
-<li><strong>Bean 的创建过程</strong>：容器内部根据 BeanDefinition 创建实例，可视为 “按定义原型创建”，但一般不直接实现 <code>Cloneable</code>，而是反射 / 构造器创建。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>创建成本高、状态可复制</strong>：如大对象初始化慢，或从模板复制后只改少量字段（如合同、工单从模板生成）。</li>
-<li><strong>需要隔离实例状态</strong>：如每次请求 / 会话需要独立对象，避免线程或请求间共享导致并发问题，Spring 中对应 <strong>prototype 作用域</strong>。</li>
-<li><strong>撤销 / 重做、快照</strong>：保存当前状态的一份拷贝，后续可恢复或对比（需深拷贝以保证一致性）。</li>
-<li><strong>缓存与模板</strong>：从缓存中的 “模板对象” 克隆出一份再填充数据，避免污染模板。</li>
-</ul>
-<p><strong>不适用</strong>：对象无状态或创建成本很低时，用 new 或工厂即可；深拷贝成本高或引用关系复杂时需权衡。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>原型模式通过 “克隆已有对象” 创建新对象，避免重复昂贵初始化；Spring 中 <strong>prototype 作用域</strong> 与 <strong>ObjectFactory/Provider</strong> 体现了 “按需创建新实例” 的思想。业务上适用于<strong>高创建成本、需实例隔离、模板复制、快照 / 撤销</strong>等场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-07-bridge/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -970,7 +1106,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1070,142 +1206,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-02-factory-method/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="cartery">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content=" | 贝加尔湖畔">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-02-factory-method/" class="post-title-link" itemprop="url">设计模式（二）工厂方法模式 — 详解、Spring 运用与业务场景</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2025-03-02T00:00:00+08:00">2025-03-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-          ，
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">创建型</span></a>
-        </span>
-    </span>
-
-  
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>1.3k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="工厂方法模式factory-method"><a class="markdownIt-Anchor" href="#工厂方法模式factory-method"></a> 工厂方法模式（Factory Method）</h1>
-<h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>工厂方法模式</strong>定义用于创建对象的接口，由子类决定实例化哪一个类，将对象的创建延迟到子类。</p>
-<p><strong>解决的问题</strong>：避免在业务代码中直接 <code>new</code> 具体类，降低耦合，便于扩展新的产品类型。</p>
-<p><strong>定义</strong>：定义一个创建对象的接口，让子类决定实例化哪个类；工厂方法使一个类的实例化延迟到其子类。</p>
-<hr>
-<h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
-<ul>
-<li><strong>Product</strong>：抽象产品（接口或抽象类）。</li>
-<li><strong>ConcreteProduct</strong>：具体产品。</li>
-<li><strong>Creator</strong>：抽象工厂，声明工厂方法（返回 Product）。</li>
-<li><strong>ConcreteCreator</strong>：具体工厂，实现工厂方法，返回 ConcreteProduct。</li>
-</ul>
-<p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Product</span> { <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ProductA</span> <span class="keyword">implements</span> <span class="title class_">Product</span> { <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span> { System.out.println(<span class="string">"A"</span>); } }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ProductB</span> <span class="keyword">implements</span> <span class="title class_">Product</span> { <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">use</span><span class="params">()</span> { System.out.println(<span class="string">"B"</span>); } }</span><br><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Creator</span> {</span><br><span class="line">    <span class="keyword">abstract</span> Product <span class="title function_">createProduct</span><span class="params">()</span>;</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> {</span><br><span class="line">        <span class="type">Product</span> <span class="variable">p</span> <span class="operator">=</span> createProduct();</span><br><span class="line">        p.use();</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CreatorA</span> <span class="keyword">extends</span> <span class="title class_">Creator</span> {</span><br><span class="line">    Product <span class="title function_">createProduct</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ProductA</span>(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CreatorB</span> <span class="keyword">extends</span> <span class="title class_">Creator</span> {</span><br><span class="line">    Product <span class="title function_">createProduct</span><span class="params">()</span> { <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ProductB</span>(); }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-<hr>
-<h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
-<ul>
-<li><strong>BeanFactory / ApplicationContext</strong>：本质是 “创建 Bean 的工厂”，<code>getBean()</code> 即工厂方法；具体创建哪种 Bean、如何构造由配置与子类 / 实现决定。</li>
-<li><strong>FactoryBean</strong>：实现 <code>FactoryBean&lt;T&gt;</code> 的 Bean，容器通过 <code>getObject()</code> 获取实际要暴露的对象，适合 “创建过程复杂、非简单 new” 的对象（如 AOP 代理、动态数据源等）。</li>
-<li><strong>@Bean 方法</strong>：在配置类中声明 <code>@Bean</code>，相当于 “工厂方法”，由 Spring 调用得到实例并纳入容器。</li>
-</ul>
-<hr>
-<h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
-<ul>
-<li><strong>同一抽象多种实现</strong>：如多种支付方式、多种存储引擎，新增实现时只需新增工厂 / 产品类，不改调用方。</li>
-<li><strong>创建逻辑复杂</strong>：对象需要多步初始化、依赖外部配置或策略时，集中到工厂方法中。</li>
-<li><strong>希望与具体类解耦</strong>：调用方只依赖抽象产品与工厂接口，便于测试与替换实现。</li>
-<li><strong>与配置 / 策略结合</strong>：根据配置或运行时条件选择不同产品实现（Spring 中常通过不同 Bean 定义或 Profile 实现）。</li>
-</ul>
-<p><strong>不适用</strong>：产品类型极少且几乎不变、创建逻辑极简单（直接 new 即可）的场景。</p>
-<hr>
-<h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>工厂方法通过 “抽象工厂 + 工厂方法” 把对象创建延迟到子类，实现开闭原则；Spring 中 <strong>BeanFactory / ApplicationContext</strong> 与 <strong>FactoryBean</strong>、<strong>@Bean</strong> 都是工厂方法思想的体现。业务上适用于 “多种实现选一种、创建逻辑集中、与具体类解耦” 的场景。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-08-composite/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1242,7 +1242,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1342,7 +1342,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-09-decorator/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-11-flyweight/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1360,7 +1360,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-09-decorator/" class="post-title-link" itemprop="url">设计模式（九）装饰器模式 — 详解、Spring 运用与业务场景</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-11-flyweight/" class="post-title-link" itemprop="url">设计模式（十一）享元模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1378,7 +1378,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1418,41 +1418,41 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="装饰器模式decorator"><a class="markdownIt-Anchor" href="#装饰器模式decorator"></a> 装饰器模式（Decorator）</h1>
+          <h1 id="享元模式flyweight"><a class="markdownIt-Anchor" href="#享元模式flyweight"></a> 享元模式（Flyweight）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>装饰器模式</strong>动态地给对象增加职责，比继承更灵活；装饰器与被装饰对象实现同一接口，内部持有被装饰对象，在调用前后增加行为。</p>
-<p><strong>解决的问题</strong>：需要在不修改原类的前提下，为对象增加额外行为（如日志、缓存、加密）；若用继承，每种组合一个子类会爆炸，装饰器可任意叠放。</p>
-<p><strong>与代理的区别</strong>：装饰器强调 “增强、包装”，代理常强调 “控制访问、延迟”；实现上类似，都是 “实现同一接口 + 持有目标 + 前后增强”。</p>
+<p><strong>享元模式</strong>运用共享技术有效支持大量细粒度对象的复用，减少内存与对象数量。</p>
+<p><strong>解决的问题</strong>：存在大量相似对象（如相同字符、相同图标、相同配置），若每个都单独实例会占用大量内存；把 “可共享的内在状态” 与 “不可共享的外在状态” 分离，共享内在状态，外在状态由调用方传入。</p>
+<p><strong>定义</strong>：运用共享技术有效地支持大量细粒度的对象。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Component</strong>：抽象组件，被装饰对象与装饰器的共同接口。</li>
-<li><strong>ConcreteComponent</strong>：具体被装饰对象。</li>
-<li><strong>Decorator</strong>：装饰器，实现 Component 并持有 Component，通常将请求转发给被装饰对象并在前后加逻辑。</li>
-<li><strong>ConcreteDecorator</strong>：具体装饰器，增加具体职责。</li>
+<li><strong>Flyweight</strong>：享元接口，定义对外方法，方法参数中常包含 “外在状态”。</li>
+<li><strong>ConcreteFlyweight</strong>：具体享元，存储内在状态（可共享），方法中结合传入的外在状态完成行为。</li>
+<li><strong>FlyweightFactory</strong>：享元工厂，维护享元池，根据 key 返回共享实例；无则创建并缓存。</li>
+<li><strong>Client</strong>：使用享元时传入外在状态。</li>
 </ul>
 <p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Component</span> { String <span class="title function_">operation</span><span class="params">()</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteComponent</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> <span class="string">"data"</span>; }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Decorator</span> <span class="keyword">implements</span> <span class="title class_">Component</span> {</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> Component target;</span><br><span class="line">    Decorator(Component target) { <span class="built_in">this</span>.target = target; }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> { <span class="keyword">return</span> target.operation(); }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LogDecorator</span> <span class="keyword">extends</span> <span class="title class_">Decorator</span> {</span><br><span class="line">    LogDecorator(Component target) { <span class="built_in">super</span>(target); }</span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">operation</span><span class="params">()</span> {</span><br><span class="line">        System.out.println(<span class="string">"before"</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">r</span> <span class="operator">=</span> target.operation();</span><br><span class="line">        System.out.println(<span class="string">"after"</span>);</span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">Flyweight</span> { <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span>; }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ConcreteFlyweight</span> <span class="keyword">implements</span> <span class="title class_">Flyweight</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String intrinsicState;</span><br><span class="line">    ConcreteFlyweight(String intrinsicState) { <span class="built_in">this</span>.intrinsicState = intrinsicState; }</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">operation</span><span class="params">(String extrinsicState)</span> {</span><br><span class="line">        System.out.println(intrinsicState + <span class="string">", "</span> + extrinsicState);</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FlyweightFactory</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Flyweight&gt; pool = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    Flyweight <span class="title function_">get</span><span class="params">(String key)</span> {</span><br><span class="line">        <span class="keyword">return</span> pool.computeIfAbsent(key, ConcreteFlyweight::<span class="keyword">new</span>);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>TransactionAwareCacheDecorator</strong>：对 <code>Cache</code> 做装饰，在事务提交 / 回滚时再写缓存或清理，使缓存与事务语义一致。</li>
-<li><strong>BeanWrapper 与 属性编辑器</strong>：对 Bean 的包装与编辑可视为对 “对象行为” 的装饰。</li>
-<li><strong>InputStream / OutputStream 装饰</strong>：Java I / O 中 <code>BufferedInputStream</code> 装饰 <code>InputStream</code> 等；Spring 的 <code>Resource</code> 包装（如 <code>EncodedResource</code>）也是装饰思想。</li>
-<li><strong>AOP 切面</strong>：从效果上，对 Bean 方法加事务、日志、权限，相当于对 “方法调用” 做多层装饰，Spring 用代理实现而非手写装饰类。</li>
+<li><strong>String 常量池、Integer 缓存</strong>：JVM / JDK 层面的 “享元”，相同内容的 String、小范围 Integer 共享实例；Spring 未单独实现，但业务中大量用 String 作为 key、缓存 key 时天然受益。</li>
+<li><strong>Bean 单例</strong>：单例 Bean 在容器内共享，可视为 “按 Bean 定义共享的实例”，与享元 “按 key 共享” 思想一致。</li>
+<li><strong>元数据、配置的缓存</strong>：如反射得到的 Method、Annotation 等元数据，Spring 会缓存复用，避免重复解析；可视为 “按类 / 方法等 key 的享元”。</li>
+<li><strong>线程池、连接池</strong>：池中的线程、连接是 “可复用对象”，与享元 “复用对象” 的目标一致，只是通常不叫 Flyweight 名字。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>动态叠加能力</strong>：如对 “读数据” 叠加缓存、日志、限流、脱敏，可任意组合且不修改原类。</li>
-<li><strong>与事务 / 生命周期挂钩</strong>：如 “缓存在事务提交后写入”，用装饰器包装原有 Cache 实现。</li>
-<li><strong>兼容老接口</strong>：老接口返回的数据需要在新逻辑里做一层包装（如加版本、加元数据），用装饰器包装返回值。</li>
-<li><strong>流式 / 管道处理</strong>：数据流经多道处理（压缩、加密、校验），每道用装饰器包装上一级流。</li>
+<li><strong>大量相似对象且可区分内在 / 外在</strong>：如棋牌游戏中 “牌面” 可共享（内在），每张牌的 “位置、归属” 由外部传入（外在）；文档编辑器中 “字符样式” 共享，“位置” 外在。</li>
+<li><strong>缓存、池化</strong>：按 key 缓存对象（如按配置 key 缓存解析结果），无则创建并放入池，有则直接返回，本质是享元工厂。</li>
+<li><strong>减少重复解析 / 编译</strong>：如模板引擎中相同模板只编译一次；规则引擎中相同规则只编译一次，运行时只传不同参数。</li>
+<li><strong>枚举、常量类</strong>：有限个实例对应有限个 “内在状态”，全应用共享，是享元的简化形式。</li>
 </ul>
-<p><strong>不适用</strong>：行为固定、不需要多种组合增强时，直接继承或一个工具类即可。</p>
+<p><strong>不适用</strong>：对象之间几乎没有可共享状态、或对象数量很少时，享元收益不大。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>装饰器模式通过 “实现同一接口 + 持有被装饰对象 + 前后增强” 动态增加职责；Spring 中 <strong>TransactionAwareCacheDecorator</strong>、<strong>Resource 包装</strong>、<strong>AOP 增强</strong> 体现了装饰思想。业务上适用于<strong>动态叠加能力、与事务 / 生命周期挂钩、兼容老接口、流式处理</strong>等场景。</p>
+<p>享元模式通过 “内在状态共享 + 外在状态参数化” 减少对象数量与内存；Spring 中 <strong>单例 Bean</strong>、<strong>元数据缓存</strong>、<strong>池化</strong> 体现了共享复用思想。业务上适用于<strong>大量相似对象、缓存/池化、减少重复解析/编译、枚举/常量</strong>等场景。</p>
 
       
     </div>
@@ -1479,7 +1479,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-10-facade/">
+    <link itemprop="mainEntityOfPage" href="https://cartery2022.github.io/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1497,7 +1497,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/01/2025-03-02-design-pattern-10-facade/" class="post-title-link" itemprop="url">设计模式（十）外观模式 — 详解、Spring 运用与业务场景</a>
+          <a href="/2025/03/01/2025-03-02-design-pattern-13-chain-of-responsibility/" class="post-title-link" itemprop="url">设计模式（十三）责任链模式 — 详解、Spring 运用与业务场景</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1515,7 +1515,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1527,7 +1527,7 @@
         </span>
           ，
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">结构型</span></a>
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">行为型</span></a>
         </span>
     </span>
 
@@ -1537,7 +1537,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.4k</span>
+      <span>1.3k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -1555,39 +1555,39 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="外观模式facade"><a class="markdownIt-Anchor" href="#外观模式facade"></a> 外观模式（Facade）</h1>
+          <h1 id="责任链模式chain-of-responsibility"><a class="markdownIt-Anchor" href="#责任链模式chain-of-responsibility"></a> 责任链模式（Chain of Responsibility）</h1>
 <h2 id="一-模式概述"><a class="markdownIt-Anchor" href="#一-模式概述"></a> 一、模式概述</h2>
-<p><strong>外观模式</strong>为子系统中的一组接口提供一个统一的高层接口，使子系统更易使用。</p>
-<p><strong>解决的问题</strong>：子系统内类多、接口复杂，客户若直接依赖多个类则耦合高、调用繁琐；外观提供一个 “门面”，把常用流程封装成简单接口。</p>
-<p><strong>定义</strong>：为子系统中的一组接口提供一个一致的界面，Facade 定义了一个高层接口，使子系统更易使用。</p>
+<p><strong>责任链模式</strong>使多个对象都有机会处理请求，将这些对象连成一条链，并沿链传递请求，直到有对象处理为止。</p>
+<p><strong>解决的问题</strong>：请求的发送者与多个处理者解耦，处理者可动态组合、顺序可调，且可随时增删节点。</p>
+<p><strong>定义</strong>：将请求的发送者和接收者解耦，使多个对象都有机会处理该请求；将这些对象连成链，并沿链传递请求。</p>
 <hr>
 <h2 id="二-结构与角色"><a class="markdownIt-Anchor" href="#二-结构与角色"></a> 二、结构与角色</h2>
 <ul>
-<li><strong>Facade</strong>：外观类，持有子系统若干模块的引用，提供少量高层方法，内部编排对子系统的调用。</li>
-<li><strong>Subsystem classes</strong>：子系统中的多个类，各自负责一部分功能；客户可通过 Facade 间接使用，也可直接使用（若需要细粒度控制）。</li>
+<li><strong>Handler</strong>：抽象处理者，定义处理接口并持有后继者（next），在 handle 中可选地调用 next.handle()。</li>
+<li><strong>ConcreteHandler</strong>：具体处理者，能处理则处理并返回，否则交给后继。</li>
 </ul>
 <p><strong>示例</strong>：</p>
-<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleA</span> { <span class="keyword">void</span> <span class="title function_">doA</span><span class="params">()</span> {} }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleB</span> { <span class="keyword">void</span> <span class="title function_">doB</span><span class="params">()</span> {} }</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ModuleC</span> { <span class="keyword">void</span> <span class="title function_">doC</span><span class="params">()</span> {} }</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Facade</span> {</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleA</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleA</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleB</span> <span class="variable">b</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleB</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ModuleC</span> <span class="variable">c</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModuleC</span>();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doOneThing</span><span class="params">()</span> {</span><br><span class="line">        a.doA();</span><br><span class="line">        b.doB();</span><br><span class="line">        c.doC();</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">protected</span> Handler next;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setNext</span><span class="params">(Handler next)</span> { <span class="built_in">this</span>.next = next; }</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span>;</span><br><span class="line">}</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">HandlerA</span> <span class="keyword">extends</span> <span class="title class_">Handler</span> {</span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(Request req)</span> {</span><br><span class="line">        <span class="keyword">if</span> (canHandle(req)) { <span class="comment">/* 处理 */</span> <span class="keyword">return</span>; }</span><br><span class="line">        <span class="keyword">if</span> (next != <span class="literal">null</span>) next.handle(req);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">canHandle</span><span class="params">(Request req)</span> { <span class="keyword">return</span> <span class="literal">true</span>; }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 <hr>
 <h2 id="三-在-spring-中的运用"><a class="markdownIt-Anchor" href="#三-在-spring-中的运用"></a> 三、在 Spring 中的运用</h2>
 <ul>
-<li><strong>SpringMVC 的 DispatcherServlet</strong>：对请求处理流程的统一入口，内部编排 HandlerMapping、HandlerAdapter、ViewResolver 等，对 “一次 HTTP 请求” 提供 “查 Handler → 适配执行 → 解析视图” 的简化视图，是典型外观。</li>
-<li><strong>JdbcTemplate</strong>：对 JDBC 的 Connection/Statement/ResultSet 的获取、异常转换、资源关闭做封装，对外提供 <code>query/update</code> 等简单 API，降低直接使用 JDBC 的复杂度。</li>
-<li><strong>Spring Boot 的自动配置与 Starter</strong>：如 <code>spring-boot-starter-web</code> 对外暴露 “开箱即用” 的 Web 能力，背后整合 Tomcat、MVC、Jackson 等，可视为 “模块组” 的外观。</li>
-<li><strong>Tomcat 的 RequestFacade / ResponseFacade</strong>：对 ServletRequest / ServletResponse 的封装，隐藏内部实现细节，避免用户拿到内部对象后误操作。</li>
+<li><strong>Filter 链（Servlet / Spring Security）</strong>：请求依次经过多个 Filter，每个 Filter 可决定是否放行、是否继续链；Spring Security 的 FilterChainProxy 编排多个 SecurityFilter，是责任链。</li>
+<li><strong>HandlerInterceptor</strong>：Spring MVC 中 preHandle/postHandle/afterCompletion 构成 “拦截链”，多个 Interceptor 按顺序执行，任一 preHandle 返回 false 可中断。</li>
+<li><strong>AOP 的 Advice 链</strong>：多个 Advisor / Advice 组成拦截链，按顺序执行，可视为责任链。</li>
+<li><strong>异常解析链</strong>：HandlerExceptionResolver 有多个实现，按顺序尝试解析异常，直到某个能处理为止。</li>
 </ul>
 <hr>
 <h2 id="四-适用业务场景"><a class="markdownIt-Anchor" href="#四-适用业务场景"></a> 四、适用业务场景</h2>
 <ul>
-<li><strong>简化子系统使用</strong>：如 “下单” 涉及库存、订单、支付、消息等多个服务，对外提供 <code>OrderFacade.placeOrder()</code>，内部编排调用，减少调用方对多模块的依赖。</li>
-<li><strong>统一入口与流程</strong>：如 “报表生成” 需查库、计算、导出，用 ReportFacade 封装步骤，调用方只调一个方法。</li>
-<li><strong>降低升级影响</strong>：子系统内部重构时，只要外观接口不变，调用方无需改动。</li>
-<li><strong>为第三方 / 遗留系统提供简版 API</strong>：把复杂、难用的 API 包一层，只暴露业务需要的少量方法。</li>
+<li><strong>多级审批、工作流</strong>：请求按 “一级 → 二级 → 三级” 传递，每级能处理则处理并结束，否则交给下一级。</li>
+<li><strong>请求预处理 / 后处理</strong>：如鉴权 → 限流 → 日志 → 业务，每步可中断或放行。</li>
+<li><strong>异常 / 错误处理</strong>：多种异常处理器按顺序尝试，直到某个能处理（转换、记录、返回统一格式）。</li>
+<li><strong>管道式处理</strong>：数据经多道 “处理器”（校验、转换、丰富、落库），每道可选处理或跳过。</li>
 </ul>
-<p><strong>不适用</strong>：调用方需要细粒度控制子系统每一步、或子系统本身很简单时，不必强行加外观。</p>
+<p><strong>不适用</strong>：请求必然只由一个固定对象处理、或处理逻辑无 “链式传递” 需求时。</p>
 <hr>
 <h2 id="五-小结"><a class="markdownIt-Anchor" href="#五-小结"></a> 五、小结</h2>
-<p>外观模式通过 “统一高层接口 + 内部编排子系统” 降低使用复杂度；Spring 中 <strong>DispatcherServlet</strong>、<strong>JdbcTemplate</strong>、<strong>Boot Starter</strong>、<strong>RequestFacade/ResponseFacade</strong> 都是外观思想的体现。业务上适用于<strong>简化多模块调用、统一流程入口、隔离变化、包装复杂 API</strong> 等场景。</p>
+<p>责任链模式通过 “处理者持有后继 + 沿链传递请求” 实现发送者与多个处理者解耦；Spring 中 <strong>Filter/FilterChain</strong>、<strong>HandlerInterceptor</strong>、<strong>AOP 链</strong>、<strong>HandlerExceptionResolver</strong> 是典型应用。业务上适用于<strong>多级审批、请求预处理链、异常解析链、管道处理</strong>等场景。</p>
 
       
     </div>
@@ -1629,13 +1629,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">106k</span>
+    <span title="站点总字数">110k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:36</span>
+    <span title="站点阅读时长">1:40</span>
   </span>
 </div>
 <div class="busuanzi-count">

@@ -30,7 +30,7 @@
 <meta property="og:description" content="Java 动态代理原理与 Java 9+ 改动 本文说明 JDK 动态代理（java.lang.reflect.Proxy + InvocationHandler）的原理、用法与限制，并单独梳理 Java 9 及以后版本 对动态代理的改动（模块化、代理类包与可见性、ProxyGenerator 位置等）。   一、什么是动态代理 动态代理：在运行时动态生成 “代理类” 的字节码并加载，由代理类把">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-03-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-03-27T07:25:43.733Z">
+<meta property="article:modified_time" content="2026-03-27T07:42:13.775Z">
 <meta property="article:author" content="cartery">
 <meta property="article:tag" content="java">
 <meta property="article:tag" content="动态代理">
@@ -180,7 +180,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E5%8E%9F%E7%90%86%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> Java 动态代理原理与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AF%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、什么是动态代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E6%A0%B8%E5%BF%83-api"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、核心 API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-proxy"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 Proxy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-invocationhandler"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 InvocationHandler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E6%BA%90%E7%A0%81%E5%B1%82%E9%9D%A2"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、工作原理（源码层面）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-newproxyinstance-%E6%B5%81%E7%A8%8B%E6%A6%82%E8%A6%81"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 newProxyInstance 流程概要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-%E7%94%9F%E6%88%90%E7%9A%84%E4%BB%A3%E7%90%86%E7%B1%BB%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 生成的代理类长什么样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-%E9%87%8D%E8%A6%81%E9%99%90%E5%88%B6"><span class="nav-number">1.4.3.</span> <span class="nav-text"> 4.3 重要限制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-java-9-%E5%8F%8A%E4%BB%A5%E5%90%8E%E5%AF%B9%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E7%9A%84%E6%94%B9%E5%8A%A8"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、Java 9 及以后对动态代理的改动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-%E6%A8%A1%E5%9D%97%E7%B3%BB%E7%BB%9F%E4%B8%8E%E4%BB%A3%E7%90%86%E7%B1%BB%E7%9A%84%E5%8C%85-%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 模块系统与代理类的包、可见性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-proxygenerator-%E4%BD%8D%E7%BD%AE%E4%B8%8E%E4%BF%9D%E5%AD%98%E4%BB%A3%E7%90%86%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 ProxyGenerator 位置与保存代理类字节码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-%E6%A0%B8%E5%BF%83-api-%E4%BF%9D%E6%8C%81%E4%B8%8D%E5%8F%98"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 核心 API 保持不变</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%B8%8E-cglib-%E7%9A%84%E7%AE%80%E8%A6%81%E5%AF%B9%E6%AF%94"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、与 CGLIB 的简要对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、小结</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#java-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E5%8E%9F%E7%90%86%E4%B8%8E-java-9-%E6%94%B9%E5%8A%A8"><span class="nav-number">1.</span> <span class="nav-text"> Java 动态代理原理与 Java 9+ 改动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%BB%80%E4%B9%88%E6%98%AF%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text"> 一、什么是动态代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-%E6%A0%B8%E5%BF%83-api"><span class="nav-number">1.2.</span> <span class="nav-text"> 二、核心 API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#21-proxy"><span class="nav-number">1.2.1.</span> <span class="nav-text"> 2.1 Proxy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#22-invocationhandler"><span class="nav-number">1.2.2.</span> <span class="nav-text"> 2.2 InvocationHandler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-%E4%BD%BF%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.</span> <span class="nav-text"> 三、使用示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E6%BA%90%E7%A0%81%E5%B1%82%E9%9D%A2"><span class="nav-number">1.4.</span> <span class="nav-text"> 四、工作原理（源码层面）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#41-proxynewproxyinstance-%E6%BA%90%E7%A0%81%E4%B8%BB%E5%B9%B2javalangreflectproxy"><span class="nav-number">1.4.1.</span> <span class="nav-text"> 4.1 Proxy.newProxyInstance 源码主干（java.lang.reflect.Proxy）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-%E7%94%9F%E6%88%90%E7%9A%84%E4%BB%A3%E7%90%86%E7%B1%BB%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="nav-number">1.4.2.</span> <span class="nav-text"> 4.2 生成的代理类长什么样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-%E9%87%8D%E8%A6%81%E9%99%90%E5%88%B6"><span class="nav-number">1.4.3.</span> <span class="nav-text"> 4.3 重要限制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94-%E7%9F%A5%E8%AF%86%E7%82%B9%E6%BC%94%E5%8F%98%E8%87%AA-java-8-%E8%B5%B7%E6%8C%89%E6%97%B6%E9%97%B4%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.5.</span> <span class="nav-text"> 五、知识点演变（自 Java 8 起按时间顺序）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#51-java-8%E5%9F%BA%E7%BA%BF"><span class="nav-number">1.5.1.</span> <span class="nav-text"> 5.1 Java 8（基线）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#52-java-9-%E5%8F%8A%E4%BB%A5%E5%90%8E"><span class="nav-number">1.5.2.</span> <span class="nav-text"> 5.2 Java 9 及以后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-%E5%B0%8F%E7%BB%93%E8%A1%A8"><span class="nav-number">1.5.3.</span> <span class="nav-text"> 5.3 小结表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD-%E4%B8%8E-cglib-%E7%9A%84%E7%AE%80%E8%A6%81%E5%AF%B9%E6%AF%94"><span class="nav-number">1.6.</span> <span class="nav-text"> 六、与 CGLIB 的简要对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83-%E5%B0%8F%E7%BB%93"><span class="nav-number">1.7.</span> <span class="nav-text"> 七、小结</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -204,7 +204,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">60</span>
+        <span class="site-state-item-count">59</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -267,7 +267,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 15:25:43" itemprop="dateModified" datetime="2026-03-27T15:25:43+08:00">2026-03-27</time>
+      <time title="修改时间：2026-03-27 15:42:13" itemprop="dateModified" datetime="2026-03-27T15:42:13+08:00">2026-03-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +296,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>3.9k</span>
+      <span>4.2k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -347,13 +347,10 @@
 </ul>
 <hr>
 <h2 id="四-工作原理源码层面"><a class="markdownIt-Anchor" href="#四-工作原理源码层面"></a> 四、工作原理（源码层面）</h2>
-<h3 id="41-newproxyinstance-流程概要"><a class="markdownIt-Anchor" href="#41-newproxyinstance-流程概要"></a> 4.1 newProxyInstance 流程概要</h3>
-<ol>
-<li>校验：<code>loader</code>、<code>interfaces</code> 非空，接口均为接口类型且由同一 loader 加载等。</li>
-<li><strong>查找或生成代理类</strong>：以 <code>(loader, interfaces)</code> 为 key 查缓存；若无则用 <strong>ProxyGenerator</strong>（或内部等价实现）生成代理类字节码，再通过 <code>Unsafe.defineClass</code> 或 <code>ClassLoader.defineClass</code> 加载。</li>
-<li><strong>实例化</strong>：取代理类的唯一构造器，参数类型为 <code>InvocationHandler</code>，传入 <code>h</code>，<code>newInstance(h)</code> 得到代理实例。</li>
-<li>返回该实例。</li>
-</ol>
+<h3 id="41-proxynewproxyinstance-源码主干javalangreflectproxy"><a class="markdownIt-Anchor" href="#41-proxynewproxyinstance-源码主干javalangreflectproxy"></a> 4.1 <code>Proxy.newProxyInstance</code> 源码主干（<code>java.lang.reflect.Proxy</code>）</h3>
+<p>入口完成<strong>参数校验</strong>（<code>interfaces</code> 非空、元素均为接口、类加载器一致等），再取得<strong>代理类 <code>Class</code> 与构造器</strong>，最后用 <strong><code>AccessController.doPrivileged</code></strong> 包一层<strong>特权反射</strong>，以 <strong><code>InvocationHandler</code> 为唯一入参</strong> <strong><code>newInstance</code></strong> 出代理对象（JDK 版本间 <code>invoke</code> 无参构造 / <code>Constructor.newInstance</code> 细节略有整理，语义不变）。</p>
+<figure class="highlight java"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CallerSensitive</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Object <span class="title function_">newProxyInstance</span><span class="params">(ClassLoader loader,</span></span><br><span class="line"><span class="params">                                      Class&lt;?&gt;[] interfaces,</span></span><br><span class="line"><span class="params">                                      InvocationHandler h)</span> {</span><br><span class="line">    Objects.requireNonNull(h);</span><br><span class="line">    <span class="keyword">final</span> Class&lt;?&gt;[] intfs = interfaces.clone();</span><br><span class="line">    <span class="comment">// 安全与模块检查、生成或取缓存的代理类 Class clazz …</span></span><br><span class="line">    <span class="keyword">try</span> {</span><br><span class="line">        Constructor&lt;?&gt; cons = clazz.getConstructor(InvocationHandler.class);</span><br><span class="line">        <span class="keyword">return</span> cons.newInstance(h);</span><br><span class="line">    } <span class="keyword">catch</span> (ReflectiveOperationException e) {</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">InternalError</span>(e.toString(), e);</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<p><strong>代理类从哪来</strong>：<strong><code>Proxy.getProxyConstructor(loader, interfaces)</code></strong>（内部再 <strong><code>getProxyClass0</code></strong>）维护 <strong><code>loader + 接口签名 → Class</code></strong> 的<strong>软引用缓存</strong>；缓存未命中时由 <strong><code>ProxyGenerator.generateProxyClass</code></strong>（或同职责实现）生成字节码，再通过 <strong>定义类 API</strong>（历史上常见 <strong><code>Unsafe.defineClass</code> / <code>Lookup.defineHiddenClass</code></strong> 一类路径，随 JDK 演进）装入 <strong><code>loader</code></strong>。</p>
 <h3 id="42-生成的代理类长什么样"><a class="markdownIt-Anchor" href="#42-生成的代理类长什么样"></a> 4.2 生成的代理类长什么样</h3>
 <ul>
 <li>类名：通常为 <strong>com.sun.proxy.$ProxyN</strong>（N 为递增数字），Java 9+ 在模块化下可能处于 “动态模块”，见第五节。</li>
@@ -370,9 +367,17 @@
 <li><strong>Object 方法</strong>：<code>equals</code>、<code>hashCode</code>、<code>toString</code> 也会转发到 handler；其他 Object 方法（如 <code>getClass()</code>）不转发，由代理类自身实现。</li>
 </ul>
 <hr>
-<h2 id="五-java-9-及以后对动态代理的改动"><a class="markdownIt-Anchor" href="#五-java-9-及以后对动态代理的改动"></a> 五、Java 9 及以后对动态代理的改动</h2>
-<h3 id="51-模块系统与代理类的包-可见性"><a class="markdownIt-Anchor" href="#51-模块系统与代理类的包-可见性"></a> 5.1 模块系统与代理类的包、可见性</h3>
-<p>Java 9 引入模块后，代理类的 <strong>包与可见性</strong> 受 “代理接口所在包是否被当前模块导出 / 打开” 影响：</p>
+<h2 id="五-知识点演变自-java-8-起按时间顺序"><a class="markdownIt-Anchor" href="#五-知识点演变自-java-8-起按时间顺序"></a> 五、知识点演变（自 Java 8 起按时间顺序）</h2>
+<p>JDK 动态代理早于 Java 8 已存在；本节从 <strong>Java 8</strong> 起按版本发布时间叙述，不向前追溯。</p>
+<h3 id="51-java-8基线"><a class="markdownIt-Anchor" href="#51-java-8基线"></a> 5.1 Java 8（基线）</h3>
+<ul>
+<li><strong>公开 API</strong>：<strong><code>Proxy.newProxyInstance</code></strong>、<strong><code>InvocationHandler.invoke</code></strong> 的用法与当今一致。</li>
+<li><strong>内部</strong>：<strong><code>sun.misc.ProxyGenerator</code></strong>（非标准、不推荐依赖）；调试保存字节码可用 <strong><code>-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true</code></strong>。</li>
+</ul>
+<h3 id="52-java-9-及以后"><a class="markdownIt-Anchor" href="#52-java-9-及以后"></a> 5.2 Java 9 及以后</h3>
+<ul>
+<li><strong>JPMS</strong>：代理类的 <strong>包与模块可见性</strong> 依赖接口所在包是否 <strong>导出 / 打开</strong>；若有接口在 <strong>未导出且未打开</strong> 的包中，代理类位于 <strong>动态模块</strong>，应用应通过 <strong><code>Proxy.newProxyInstance</code></strong> 创建，避免对代理类 <strong><code>Constructor.newInstance</code></strong> 反射失败（<strong><code>IllegalAccessException</code></strong>）。</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -383,45 +388,40 @@
 <tbody>
 <tr>
 <td>所有代理接口都在<strong>已导出或已打开</strong>的包中</td>
-<td>代理类在 “未命名包” 或实现定义的包中（如 com.sun.proxy），公共接口时一般为 public</td>
+<td>代理类在约定实现包（如 com.sun.proxy），公共接口时一般为 public</td>
 </tr>
 <tr>
 <td>至少一个代理接口在<strong>未导出且未打开</strong>的包中</td>
-<td>代理类在 <strong>动态模块</strong> 中；若通过 <code>Constructor.newInstance()</code> 在代理类上反射创建实例，可能抛 <code>IllegalAccessException</code>，应使用 <strong>Proxy.newProxyInstance()</strong> 创建</td>
+<td>代理类在 <strong>动态模块</strong>；须用 <strong>Proxy.newProxyInstance()</strong></td>
 </tr>
 </tbody>
 </table>
-<p>要点：当接口来自未导出包时，代理类被放在 “动态模块” 里，与普通模块的访问规则一致，不能随意反射实例化，必须走 <code>Proxy.newProxyInstance()</code>。</p>
-<h3 id="52-proxygenerator-位置与保存代理类字节码"><a class="markdownIt-Anchor" href="#52-proxygenerator-位置与保存代理类字节码"></a> 5.2 ProxyGenerator 位置与保存代理类字节码</h3>
+<ul>
+<li><strong>ProxyGenerator</strong> 迁至 <strong>jdk.internal</strong> 等非导出路径；保存生成类改用 <strong><code>-Djdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong>。</li>
+</ul>
+<h3 id="53-小结表"><a class="markdownIt-Anchor" href="#53-小结表"></a> 5.3 小结表</h3>
 <table>
 <thead>
 <tr>
-<th>项目</th>
-<th>Java 8</th>
-<th>Java 9+</th>
+<th>顺序</th>
+<th>版本</th>
+<th>要点</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>ProxyGenerator 所在包</strong></td>
-<td><code>sun.misc.ProxyGenerator</code>（不推荐依赖）</td>
-<td>移至 <strong>jdk.internal</strong>（如 <code>jdk.internal.reflect</code>），非导出 API</td>
+<td>①</td>
+<td><strong>Java 8</strong></td>
+<td>API 定型；sun.misc 调试开关</td>
 </tr>
 <tr>
-<td><strong>保存生成的 .class 文件</strong></td>
-<td><code>-Dsun.misc.ProxyGenerator.saveGeneratedFiles=true</code></td>
-<td><strong><code>-Djdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong></td>
+<td>②</td>
+<td><strong>Java 9+</strong></td>
+<td>模块与动态模块；内部迁移与新调试属性</td>
 </tr>
 </tbody>
 </table>
-<p>调试时若要把运行时生成的代理类 dump 到磁盘，Java 9+ 需使用新系统属性 <strong><code>jdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong>；不要依赖 <code>sun.misc.ProxyGenerator</code>，内部实现可能随时调整。</p>
-<h3 id="53-核心-api-保持不变"><a class="markdownIt-Anchor" href="#53-核心-api-保持不变"></a> 5.3 核心 API 保持不变</h3>
-<ul>
-<li><strong>Proxy.newProxyInstance(ClassLoader, Class&lt;?&gt;[], InvocationHandler)</strong> 的签名与语义未变。</li>
-<li><strong>InvocationHandler.invoke</strong> 的约定未变。</li>
-<li>代理类仍继承 <code>Proxy</code>、实现指定接口，方法转发到 handler。<br>
-因此 “怎么用” 在 8 与 9+ 一致，变化主要在 “代理类放在哪个模块/包、如何生成与加载” 以及调试/内部实现细节。</li>
-</ul>
+<p><strong>对外</strong>：<strong><code>Proxy.newProxyInstance</code></strong> / <strong><code>InvocationHandler</code></strong> 的签名与语义不变。</p>
 <hr>
 <h2 id="六-与-cglib-的简要对比"><a class="markdownIt-Anchor" href="#六-与-cglib-的简要对比"></a> 六、与 CGLIB 的简要对比</h2>
 <table>
@@ -461,7 +461,7 @@
 <ul>
 <li><strong>JDK 动态代理</strong>：通过 <strong>Proxy.newProxyInstance</strong> 传入类加载器、接口数组和 <strong>InvocationHandler</strong>，在运行时生成实现这些接口的代理类，所有接口方法（以及 equals/hashCode/toString）调用都转到 <strong>handler.invoke</strong>，常用于 AOP、RPC 客户端等。</li>
 <li><strong>限制</strong>：只能基于接口；代理类继承 <code>Proxy</code>，由内部 ProxyGenerator 生成字节码并加载。</li>
-<li><strong>Java 9+</strong>：模块化下代理类可能位于 “动态模块”，未导出包中的接口会影响代理类的可访问性；ProxyGenerator 移入 jdk.internal，保存生成文件改用 <strong><code>jdk.proxy.ProxyGenerator.saveGeneratedFiles=true</code></strong>；对外 API 不变，现有基于 Proxy + InvocationHandler 的代码可继续使用。</li>
+<li><strong>演变</strong>：自 <strong>Java 8</strong> 基线到 <strong>Java 9+</strong> 的模块、动态模块与 <strong>ProxyGenerator</strong> 内部迁移；保存字节码改用 <strong><code>jdk.proxy.ProxyGenerator.saveGeneratedFiles</code></strong>；<strong>对外 API 不变</strong>。</li>
 </ul>
 
     </div>
@@ -472,8 +472,8 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="tag"># 源码解读</a>
               <a href="/tags/java/" rel="tag"># java</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/" rel="tag"># 源码解读</a>
               <a href="/tags/%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" rel="tag"># 动态代理</a>
           </div>
 
@@ -481,13 +481,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-thread-pool-complete-and-java9-changes/" rel="prev" title="Java 线程池知识点与 Java 9+ 改动">
-                  <i class="fa fa-angle-left"></i> Java 线程池知识点与 Java 9+ 改动
+                <a href="/2025/03/01/2025-03-02-java-reentrantlock-and-jdk-changes/" rel="prev" title="ReentrantLock 详解与 JDK 演进">
+                  <i class="fa fa-angle-left"></i> ReentrantLock 详解与 JDK 演进
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/03/01/2025-03-02-java-string-stringbuffer-stringbuilder-source/" rel="next" title="String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动">
-                  String、StringBuffer、StringBuilder 源码解读与 Java 9+ 改动 <i class="fa fa-angle-right"></i>
+                <a href="/2025/03/01/2025-03-02-design-pattern-22-template-method/" rel="next" title="设计模式（二十二）模板方法模式 — 详解、Spring 运用与业务场景">
+                  设计模式（二十二）模板方法模式 — 详解、Spring 运用与业务场景 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -519,13 +519,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">106k</span>
+    <span title="站点总字数">110k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">1:36</span>
+    <span title="站点阅读时长">1:40</span>
   </span>
 </div>
 <div class="busuanzi-count">

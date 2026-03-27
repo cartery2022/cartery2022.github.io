@@ -4,8 +4,6 @@ date: 2025-03-02
 tags:
   - java
   - 序列化
-  - ObjectOutputStream
-  - ObjectInputStream
   - 源码解读
 categories:
   - Java

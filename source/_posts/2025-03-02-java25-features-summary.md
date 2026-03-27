@@ -4,12 +4,9 @@ date: 2025-03-02
 tags:
   - java
   - Java25
-  - LTS
-  - 模式匹配
-  - 作用域值
-  - 结构化并发
 categories:
   - Java
+  - 新版本特性
 ---
 
 # Java 25 新特性总结与示例

@@ -212,7 +212,7 @@ public StringBuilder append(String str) {
 
 ### 5.3 后续版本中的小补充
 
-- **Java 11**：String 增加 **isBlank()、strip()、repeat()、lines()** 等（你已在 Java 11 博文中写过），内部实现基于 byte[]+coder。
+- **Java 11**：String 增加 **isBlank()、strip()、repeat()、lines()** 等，内部实现基于 byte[]+coder。
 - **Java 17**：**String.format()** 等实现有优化，性能有提升。
 - **Java 21**：**字符串模板**（JEP 430 预览）提供新的字符串构建方式；String 构造器在处理 **可变数组参数** 时的拷贝与健壮性增强，避免调用方在构造后修改数组影响 String 内容。
 

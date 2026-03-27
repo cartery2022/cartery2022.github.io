@@ -4,11 +4,9 @@ date: 2025-03-02
 tags:
   - java
   - Java17
-  - LTS
-  - 密封类
-  - 模式匹配
 categories:
   - Java
+  - 新版本特性
 ---
 
 # Java 17 新特性总结与示例

@@ -4,12 +4,9 @@ date: 2025-03-02
 tags:
   - java
   - Java21
-  - LTS
-  - 虚拟线程
-  - 记录模式
-  - 模式匹配
 categories:
   - Java
+  - 新版本特性
 ---
 
 # Java 21 新特性总结与示例

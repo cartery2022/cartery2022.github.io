@@ -4,10 +4,9 @@ date: 2025-03-02
 tags:
   - java
   - Java11
-  - LTS
-  - HTTP Client
 categories:
   - Java
+  - 新版本特性
 ---
 
 # Java 11 新特性总结与示例

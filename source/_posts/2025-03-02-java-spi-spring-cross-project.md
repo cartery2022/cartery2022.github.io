@@ -4,9 +4,7 @@ date: 2025-03-02
 tags:
   - java
   - SPI
-  - ServiceLoader
   - Spring
-  - 自动配置
 categories:
   - Java
   - Spring

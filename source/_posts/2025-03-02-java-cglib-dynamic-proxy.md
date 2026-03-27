@@ -5,8 +5,6 @@ tags:
   - java
   - CGLIB
   - 动态代理
-  - Enhancer
-  - MethodInterceptor
 categories:
   - Java
   - 源码解读

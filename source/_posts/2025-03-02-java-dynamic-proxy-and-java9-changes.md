@@ -4,8 +4,6 @@ date: 2025-03-02
 tags:
   - java
   - 动态代理
-  - Proxy
-  - InvocationHandler
   - 源码解读
 categories:
   - Java

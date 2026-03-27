@@ -4,11 +4,9 @@ date: 2025-03-02
 tags:
   - java
   - Java8
-  - Lambda
-  - Stream
-  - 函数式编程
 categories:
   - Java
+  - 新版本特性
 ---
 
 # Java 8 新特性总结与示例
